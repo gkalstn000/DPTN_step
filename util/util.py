@@ -2,7 +2,9 @@
 Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
 Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 """
+import torch
 import numpy as np
+from PIL import Image
 
 import os
 import json
@@ -21,6 +23,8 @@ def make_coord_array(keypoint_y, keypoint_x):
 
 
 
+# ============================ for heatmap ============================
+# =====================================================================
 def cords_to_map(cords, img_size, sigma=6):
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
@@ -38,9 +42,6 @@ def cords_to_map(cords, img_size, sigma=6):
         xx, yy = np.meshgrid(np.arange(img_size[1]), np.arange(img_size[0]))
         result[..., i] = np.exp(-((yy - point_0) ** 2 + (xx - point_1) ** 2) / (2 * sigma ** 2))
     return result
-
-# ============================ for heatmap ============================
-# =====================================================================
 
 def limbs_to_map(cords, img_size, sigma=8) :
     '''
@@ -114,3 +115,19 @@ def save_image_from_array(array, filename) :
     img = Image.fromarray((array.numpy().max(0) * 255).astype(np.uint8))
     mkdirs('./tmp')
     img.save(f'tmp/{filename}.jpg')
+
+# model parameter I/O
+def load_network(net, label, epoch, opt):
+    save_filename = '%s_net_%s.pth' % (epoch, label)
+    save_dir = os.path.join(opt.checkpoints_dir, opt.id)
+    save_path = os.path.join(save_dir, save_filename)
+    weights = torch.load(save_path)
+    net.load_state_dict(weights)
+    return net
+def save_network(net, label, epoch, opt):
+    save_filename = '%s_net_%s.pth' % (epoch, label)
+    save_path = os.path.join(opt.checkpoints_dir, opt.id, save_filename)
+    torch.save(net.cpu().state_dict(), save_path)
+    if len(opt.gpu_ids) and torch.cuda.is_available():
+        net.cuda()
+# model parameter I/O

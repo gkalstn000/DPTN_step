@@ -26,7 +26,12 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--beta1', type=float, default=0.0, help='momentum term of adam')
         parser.add_argument('--beta2', type=float, default=0.9, help='momentum term of adam')
         parser.add_argument('--lr', type=float, default=0.0002, help='initial learning rate for adam')
-
+        parser.add_argument('--no_TTUR', action='store_true', help='Use TTUR training scheme')
+        # the default values for beta1 and beta2 differ by TTUR option
+        opt, _ = parser.parse_known_args()
+        if opt.no_TTUR:
+            parser.set_defaults(beta1=0.5, beta2=0.999)
+        parser.add_argument('--D_steps_per_G', type=int, default=1, help='number of discriminator iterations per generator iterations.')
 
 
         self.isTrain = True
