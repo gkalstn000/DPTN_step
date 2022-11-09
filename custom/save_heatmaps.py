@@ -6,7 +6,7 @@ import torch
 from util.util import mkdirs
 from tqdm import tqdm
 
-mode = 'train'
+mode = 'test'
 root = './datasets/fashion'
 save_path = os.path.join(root, f'{mode}_map')
 mkdirs(save_path)

@@ -1,8 +1,21 @@
 import torch
-from models.networks.base_network import BaseNetwork
+from models.dptn_networks.base_network import BaseNetwork
 
 import importlib
 
+
+def modify_commandline_options(parser, is_train):
+    opt, _ = parser.parse_known_args()
+
+    netG_cls = find_network_using_name(opt.netG, 'generator')
+    parser = netG_cls.modify_commandline_options(parser, is_train)
+    if is_train:
+        netD_cls = find_network_using_name(opt.netD, 'discriminator')
+        parser = netD_cls.modify_commandline_options(parser, is_train)
+    netE_cls = find_network_using_name('conv', 'encoder')
+    parser = netE_cls.modify_commandline_options(parser, is_train)
+
+    return parser
 
 def find_class_in_module(target_cls_name, module):
     target_cls_name = target_cls_name.replace('_', '').lower()
@@ -20,7 +33,7 @@ def find_class_in_module(target_cls_name, module):
 
 def find_network_using_name(target_network_name, filename):
     target_class_name = target_network_name + filename
-    module_name = 'models.networks.' + filename
+    module_name = 'models.dptn_networks.' + filename
     network = find_class_in_module(target_class_name, module_name)
 
     assert issubclass(network, BaseNetwork), \
@@ -28,18 +41,6 @@ def find_network_using_name(target_network_name, filename):
 
     return network
 
-def modify_commandline_options(parser, is_train):
-    opt, _ = parser.parse_known_args()
-
-    netG_cls = find_network_using_name(opt.netG, 'generator')
-    parser = netG_cls.modify_commandline_options(parser, is_train)
-    if is_train:
-        netD_cls = find_network_using_name(opt.netD, 'discriminator')
-        parser = netD_cls.modify_commandline_options(parser, is_train)
-    netE_cls = find_network_using_name('conv', 'encoder')
-    parser = netE_cls.modify_commandline_options(parser, is_train)
-
-    return parser
 
 def create_network(cls, opt):
     net = cls(opt)

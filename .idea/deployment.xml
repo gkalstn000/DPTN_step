@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="minsu@166.104.246.71:7003 password" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="minsu@166.104.246.71:7003 password" confirmBeforeDeletion="false">
+    <option name="confirmBeforeDeletion" value="false" />
     <serverData>
       <paths name="minsu@166.104.246.71:7003 password">
         <serverdata>
           <mappings>
             <mapping deploy="/home/minsu/dualattn" local="$PROJECT_DIR$" />
           </mappings>
+          <excludedPaths>
+            <excludedPath path="/home/minsu/dualattn/datasets/fashion/train_map" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>

@@ -1,9 +1,9 @@
 import copy
 import torch
 from torch import nn
-from .base_function import *
+from models.dptn_networks import modules
 
-class PTM(nn.Module):
+class PoseTransformerModule(nn.Module):
     """
     Pose Transformer Module (PTM)
     :param d_model: number of channels in input
@@ -19,7 +19,7 @@ class PTM(nn.Module):
                  num_TTBs=6, dim_feedforward=2048,
                  activation="LeakyReLU",
                  affine=True, norm='instance'):
-        super().__init__()
+        super(PoseTransformerModule, self).__init__()
         encoder_layer = CAB(d_model, nhead, dim_feedforward,
                                                 activation, affine, norm)
         if norm == 'batch':
@@ -66,7 +66,7 @@ class CABs(nn.Module):
     :param norm: normalization function 'instance, batch'
     """
     def __init__(self, encoder_layer, num_CABs, norm=None):
-        super().__init__()
+        super(CABs, self).__init__()
         self.layers = _get_clones(encoder_layer, num_CABs)
         self.norm = norm
 
@@ -90,7 +90,7 @@ class TTBs(nn.Module):
     :param norm: normalization function 'instance, batch'
     """
     def __init__(self, decoder_layer, num_TTBs, norm=None):
-        super().__init__()
+        super(TTBs, self).__init__()
         self.layers = _get_clones(decoder_layer, num_TTBs)
         self.norm = norm
 
@@ -117,7 +117,7 @@ class CAB(nn.Module):
     """
     def __init__(self, d_model, nhead, dim_feedforward=2048,
                  activation="LeakyReLU", affine=True, norm='instance'):
-        super().__init__()
+        super(CAB, self).__init__()
         self.self_attn = nn.MultiheadAttention(d_model, nhead)
         self.linear1 = nn.Linear(d_model, dim_feedforward)
         self.linear2 = nn.Linear(dim_feedforward, d_model)
@@ -129,7 +129,7 @@ class CAB(nn.Module):
             self.norm1 = nn.InstanceNorm1d(d_model, affine=affine)
             self.norm2 = nn.InstanceNorm1d(d_model, affine=affine)
 
-        self.activation = get_nonlinearity_layer(activation)
+        self.activation = modules.get_nonlinearity_layer(activation)
 
     def with_pos_embed(self, tensor, pos):
         return tensor if pos is None else tensor + pos
@@ -157,7 +157,7 @@ class TTB(nn.Module):
     """
     def __init__(self, d_model, nhead, dim_feedforward=2048,
                  activation="LeakyReLU", affine=True, norm='instance'):
-        super().__init__()
+        super(TTB, self).__init__()
         self.self_attn = nn.MultiheadAttention(d_model, nhead)
         self.multihead_attn = nn.MultiheadAttention(d_model, nhead)
         self.linear1 = nn.Linear(d_model, dim_feedforward)
@@ -172,7 +172,7 @@ class TTB(nn.Module):
             self.norm2 = nn.InstanceNorm1d(d_model, affine=affine)
             self.norm3 = nn.InstanceNorm1d(d_model, affine=affine)
 
-        self.activation = get_nonlinearity_layer(activation)
+        self.activation = modules.get_nonlinearity_layer(activation)
 
     def with_pos_embed(self, tensor, pos):
         return tensor if pos is None else tensor + pos
