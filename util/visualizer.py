@@ -9,10 +9,12 @@ import time
 from . import util
 from . import html
 import scipy.misc
+
 try:
     from StringIO import StringIO  # Python 2.7
 except ImportError:
-    from io import BytesIO         # Python 3.x
+    from io import BytesIO  # Python 3.x
+
 
 class Visualizer():
     def __init__(self, opt):
@@ -43,8 +45,8 @@ class Visualizer():
 
         ## convert tensors to numpy arrays
         visuals = self.convert_visuals_to_numpy(visuals)
-                
-        if self.tf_log: # show images in tensorboard output
+
+        if self.tf_log:  # show images in tensorboard output
             img_summaries = []
             for label, image_numpy in visuals.items():
                 # Write the image to a string
@@ -56,7 +58,8 @@ class Visualizer():
                     image_numpy = image_numpy[0]
                 scipy.misc.toimage(image_numpy).save(s, format="jpeg")
                 # Create an Image object
-                img_sum = self.tf.Summary.Image(encoded_image_string=s.getvalue(), height=image_numpy.shape[0], width=image_numpy.shape[1])
+                img_sum = self.tf.Summary.Image(encoded_image_string=s.getvalue(), height=image_numpy.shape[0],
+                                                width=image_numpy.shape[1])
                 # Create a Summary value
                 img_summaries.append(self.tf.Summary.Value(tag=label, image=img_sum))
 
@@ -64,7 +67,7 @@ class Visualizer():
             summary = self.tf.Summary(value=img_summaries)
             self.writer.add_summary(summary, step)
 
-        if self.use_html: # save images to a html file
+        if self.use_html:  # save images to a html file
             for label, image_numpy in visuals.items():
                 if isinstance(image_numpy, list):
                     for i in range(len(image_numpy)):
@@ -73,7 +76,7 @@ class Visualizer():
                 else:
                     img_path = os.path.join(self.img_dir, 'epoch%.3d_iter%.3d_%s.png' % (epoch, step, label))
                     if len(image_numpy.shape) >= 4:
-                        image_numpy = image_numpy[0]                    
+                        image_numpy = image_numpy[0]
                     util.save_image(image_numpy, img_path)
 
             # update website
@@ -89,7 +92,7 @@ class Visualizer():
                         for i in range(len(image_numpy)):
                             img_path = 'epoch%.3d_iter%.3d_%s_%d.png' % (n, step, label, i)
                             ims.append(img_path)
-                            txts.append(label+str(i))
+                            txts.append(label + str(i))
                             links.append(img_path)
                     else:
                         img_path = 'epoch%.3d_iter%.3d_%s.png' % (n, step, label)
@@ -99,7 +102,7 @@ class Visualizer():
                 if len(ims) < 10:
                     webpage.add_images(ims, txts, links, width=self.win_size)
                 else:
-                    num = int(round(len(ims)/2.0))
+                    num = int(round(len(ims) / 2.0))
                     webpage.add_images(ims[:num], txts[:num], links[:num], width=self.win_size)
                     webpage.add_images(ims[num:], txts[num:], links[num:], width=self.win_size)
             webpage.save()
@@ -116,8 +119,8 @@ class Visualizer():
     def print_current_errors(self, epoch, i, errors, t):
         message = '(epoch: %d, iters: %d, time: %.3f) ' % (epoch, i, t)
         for k, v in errors.items():
-            #print(v)
-            #if v != 0:
+            # print(v)
+            # if v != 0:
             v = v.mean().float()
             message += '%s: %.3f ' % (k, v)
 
@@ -136,9 +139,9 @@ class Visualizer():
         return visuals
 
     # save image to the disk
-    def save_images(self, webpage, visuals, image_path):        
-        visuals = self.convert_visuals_to_numpy(visuals)        
-        
+    def save_images(self, webpage, visuals, image_path):
+        visuals = self.convert_visuals_to_numpy(visuals)
+
         image_dir = webpage.get_image_dir()
         short_path = ntpath.basename(image_path[0])
         name = os.path.splitext(short_path)[0]
@@ -157,3 +160,4 @@ class Visualizer():
             txts.append(label)
             links.append(image_name)
         webpage.add_images(ims, txts, links, width=self.win_size)
+

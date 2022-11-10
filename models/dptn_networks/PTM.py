@@ -15,31 +15,29 @@ class PoseTransformerModule(nn.Module):
     :param affine: affine in normalization
     :param norm: normalization function 'instance, batch'
     """
-    def __init__(self, d_model=512, nhead=8, num_CABs=6,
-                 num_TTBs=6, dim_feedforward=2048,
-                 activation="LeakyReLU",
-                 affine=True, norm='instance'):
+    def __init__(self, d_model, opt):
         super(PoseTransformerModule, self).__init__()
-        encoder_layer = CAB(d_model, nhead, dim_feedforward,
-                                                activation, affine, norm)
-        if norm == 'batch':
+        self.opt = opt
+        encoder_layer = CAB(d_model, opt.nhead, d_model,
+                                                opt.activation, opt.affine, opt.norm)
+        if opt.norm == 'batch':
             encoder_norm = None
-            decoder_norm = nn.BatchNorm1d(d_model, affine=affine)
-        elif norm == 'instance':
+            decoder_norm = nn.BatchNorm1d(d_model, affine=opt.affine)
+        elif opt.norm == 'instance':
             encoder_norm = None
-            decoder_norm = nn.InstanceNorm1d(d_model, affine=affine)
+            decoder_norm = nn.InstanceNorm1d(d_model, affine=opt.affine)
 
-        self.encoder = CABs(encoder_layer, num_CABs, encoder_norm)
+        self.encoder = CABs(encoder_layer, opt.num_CABs, encoder_norm)
 
-        decoder_layer = TTB(d_model, nhead, dim_feedforward,
-                                                activation, affine, norm)
+        decoder_layer = TTB(d_model, opt.nhead, d_model,
+                                                opt.activation, opt.affine, opt.norm)
 
-        self.decoder = TTBs(decoder_layer, num_TTBs, decoder_norm)
+        self.decoder = TTBs(decoder_layer, opt.num_TTBs, decoder_norm)
 
         self._reset_parameters()
 
         self.d_model = d_model
-        self.nhead = nhead
+        self.nhead = opt.nhead
 
     def _reset_parameters(self):
         for p in self.parameters():

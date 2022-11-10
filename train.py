@@ -31,3 +31,45 @@ for epoch in iter_counter.training_epochs():
     for i, data_i in enumerate(tqdm(dataloader), start=iter_counter.epoch_iter):
         iter_counter.record_one_iteration()
 
+        # Training
+        # train generator
+        if i % opt.D_steps_per_G == 0:
+            trainer.run_generator_one_step(data_i)
+
+        # train discriminator
+        trainer.run_discriminator_one_step(data_i)
+
+        # Visualizations
+        if iter_counter.needs_printing():
+            losses = trainer.get_latest_losses()
+            visualizer.print_current_errors(epoch, iter_counter.epoch_iter,
+                                            losses, iter_counter.time_per_iter)
+            visualizer.plot_current_errors(losses, iter_counter.total_steps_so_far)
+
+        if iter_counter.needs_displaying():
+            fake_target, fake_source = trainer.get_latest_generated()
+            visuals = OrderedDict([('tgt_map', data_i['tgt_map']),
+                                   ('synthesized_target_image', fake_target),
+                                   ('synthesized_source_image', fake_source),
+                                   ('real_image', data_i['tgt_image']),
+                                   ('src_image', data_i['src_image'])])
+            visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)
+
+        if iter_counter.needs_saving():
+            print('saving the latest model (epoch %d, total_steps %d)' %
+                  (epoch, iter_counter.total_steps_so_far))
+            trainer.save('latest')
+            iter_counter.record_current_iter()
+
+    trainer.update_learning_rate(epoch)
+    iter_counter.record_epoch_end()
+
+    if epoch % opt.save_epoch_freq == 0 or \
+       epoch == iter_counter.total_epochs:
+        print('saving the model at the end of epoch %d, iters %d' %
+              (epoch, iter_counter.total_steps_so_far))
+        trainer.save('latest')
+        trainer.save(epoch)
+
+print('Training was successfully finished.')
+

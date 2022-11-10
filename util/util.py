@@ -131,3 +131,92 @@ def save_network(net, label, epoch, opt):
     if len(opt.gpu_ids) and torch.cuda.is_available():
         net.cuda()
 # model parameter I/O
+
+
+
+def save_image(image_numpy, image_path, create_dir=False):
+    if create_dir:
+        os.makedirs(os.path.dirname(image_path), exist_ok=True)
+    if len(image_numpy.shape) == 2:
+        image_numpy = np.expand_dims(image_numpy, axis=2)
+    if image_numpy.shape[2] == 1:
+        image_numpy = np.repeat(image_numpy, 3, 2)
+    image_pil = Image.fromarray(image_numpy)
+
+    # save to png
+    image_pil.save(image_path.replace('.jpg', '.png'))
+
+
+def tensor2label(tensor) :
+    color_list = [[240,248,255], [127,255,212], [69,139,116], [227,207,87], [255,228,196], [205,183,158],
+                  [0,0,255], [138,43,226], [255,64,64], [139,35,35], [255,211,155], [138,54,15],
+                  [95,158,160], [122,197,205], [237,145,33], [102,205,0], [205,91,69], [153,50,204]]
+
+    color_tensor = torch.Tensor(color_list)
+    color_tensor = color_tensor.unsqueeze(0)
+    color_tensor = color_tensor.unsqueeze(2)
+    color_tensor = color_tensor.unsqueeze(3)
+
+    tensor = tensor.unsqueeze(4)
+    tensor = (tensor * color_tensor)
+    # tensor = tensor.sum(1)
+    tensor, _ = tensor.max(1)
+    array = tensor.numpy().astype(np.uint8)
+
+    return array
+
+# Converts a Tensor into a Numpy array
+# |imtype|: the desired type of the converted numpy array
+def tensor2im(image_tensor, imtype=np.uint8, normalize=True, tile=False):
+    if isinstance(image_tensor, list):
+        image_numpy = []
+        for i in range(len(image_tensor)):
+            image_numpy.append(tensor2im(image_tensor[i], imtype, normalize))
+        return image_numpy
+
+    if image_tensor.dim() == 4:
+        # transform each image in the batch
+        images_np = []
+        for b in range(image_tensor.size(0)):
+            one_image = image_tensor[b]
+            one_image_np = tensor2im(one_image)
+            images_np.append(one_image_np.reshape(1, *one_image_np.shape))
+        images_np = np.concatenate(images_np, axis=0)
+        if tile:
+            images_tiled = tile_images(images_np)
+            return images_tiled
+        else:
+            return images_np
+
+    if image_tensor.dim() == 2:
+        image_tensor = image_tensor.unsqueeze(0)
+    image_numpy = image_tensor.detach().cpu().float().numpy()
+    if normalize:
+        image_numpy = (np.transpose(image_numpy, (1, 2, 0)) + 1) / 2.0 * 255.0
+    else:
+        image_numpy = np.transpose(image_numpy, (1, 2, 0)) * 255.0
+    image_numpy = np.clip(image_numpy, 0, 255)
+    if image_numpy.shape[2] == 1:
+        image_numpy = image_numpy[:, :, 0]
+    return image_numpy.astype(imtype)
+
+def tile_images(imgs, picturesPerRow=4):
+    """ Code borrowed from
+    https://stackoverflow.com/questions/26521365/cleanly-tile-numpy-array-of-images-stored-in-a-flattened-1d-format/26521997
+    """
+
+    # Padding
+    if imgs.shape[0] % picturesPerRow == 0:
+        rowPadding = 0
+    else:
+        rowPadding = picturesPerRow - imgs.shape[0] % picturesPerRow
+    if rowPadding > 0:
+        imgs = np.concatenate([imgs, np.zeros((rowPadding, *imgs.shape[1:]), dtype=imgs.dtype)], axis=0)
+
+    # Tiling Loop (The conditionals are not necessary anymore)
+    tiled = []
+    for i in range(0, imgs.shape[0], picturesPerRow):
+        tiled.append(np.concatenate([imgs[j] for j in range(i, i + picturesPerRow)], axis=1))
+
+    tiled = np.concatenate(tiled, axis=0)
+    return tiled

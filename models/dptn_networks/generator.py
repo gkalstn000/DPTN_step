@@ -31,33 +31,31 @@ class DPTNGenerator(BaseNetwork):
     """
     @staticmethod
     def modify_commandline_options(parser, is_train):
+        parser.add_argument('--activation', type=str, default='LeakyReLU', help='type of activation function')
+
+        parser.set_defaults(use_spect_g=True)
+        parser.set_defaults(use_coord=False)
+        parser.set_defaults(norm='batch')
+        parser.set_defaults(img_f=512)
         return parser
-    def __init__(self, image_nc, pose_nc, ngf=64, img_f=256, layers=3, norm='batch',
-                 activation='ReLU', use_spect=True, use_coord=False, output_nc=3, num_blocks=3, affine=True, nhead=2, num_CABs=2, num_TTBs=2):
+    def __init__(self, opt):
         super(DPTNGenerator, self).__init__()
+        self.opt = opt
         # Encoder En_c
-        self.En_c = encoder.InputEncoder(image_nc, pose_nc, ngf, img_f, layers, norm,
-                activation, use_spect, use_coord, num_blocks)
-
+        self.En_c = encoder.InputEncoder(opt)
         mult = self.En_c.mult
-
         # Pose Transformer Module (PTM)
-        self.PTM = PTM.PoseTransformerModule(d_model=ngf * mult, nhead=nhead, num_CABs=num_CABs,
-                                             num_TTBs=num_TTBs, dim_feedforward=ngf * mult,
-                                             activation="LeakyReLU", affine=affine, norm=norm)
-
+        self.PTM = PTM.PoseTransformerModule(d_model=opt.ngf * mult, opt=opt)
         # SourceEncoder En_s
-        self.En_s = encoder.SourceEncoder(image_nc, ngf, img_f, layers, norm, activation, use_spect, use_coord)
+        self.En_s = encoder.SourceEncoder(opt)
         # OutputDecoder De
-        self.De = decoder.OutputDncoder(mult, ngf, img_f, layers, norm,
-                 activation, use_spect, use_coord, output_nc)
+        self.De = decoder.OutputDncoder(mult, opt)
 
-    def forward(self, source_image, source_bone, target_bone, is_train=True):
-        # Self-reconstruction Branch
+    def forward(self, source_image, source_bone, target_bone,
+                canonical_image, canonical_map, is_train=True):
         # Encode source-to-source
         input_s_s = torch.cat((source_image, source_bone, source_bone), 1)
         F_s_s = self.En_c(input_s_s)
-        # Transformation Branch
         # Encode source-to-target
         input_s_t = torch.cat((source_image, source_bone, target_bone), 1)
         F_s_t = self.En_c(input_s_t)

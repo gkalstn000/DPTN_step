@@ -18,26 +18,26 @@ class ResDiscriminator(BaseNetwork):
     """
     @staticmethod
     def modify_commandline_options(parser, is_train):
+        parser.set_defaults(use_spect_d=True)
         return parser
 
-    def __init__(self, input_nc=3, ndf=64, img_f=1024, layers=3, norm='none', activation='LeakyReLU', use_spect=True,
+    def __init__(self, opt, input_nc=3, ndf=32, img_f=128, norm='none', activation='LeakyReLU', use_spect=True,
                  use_coord=False):
         super(ResDiscriminator, self).__init__()
-
-        self.layers = layers
-
+        self.opt = opt
+        self.layers = opt.dis_layers
         norm_layer = modules.get_norm_layer(norm_type=norm)
         nonlinearity = modules.get_nonlinearity_layer(activation_type=activation)
         self.nonlinearity = nonlinearity
 
         # encoder part
-        self.block0 = modules.ResBlockEncoderOptimized(input_nc, ndf, ndf, norm_layer, nonlinearity, use_spect, use_coord)
+        self.block0 = modules.ResBlockEncoderOptimized(input_nc, ndf, ndf, norm_layer, nonlinearity, opt.use_spect_d, use_coord)
 
         mult = 1
-        for i in range(layers - 1):
+        for i in range(opt.dis_layers - 1):
             mult_prev = mult
             mult = min(2 ** (i + 1), img_f//ndf)
-            block = modules.ResBlockEncoder(ndf*mult_prev, ndf*mult, ndf*mult_prev, norm_layer, nonlinearity, use_spect, use_coord)
+            block = modules.ResBlockEncoder(ndf*mult_prev, ndf*mult, ndf*mult_prev, norm_layer, nonlinearity, opt.use_spect_d, use_coord)
             setattr(self, 'encoder' + str(i), block)
         self.conv = SpectralNorm(nn.Conv2d(ndf*mult, 1, 1))
 
