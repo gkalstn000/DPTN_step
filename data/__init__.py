@@ -47,6 +47,7 @@ def create_dataloader(opt):
     dataloader = torch.utils.data.DataLoader(
         instance,
         batch_size=opt.batchSize,
-        drop_last=opt.isTrain
+        drop_last=opt.isTrain,
+        num_workers=4*len(opt.gpu_ids)
     )
     return dataloader

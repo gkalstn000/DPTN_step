@@ -10,7 +10,7 @@ class TrainOptions(BaseOptions):
     def initialize(self, parser):
         BaseOptions.initialize(self, parser)
         # for displays
-        parser.add_argument('--display_freq', type=int, default=100, help='frequency of showing training results on screen')
+        parser.add_argument('--display_freq', type=int, default=1500, help='frequency of showing training results on screen')
         parser.add_argument('--print_freq', type=int, default=100, help='frequency of showing training results on console')
         parser.add_argument('--save_latest_freq', type=int, default=5000, help='frequency of saving the latest results')
         parser.add_argument('--save_epoch_freq', type=int, default=10, help='frequency of saving checkpoints at the end of epochs')
@@ -20,12 +20,12 @@ class TrainOptions(BaseOptions):
         # for training
         parser.add_argument('--continue_train', action='store_true', help='continue training: load the latest model')
         parser.add_argument('--which_epoch', type=str, default='latest', help='which epoch to load? set to latest to use latest cached model')
-        parser.add_argument('--niter', type=int, default=50, help='# of iter at starting learning rate. This is NOT the total #epochs. Totla #epochs is niter + niter_decay')
-        parser.add_argument('--niter_decay', type=int, default=0, help='# of iter to linearly decay learning rate to zero')
+        parser.add_argument('--niter', type=int, default=150, help='# of iter at starting learning rate. This is NOT the total #epochs. Totla #epochs is niter + niter_decay')
+        parser.add_argument('--niter_decay', type=int, default=50, help='# of iter to linearly decay learning rate to zero')
         parser.add_argument('--optimizer', type=str, default='adam')
-        parser.add_argument('--beta1', type=float, default=0.0, help='momentum term of adam')
+        parser.add_argument('--beta1', type=float, default=0.5, help='momentum term of adam')
         parser.add_argument('--beta2', type=float, default=0.9, help='momentum term of adam')
-        parser.add_argument('--lr', type=float, default=0.0002, help='initial learning rate for adam')
+        parser.add_argument('--lr', type=float, default=0.0004, help='initial learning rate for adam')
         parser.add_argument('--no_TTUR', action='store_true', help='Use TTUR training scheme')
         # the default values for beta1 and beta2 differ by TTUR option
         opt, _ = parser.parse_known_args()
@@ -43,9 +43,9 @@ class TrainOptions(BaseOptions):
         # for loss weights
         parser.add_argument('--lambda_feat', type=float, default=10.0, help='weight for feature matching loss')
         parser.add_argument('--lambda_vgg', type=float, default=10.0, help='weight for vgg loss')
-        parser.add_argument('--lambda_rec', type=float, default=5.0, help='weight for image reconstruction loss')
-        parser.add_argument('--lambda_style', type=float, default=500, help='weight for the VGG19 style loss')
-        parser.add_argument('--lambda_content', type=float, default=0.5, help='weight for the VGG19 content loss')
+        parser.add_argument('--lambda_rec', type=float, default=2.5, help='weight for image reconstruction loss')
+        parser.add_argument('--lambda_style', type=float, default=250, help='weight for the VGG19 style loss')
+        parser.add_argument('--lambda_content', type=float, default=0.25, help='weight for the VGG19 content loss')
         parser.add_argument('--lambda_g', type=float, default=2.0, help='weight for generation loss')
         parser.add_argument('--t_s_ratio', type=float, default=0.5, help='loss ratio between dual tasks')
 

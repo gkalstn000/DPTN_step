@@ -8,6 +8,8 @@ class Trainer() :
         self.opt = opt
         self.model = models.create_model(opt)
         self.model = torch.nn.DataParallel(self.model, device_ids = opt.gpu_ids)
+        # self.model = self.model.to(f'cuda:{opt.gpu_ids[0]}')
+        # self.model=self.model.cuda()
         self.generated = None
 
         if opt.isTrain :

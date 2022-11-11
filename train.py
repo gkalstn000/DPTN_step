@@ -48,11 +48,12 @@ for epoch in iter_counter.training_epochs():
 
         if iter_counter.needs_displaying():
             fake_target, fake_source = trainer.get_latest_generated()
-            visuals = OrderedDict([('tgt_map', data_i['tgt_map']),
-                                   ('synthesized_target_image', fake_target),
+            visuals = OrderedDict([('src_image', data_i['src_image']),
                                    ('synthesized_source_image', fake_source),
+                                   ('tgt_map', data_i['tgt_map']),
                                    ('real_image', data_i['tgt_image']),
-                                   ('src_image', data_i['src_image'])])
+                                   ('synthesized_target_image', fake_target),
+                                   ])
             visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)
 
         if iter_counter.needs_saving():

@@ -69,14 +69,21 @@ class DPTNModel(nn.Module) :
         return netG, netD
     def preprocess_input(self, data):
         if self.use_gpu():
-            data['src_image'] = data['src_image'].cuda()
-            data['src_map'] = data['src_map'].cuda()
-            data['tgt_image'] = data['tgt_image'].cuda()
-            data['tgt_map'] = data['tgt_map'].cuda()
-            data['canonical_image'] = data['canonical_image'].cuda()
-            data['canonical_map'] = data['canonical_map'].cuda()
+            # data['src_image'] = data['src_image'].to(f'cuda:{self.opt.gpu_ids[0]}')
+            # data['src_map'] = data['src_map'].to(f'cuda:{self.opt.gpu_ids[0]}')
+            # data['tgt_image'] = data['tgt_image'].to(f'cuda:{self.opt.gpu_ids[0]}')
+            # data['tgt_map'] = data['tgt_map'].to(f'cuda:{self.opt.gpu_ids[0]}')
+            # data['canonical_image'] = data['canonical_image'].to(f'cuda:{self.opt.gpu_ids[0]}')
+            # data['canonical_map'] = data['canonical_map'].to(f'cuda:{self.opt.gpu_ids[0]}')
+            data['src_image'] = data['src_image'].float().cuda()
+            data['src_map'] = data['src_map'].float().cuda()
+            data['tgt_image'] = data['tgt_image'].float().cuda()
+            data['tgt_map'] = data['tgt_map'].float().cuda()
+            data['canonical_image'] = data['canonical_image'].float().cuda()
+            data['canonical_map'] = data['canonical_map'].float().cuda()
 
-        return data['src_image'], data['src_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
+        # return data['src_image'], data['src_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
+        return data['canonical_image'], data['canonical_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
 
     def backward_G_basic(self, fake_image, target_image, use_d):
         # Calculate reconstruction loss

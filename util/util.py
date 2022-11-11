@@ -5,7 +5,8 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import torch
 import numpy as np
 from PIL import Image
-
+from torchvision.utils import make_grid
+import torchvision.transforms as transforms
 import os
 import json
 
@@ -146,13 +147,22 @@ def save_image(image_numpy, image_path, create_dir=False):
     # save to png
     image_pil.save(image_path.replace('.jpg', '.png'))
 
+def map_to_img(tensor, threshold = 0.5) :
+    '''
+    :param tensor: (B, C, H, W)
+    :param threshold:
+    :return:
+    '''
+    tensor_img, _ = tensor.max(1)
+    tensor_img[tensor_img < threshold] = 0
+def tensor2label(tensor, tile) :
 
-def tensor2label(tensor) :
+    tensor[tensor < 0.5] = 0
     color_list = [[240,248,255], [127,255,212], [69,139,116], [227,207,87], [255,228,196], [205,183,158],
                   [0,0,255], [138,43,226], [255,64,64], [139,35,35], [255,211,155], [138,54,15],
                   [95,158,160], [122,197,205], [237,145,33], [102,205,0], [205,91,69], [153,50,204]]
-
-    color_tensor = torch.Tensor(color_list)
+    limb_color = [[174, 58, 231] for _ in range(19)]
+    color_tensor = torch.Tensor(color_list+limb_color)
     color_tensor = color_tensor.unsqueeze(0)
     color_tensor = color_tensor.unsqueeze(2)
     color_tensor = color_tensor.unsqueeze(3)
@@ -161,9 +171,8 @@ def tensor2label(tensor) :
     tensor = (tensor * color_tensor)
     # tensor = tensor.sum(1)
     tensor, _ = tensor.max(1)
-    array = tensor.numpy().astype(np.uint8)
+    return tensor2im(torch.permute(tensor, (0, 3, 1, 2)).to(torch.uint8), tile=tile)
 
-    return array
 
 # Converts a Tensor into a Numpy array
 # |imtype|: the desired type of the converted numpy array
@@ -183,8 +192,9 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True, tile=False):
             images_np.append(one_image_np.reshape(1, *one_image_np.shape))
         images_np = np.concatenate(images_np, axis=0)
         if tile:
-            images_tiled = tile_images(images_np)
-            return images_tiled
+            images_tensor = torch.tensor(images_np.transpose((0, 3, 1, 2)))
+            images_grid = make_grid(images_tensor, nrow=images_np.shape[0] // 2 + 1)
+            return torch.permute(images_grid, (1, 2, 0)).numpy()
         else:
             return images_np
 
@@ -200,7 +210,7 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True, tile=False):
         image_numpy = image_numpy[:, :, 0]
     return image_numpy.astype(imtype)
 
-def tile_images(imgs, picturesPerRow=4):
+def tile_images(imgs, picturesPerRow=20):
     """ Code borrowed from
     https://stackoverflow.com/questions/26521365/cleanly-tile-numpy-array-of-images-stored-in-a-flattened-1d-format/26521997
     """

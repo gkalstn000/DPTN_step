@@ -1,0 +1,1 @@
+python train.py --id dptn_canonical_source --tf_log --continue_train
