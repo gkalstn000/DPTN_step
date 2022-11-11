@@ -1,2 +1,5 @@
 /datasets/canonical/
 /datasets/fashion/
+/checkpoints/dptn/
+/checkpoints/dptn_canonical_source/
+/checkpoints/fashion/
