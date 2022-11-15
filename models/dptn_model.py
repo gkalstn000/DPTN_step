@@ -82,8 +82,8 @@ class DPTNModel(nn.Module) :
             data['canonical_image'] = data['canonical_image'].float().cuda()
             data['canonical_map'] = data['canonical_map'].float().cuda()
 
-        # return data['src_image'], data['src_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
-        return data['canonical_image'], data['canonical_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
+        return data['src_image'], data['src_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
+        # return data['canonical_image'], data['canonical_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
 
     def backward_G_basic(self, fake_image, target_image, use_d):
         # Calculate reconstruction loss
@@ -114,7 +114,7 @@ class DPTNModel(nn.Module) :
                                                                   tgt_map,
                                                                   can_image, can_map)
         loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
-        loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, src_image, use_d=False)
+        loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, can_image, use_d=False)
         G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
         G_losses['GAN_target'] = loss_ad_gen_t
         G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)

@@ -5,6 +5,7 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import torch
 import torch.nn as nn
 
+from . import define_En_c
 from models.dptn_networks.base_network import BaseNetwork
 from models.dptn_networks import encoder
 from models.dptn_networks import decoder
@@ -32,6 +33,7 @@ class DPTNGenerator(BaseNetwork):
     @staticmethod
     def modify_commandline_options(parser, is_train):
         parser.add_argument('--activation', type=str, default='LeakyReLU', help='type of activation function')
+        parser.add_argument('--type_En_c', type=str, default='default', help='selects En_c type to use for generator (default | spade)')
 
         parser.set_defaults(use_spect_g=True)
         parser.set_defaults(use_coord=False)
@@ -42,7 +44,8 @@ class DPTNGenerator(BaseNetwork):
         super(DPTNGenerator, self).__init__()
         self.opt = opt
         # Encoder En_c
-        self.En_c = encoder.InputEncoder(opt)
+        # self.En_c = encoder.DefaultEncoder(opt)
+        self.En_c = define_En_c(opt)
         mult = self.En_c.mult
         # Pose Transformer Module (PTM)
         self.PTM = PTM.PoseTransformerModule(d_model=opt.ngf * mult, opt=opt)
@@ -52,15 +55,16 @@ class DPTNGenerator(BaseNetwork):
         self.De = decoder.OutputDncoder(mult, opt)
 
     def forward(self, source_image, source_bone, target_bone,
-                canonical_image, canonical_map, is_train=True):
+                canonical_image, canonical_bone, is_train=True):
         # Encode source-to-source
-        input_s_s = torch.cat((source_image, source_bone, source_bone), 1)
-        F_s_s = self.En_c(input_s_s)
+        input_s_s = torch.cat((canonical_image, canonical_bone, canonical_bone), 1)
+        texture_information = [source_image, source_bone, canonical_bone]
+        F_s_s = self.En_c(input_s_s, texture_information)
         # Encode source-to-target
-        input_s_t = torch.cat((source_image, source_bone, target_bone), 1)
-        F_s_t = self.En_c(input_s_t)
+        input_s_t = torch.cat((canonical_image, canonical_bone, target_bone), 1)
+        F_s_t = self.En_c(input_s_t, texture_information)
         # Source Image Encoding
-        F_s = self.En_s(source_image)
+        F_s = self.En_s(canonical_image)
         # Pose Transformer Module for Dual-task Correlation
         F_s_t = self.PTM(F_s_s, F_s_t, F_s)
         # Source-to-source Decoder (only for training)

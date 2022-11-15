@@ -196,7 +196,7 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True, tile=False):
             images_grid = make_grid(images_tensor, nrow=images_np.shape[0] // 2 + 1)
             return torch.permute(images_grid, (1, 2, 0)).numpy()
         else:
-            return images_np
+            return images_np[0].transpose((2, 0, 1))
 
     if image_tensor.dim() == 2:
         image_tensor = image_tensor.unsqueeze(0)

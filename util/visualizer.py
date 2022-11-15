@@ -120,10 +120,11 @@ class Visualizer():
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)
 
-    def convert_visuals_to_numpy(self, visuals):
+    def convert_visuals_to_numpy(self, visuals, display_num = 10):
         # image shape : (B, C, H, W)
         for key, t in visuals.items():
-            tile = self.opt.batchSize > 8
+            t = t[:display_num]
+            tile = self.opt.batchSize > 1
             if 'map' in key:
                 t = util.tensor2label(t, tile=tile)
             else:

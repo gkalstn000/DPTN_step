@@ -58,3 +58,7 @@ def define_G(opt):
 def define_D(opt):
     netD_cls = find_network_using_name(opt.netD, 'discriminator')
     return create_network(netD_cls, opt)
+
+def define_En_c(opt) :
+    netEn_c_cls = find_network_using_name(opt.type_En_c, 'encoder')
+    return create_network(netEn_c_cls, opt)

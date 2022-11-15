@@ -1,11 +1,57 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from models.dptn_networks import modules
+from models.dptn_networks.base_network import BaseNetwork
+from models.spade_networks.architecture import SPADEResnetBlock
 
-
-class InputEncoder(nn.Module):
+class SpadeEncoder(BaseNetwork) :
     def __init__(self, opt):
-        super(InputEncoder, self).__init__()
+        super().__init__()
+        self.opt = opt
+        self.layers = opt.layers_g
+        nf = opt.ngf
+
+        self.sw, self.sh = self.compute_latent_vector_size(opt)
+
+        input_nc = 2 * opt.pose_nc + opt.image_nc
+
+        self.head_0 = SPADEResnetBlock(input_nc, nf, opt)
+
+        self.G_middle_0 = SPADEResnetBlock(nf, 2 * nf, opt)
+        self.G_middle_1 = SPADEResnetBlock(2 * nf, 2 * nf, opt)
+
+        self.mult = 2
+        for i in range(self.layers - 1) :
+            mult_prev = self.mult
+            self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
+            block = SPADEResnetBlock(opt.ngf * mult_prev, opt.ngf * self.mult, opt)
+            setattr(self, 'down' + str(i), block)
+
+        self.down = nn.MaxPool2d(2, stride=2)
+    def forward(self, x, texture_information):
+        texture_information = torch.cat(texture_information, 1)
+
+        x = self.head_0(x, texture_information)
+        x = self.G_middle_0(x, texture_information)
+        x = self.G_middle_1(x, texture_information)
+        x = self.down(x)
+        for i in range(self.layers - 1):
+            model = getattr(self, 'down' + str(i))
+            x = model(x, texture_information)
+            x = self.down(x)
+        return x
+
+
+    def compute_latent_vector_size(self, opt):
+        num_down_layers = opt.layers_g
+        sw = opt.crop_size // (2**num_down_layers)
+        # sh = round(sw / opt.aspect_ratio)
+        sh = sw
+        return sw, sh
+class DefaultEncoder(BaseNetwork):
+    def __init__(self, opt):
+        super(DefaultEncoder, self).__init__()
         self.opt = opt
         self.layers = opt.layers_g
         norm_layer = modules.get_norm_layer(norm_type=opt.norm)
@@ -28,17 +74,18 @@ class InputEncoder(nn.Module):
                                      nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
             setattr(self, 'mblock' + str(i), block)
 
-    def forward(self, x):
+    def forward(self, x, texture_information):
         # Source-to-source Encoder
-        F_s_s = self.block0(x)
+        x = self.block0(x) # (B, C, H, W) -> (B, ngf, H/2, W/2)
         for i in range(self.layers - 1):
             model = getattr(self, 'encoder' + str(i))
-            F_s_s = model(F_s_s)
+            x = model(x)
+        # input_ size : (B, ngf * 2^2, H/2^layers, C/2^layers)
         # Source-to-source Resblocks
         for i in range(self.opt.num_blocks):
             model = getattr(self, 'mblock' + str(i))
-            F_s_s = model(F_s_s)
-        return F_s_s
+            x = model(x)
+        return x
 
 
 class SourceEncoder(nn.Module):
