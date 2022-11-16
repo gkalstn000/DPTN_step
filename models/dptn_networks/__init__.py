@@ -62,3 +62,7 @@ def define_D(opt):
 def define_En_c(opt) :
     netEn_c_cls = find_network_using_name(opt.type_En_c, 'encoder')
     return create_network(netEn_c_cls, opt)
+
+def define_De(opt) :
+    netDe_cls = find_network_using_name(opt.type_Dc, 'decoder')
+    return create_network(netDe_cls, opt)

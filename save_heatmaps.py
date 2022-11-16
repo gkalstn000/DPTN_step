@@ -1,9 +1,4 @@
 import os
-import sys
-sys.path.append('..')
-os.chdir('..')
-sys.path.append('./data/base_dataset')
-print('경로 변경 후 %s'%os.getcwd())
 import pandas as pd
 import numpy as np
 from data.base_dataset import BaseDataset

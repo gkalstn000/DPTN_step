@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="minsu@166.104.246.71:7003 password" confirmBeforeDeletion="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@211.253.164.238:16022 password (6)" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" confirmBeforeDeletion="false">
     <option name="confirmBeforeDeletion" value="false" />
+    <option name="confirmBeforeUploading" value="false" />
     <serverData>
       <paths name="minsu@166.104.246.71:7003 password">
         <serverdata>
@@ -10,8 +11,22 @@
           </mappings>
           <excludedPaths>
             <excludedPath path="/home/minsu/dualattn/datasets/fashion" />
-            <excludedPath path="/home/minsu/dualattn/datasets/canonical" />
             <excludedPath local="true" path="$PROJECT_DIR$/datasets/fashion" />
+            <excludedPath path="/home/minsu/dualattn/checkpoints/dptn_canonical_source" />
+            <excludedPath path="/home/minsu/dualattn/checkpoints/dptn_spade_En_c" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@211.253.164.238:16022 password (6)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ubuntu/dualattn" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath path="/home/ubuntu/dualattn/datasets/fashion" />
+            <excludedPath local="true" path="$PROJECT_DIR$/datasets/fashion" />
+            <excludedPath path="/home/ubuntu/dualattn/checkpoints/dptn_canonical_source" />
+            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints/dptn_canonical_source" />
           </excludedPaths>
         </serverdata>
       </paths>

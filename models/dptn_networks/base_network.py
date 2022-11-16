@@ -57,3 +57,9 @@ class BaseNetwork(nn.Module):
         for m in self.children():
             if hasattr(m, 'init_weights'):
                 m.init_weights(init_type, gain)
+    def compute_latent_vector_size(self, opt):
+        num_down_layers = opt.layers_g
+        sw = opt.crop_size // (2**num_down_layers)
+        # sh = round(sw / opt.aspect_ratio)
+        sh = sw
+        return sw, sh

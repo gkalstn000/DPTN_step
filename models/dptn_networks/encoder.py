@@ -11,6 +11,8 @@ class SpadeEncoder(BaseNetwork) :
         self.opt = opt
         self.layers = opt.layers_g
         nf = opt.ngf
+        nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
+        norm_layer = modules.get_norm_layer(norm_type=opt.norm)
 
         self.sw, self.sh = self.compute_latent_vector_size(opt)
 
@@ -28,6 +30,12 @@ class SpadeEncoder(BaseNetwork) :
             block = SPADEResnetBlock(opt.ngf * mult_prev, opt.ngf * self.mult, opt)
             setattr(self, 'down' + str(i), block)
 
+        # ResBlocks
+        for i in range(opt.num_blocks):
+            block = modules.ResBlock(opt.ngf * self.mult, opt.ngf * self.mult, norm_layer=norm_layer,
+                                     nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
+            setattr(self, 'mblock' + str(i), block)
+
         self.down = nn.MaxPool2d(2, stride=2)
     def forward(self, x, texture_information):
         texture_information = torch.cat(texture_information, 1)
@@ -40,15 +48,12 @@ class SpadeEncoder(BaseNetwork) :
             model = getattr(self, 'down' + str(i))
             x = model(x, texture_information)
             x = self.down(x)
+
+        for i in range(self.opt.num_blocks):
+            model = getattr(self, 'mblock' + str(i))
+            x = model(x)
         return x
 
-
-    def compute_latent_vector_size(self, opt):
-        num_down_layers = opt.layers_g
-        sw = opt.crop_size // (2**num_down_layers)
-        # sh = round(sw / opt.aspect_ratio)
-        sh = sw
-        return sw, sh
 class DefaultEncoder(BaseNetwork):
     def __init__(self, opt):
         super(DefaultEncoder, self).__init__()
