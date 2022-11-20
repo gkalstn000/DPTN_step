@@ -65,14 +65,15 @@ class DPTNGenerator(BaseNetwork):
         input_s_t = torch.cat((canonical_image, canonical_bone, target_bone), 1)
         F_s_t = self.En_c(input_s_t, texture_information)
         # Source Image Encoding
-        F_s = self.En_s(canonical_image)
+        F_s = self.En_s(source_image)
         # Pose Transformer Module for Dual-task Correlation
         F_s_t = self.PTM(F_s_s, F_s_t, F_s)
         # Source-to-source Decoder (only for training)
-        texture_information = [source_image, source_bone, target_bone] # target-canonical information
         out_image_s = None
         if is_train:
+            texture_information = [source_image, source_bone, canonical_bone]
             out_image_s = self.De(F_s_s, texture_information)
         # Source-to-target Decoder
+        texture_information = [source_image, source_bone, target_bone]
         out_image_t = self.De(F_s_t, texture_information)
         return out_image_t, out_image_s

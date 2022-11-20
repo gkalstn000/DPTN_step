@@ -17,6 +17,13 @@
           </excludedPaths>
         </serverdata>
       </paths>
+      <paths name="pink@166.104.185.26:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/pink/minsu/dualattn" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="ubuntu@211.253.164.238:16022 password (6)">
         <serverdata>
           <mappings>
@@ -25,8 +32,8 @@
           <excludedPaths>
             <excludedPath path="/home/ubuntu/dualattn/datasets/fashion" />
             <excludedPath local="true" path="$PROJECT_DIR$/datasets/fashion" />
-            <excludedPath path="/home/ubuntu/dualattn/checkpoints/dptn_canonical_source" />
-            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints/dptn_canonical_source" />
+            <excludedPath path="/home/ubuntu/dualattn/checkpoints" />
+            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
           </excludedPaths>
         </serverdata>
       </paths>
