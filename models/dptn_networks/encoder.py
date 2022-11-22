@@ -20,10 +20,7 @@ class SpadeEncoder(BaseNetwork) :
 
         self.head_0 = SPADEResnetBlock(input_nc, nf, opt)
 
-        self.G_middle_0 = SPADEResnetBlock(nf, 2 * nf, opt)
-        self.G_middle_1 = SPADEResnetBlock(2 * nf, 2 * nf, opt)
-
-        self.mult = 2
+        self.mult = 1
         for i in range(self.layers - 1) :
             mult_prev = self.mult
             self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
@@ -41,8 +38,6 @@ class SpadeEncoder(BaseNetwork) :
         texture_information = torch.cat(texture_information, 1)
 
         x = self.head_0(x, texture_information)
-        x = self.G_middle_0(x, texture_information)
-        x = self.G_middle_1(x, texture_information)
         x = self.down(x)
         for i in range(self.layers - 1):
             model = getattr(self, 'down' + str(i))
