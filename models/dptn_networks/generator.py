@@ -5,7 +5,7 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import torch
 import torch.nn as nn
 
-from . import define_En_c, define_De
+from models.dptn_networks import define_En_c, define_De
 from models.dptn_networks.base_network import BaseNetwork
 from models.dptn_networks import encoder
 from models.dptn_networks import decoder

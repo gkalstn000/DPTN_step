@@ -168,7 +168,7 @@ def tensor2label(tensor, tile) :
     color_tensor = color_tensor.unsqueeze(3)
 
     tensor = tensor.unsqueeze(4)
-    tensor = (tensor * color_tensor)
+    tensor = (tensor * color_tensor.cuda())
     # tensor = tensor.sum(1)
     tensor, _ = tensor.max(1)
     return tensor2im(torch.permute(tensor, (0, 3, 1, 2)).to(torch.uint8), tile=tile)

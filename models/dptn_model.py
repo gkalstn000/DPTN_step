@@ -39,6 +39,11 @@ class DPTNModel(nn.Module) :
                                                      tgt_image, tgt_map,
                                                      can_image, can_map)
             return d_loss
+        elif mode == 'inference' :
+            fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
+                                                                  tgt_map,
+                                                                  can_image, can_map)
+            return fake_image_t, fake_image_s
     def create_optimizers(self, opt):
         G_params = list(self.netG.parameters())
         D_params = list(self.netD.parameters())
