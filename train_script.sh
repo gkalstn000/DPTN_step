@@ -3,3 +3,5 @@
 
 # NIPA script
 python train.py --id dptn_spade --tf_log --gpu_ids 1 --batchSize 10 --t_s_ratio 0.75 --type_En_c spade --type_Dc spade --continue_train
+
+nohup python train.py --id baseline_2stage --tf_log --gpu_ids 2 --batchSize 27 --type_En_c default --type_Dc default > baseline_2stage.out &

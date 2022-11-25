@@ -10,10 +10,9 @@
             <mapping deploy="/home/minsu/dualattn" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
-            <excludedPath path="/home/minsu/dualattn/datasets/fashion" />
             <excludedPath local="true" path="$PROJECT_DIR$/datasets/fashion" />
-            <excludedPath path="/home/minsu/dualattn/checkpoints/dptn_canonical_source" />
-            <excludedPath path="/home/minsu/dualattn/checkpoints/dptn_spade_En_c" />
+            <excludedPath path="/home/minsu/dualattn/checkpoints" />
+            <excludedPath path="/home/minsu/dualattn/datasets/fashion" />
           </excludedPaths>
         </serverdata>
       </paths>

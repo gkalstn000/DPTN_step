@@ -142,6 +142,7 @@ def save_image(image_numpy, image_path, create_dir=False):
         image_numpy = np.expand_dims(image_numpy, axis=2)
     if image_numpy.shape[2] == 1:
         image_numpy = np.repeat(image_numpy, 3, 2)
+
     image_pil = Image.fromarray(image_numpy)
 
     # save to png
@@ -168,7 +169,7 @@ def tensor2label(tensor, tile) :
     color_tensor = color_tensor.unsqueeze(3)
 
     tensor = tensor.unsqueeze(4)
-    tensor = (tensor * color_tensor.cuda())
+    tensor = (tensor * color_tensor)
     # tensor = tensor.sum(1)
     tensor, _ = tensor.max(1)
     return tensor2im(torch.permute(tensor, (0, 3, 1, 2)).to(torch.uint8), tile=tile)
