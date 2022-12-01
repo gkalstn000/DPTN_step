@@ -35,11 +35,11 @@ for i, data_i in enumerate(dataloader):
     img_path = data_i['path']
     for b in range(fake_target.shape[0]):
         print('process image... %s' % img_path[b])
-        visuals = OrderedDict([('src_image', data_i['src_image']),
-                                   ('canonical_image', data_i['canonical_image']),
-                                   ('tgt_map', data_i['tgt_map']),
-                                   ('real_image', data_i['tgt_image']),
-                                   ('synthesized_target_image', fake_target),
+        visuals = OrderedDict([('src_image', data_i['src_image'].cpu()),
+                                   ('canonical_image', data_i['canonical_image'].cpu()),
+                                   ('tgt_map', data_i['tgt_map'].cpu()),
+                                   ('real_image', data_i['tgt_image'].cpu()),
+                                   ('synthesized_target_image', fake_target.cpu()),
                                    ])
         visualizer.save_images(webpage, visuals, img_path[b:b + 1])
 webpage.save()

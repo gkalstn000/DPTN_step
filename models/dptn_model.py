@@ -30,6 +30,7 @@ class DPTNModel(nn.Module) :
     def forward(self, data, mode):
         src_image, src_map, tgt_image, tgt_map, can_image, can_map = self.preprocess_input(data)
         if mode == 'generator':
+
             g_loss, fake_t, fake_s = self.compute_generator_loss(src_image, src_map,
                                                             tgt_image, tgt_map,
                                                             can_image, can_map)
@@ -40,7 +41,9 @@ class DPTNModel(nn.Module) :
                                                      can_image, can_map)
             return d_loss
         elif mode == 'inference' :
-            fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
+            self.netG.eval()
+            with torch.no_grad():
+                fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
                                                                   can_image, can_map)
             return fake_image_t, fake_image_s
@@ -114,6 +117,7 @@ class DPTNModel(nn.Module) :
                                tgt_image, tgt_map,
                                can_image, can_map):
         self.netD.train()
+        self.netG.train()
         G_losses = {}
         fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
