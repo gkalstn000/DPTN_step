@@ -103,7 +103,7 @@ class FashionDataset(BaseDataset) :
                       'tgt_map' : BP2,
                       'canonical_image' : PC,
                       'canonical_map' : BPC,
-                      'path' : f'{P1_name.replace("jpg", "")}_2_{P2_name.replace("jpg", "")}_vis.jpg'}
+                      'path' : f'{P1_name.replace(".jpg", "")}_2_{P2_name.replace(".jpg", "")}_vis.jpg'}
 
         return input_dict
 
