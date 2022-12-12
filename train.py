@@ -20,6 +20,11 @@ print(' '.join(sys.argv))
 # load the dataset
 dataloader = data.create_dataloader(opt)
 
+# Validation Setting
+opt.phase = 'test'
+dataloader_val = data.create_dataloader(opt)
+opt.phase = 'train'
+
 # create trainer for our model
 trainer = Trainer(opt)
 
@@ -62,6 +67,17 @@ for epoch in iter_counter.training_epochs():
                   (epoch, iter_counter.total_steps_so_far))
             trainer.save('latest')
             iter_counter.record_current_iter()
+
+    for i, data_i in tqdm(enumerate(dataloader_val), desc='Validation images generating') :
+        fake_target, fake_source = trainer.model(data_i, mode='inference')
+        visuals = OrderedDict([('src_image_val', data_i['src_image']),
+                               ('canonical_image_val', data_i['canonical_image']),
+                               ('tgt_map_val', data_i['tgt_map']),
+                               ('real_image_val', data_i['tgt_image']),
+                               ('synthesized_target_image_val', fake_target),
+                               ])
+        visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)
+        break
 
     trainer.update_learning_rate(epoch)
     iter_counter.record_epoch_end()

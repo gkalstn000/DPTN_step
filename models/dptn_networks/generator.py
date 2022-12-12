@@ -71,9 +71,9 @@ class DPTNGenerator(BaseNetwork):
         # Source-to-source Decoder (only for training)
         out_image_s = None
         if is_train:
-            texture_information = [source_image, source_bone, canonical_bone]
+            texture_information = [source_image] # [source_image, source_bone, canonical_bone]
             out_image_s = self.De(F_s_s, texture_information)
         # Source-to-target Decoder
-        texture_information = [source_image, source_bone, target_bone]
+        texture_information = [source_image] # [source_image, source_bone, target_bone]
         out_image_t = self.De(F_s_t, texture_information)
         return out_image_t, out_image_s

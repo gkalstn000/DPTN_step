@@ -45,7 +45,8 @@ class DPTNModel(nn.Module) :
             with torch.no_grad():
                 fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
-                                                                  can_image, can_map)
+                                                                  can_image, can_map,
+                                                                self.opt.isTrain)
             return fake_image_t, fake_image_s
     def create_optimizers(self, opt):
         G_params = list(self.netG.parameters())
@@ -121,7 +122,8 @@ class DPTNModel(nn.Module) :
         G_losses = {}
         fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
-                                                                  can_image, can_map)
+                                                                  can_image, can_map,
+                                                        self.opt.isTrain)
         loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
         loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, can_image, use_d=False)
         G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
@@ -149,6 +151,7 @@ class DPTNModel(nn.Module) :
                                    tgt_image, tgt_map,
                                    can_image, can_map):
         self.netD.train()
+        self.netG.train()
         D_losses = {}
         with torch.no_grad():
             fake_image_t, fake_image_s = self.netG(src_image, src_map,
@@ -169,11 +172,13 @@ class DPTNModel(nn.Module) :
     def generate_fake(self,
                       src_image, src_map,
                       tgt_map,
-                      can_image, can_map):
+                      can_image, can_map,
+                      is_train=True):
 
         fake_image_t, fake_image_s = self.netG(src_image, src_map,
                                                tgt_map,
-                                               can_image, can_map)
+                                               can_image, can_map,
+                                               is_train)
         return fake_image_t, fake_image_s
     def use_gpu(self):
         return len(self.opt.gpu_ids) > 0

@@ -4,4 +4,13 @@
 # NIPA script
 python train.py --id dptn_spade --tf_log --gpu_ids 1 --batchSize 10 --t_s_ratio 0.75 --type_En_c spade --type_Dc spade --continue_train
 
-nohup python train.py --id baseline_2stage --tf_log --gpu_ids 2 --batchSize 27 --type_En_c default --type_Dc default > baseline_2stage.out &
+
+
+# red script, decoder full, port 6007
+python train.py --id decoder_full --tf_log --gpu_ids 3 --type_En_c default --type_Dc spade --pose_nc 18 --batchSize 22
+# red script, decoder img, port 6006
+python train.py --id decoder_img --tf_log --gpu_ids 2 --type_En_c default --type_Dc spade --pose_nc 18 --batchSize 22
+
+# NIPA script
+python train.py --id spade --tf_log --gpu_ids 0 --batchSize 18 --type_En_c spade --type_Dc spade
+python train.py --id baseline --tf_log --gpu_ids 1 --type_En_c default --type_Dc default --batchSize 20

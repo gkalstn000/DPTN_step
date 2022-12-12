@@ -163,7 +163,10 @@ def tensor2label(tensor, tile) :
                   [0,0,255], [138,43,226], [255,64,64], [139,35,35], [255,211,155], [138,54,15],
                   [95,158,160], [122,197,205], [237,145,33], [102,205,0], [205,91,69], [153,50,204]]
     limb_color = [[174, 58, 231] for _ in range(19)]
-    color_tensor = torch.Tensor(color_list+limb_color)
+    if tensor.size(1) != 18 :
+        color_tensor = torch.Tensor(color_list+limb_color)
+    else :
+        color_tensor = torch.Tensor(color_list)
     color_tensor = color_tensor.unsqueeze(0)
     color_tensor = color_tensor.unsqueeze(2)
     color_tensor = color_tensor.unsqueeze(3)

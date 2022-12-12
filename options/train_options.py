@@ -47,7 +47,7 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--lambda_style', type=float, default=250, help='weight for the VGG19 style loss')
         parser.add_argument('--lambda_content', type=float, default=0.25, help='weight for the VGG19 content loss')
         parser.add_argument('--lambda_g', type=float, default=2.0, help='weight for generation loss')
-        parser.add_argument('--t_s_ratio', type=float, default=0.7, help='loss ratio between dual tasks')
+        parser.add_argument('--t_s_ratio', type=float, default=0.5, help='loss ratio between dual tasks')
 
         self.isTrain = True
         return parser

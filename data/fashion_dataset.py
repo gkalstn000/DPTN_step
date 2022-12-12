@@ -26,7 +26,7 @@ class FashionDataset(BaseDataset) :
 
     def initialize(self, opt):
         self.opt = opt
-
+        self.phase = opt.phase
         self.image_dir, self.canonical_dir, self.bone_file, self.name_pairs = self.get_paths(opt)
         size = len(self.name_pairs)
         self.dataset_size = size
@@ -49,13 +49,12 @@ class FashionDataset(BaseDataset) :
 
     def get_paths(self, opt):
         root = opt.dataroot
-        phase = opt.phase
-        pairLst = os.path.join(root, 'fasion-pairs-%s.csv' % phase)
+        pairLst = os.path.join(root, 'fasion-pairs-%s.csv' % self.phase)
         name_pairs = self.init_categories(pairLst)
 
-        image_dir = os.path.join(root, '%s' % phase)
-        bonesLst = os.path.join(root, 'fasion-annotation-%s.csv' % phase)
-        canonical_dir = os.path.join(root, '%s_canonical' % phase)
+        image_dir = os.path.join(root, '%s' % self.phase)
+        bonesLst = os.path.join(root, 'fasion-annotation-%s.csv' % self.phase)
+        canonical_dir = os.path.join(root, '%s_canonical' % self.phase)
         return image_dir, canonical_dir, bonesLst, name_pairs
 
     def init_categories(self, pairLst):
@@ -86,15 +85,15 @@ class FashionDataset(BaseDataset) :
         # P1 preprocessing
         P1 = self.trans(P1_img)
         # BP1 = self.obtain_bone(P1_name, self.load_size)
-        BP1 = torch.load(os.path.join(self.opt.dataroot, f'{self.opt.phase}_map', P1_name.replace('jpg', 'pt')))
+        BP1 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P1_name.replace('jpg', 'pt')))[:18]
         # P2 preprocessing
         P2 = self.trans(P2_img)
         # BP2 = self.obtain_bone(P2_name, self.load_size)
-        BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.opt.phase}_map', P2_name.replace('jpg', 'pt')))
+        BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))[:18]
         # Canonical_img
         PC = self.trans(Canonical_img)
         # BPC = self.obtain_bone(None, self.load_size)
-        BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))
+        BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:18]
 
         # self.check_bone_img_matching(src_image_tensor, src_bone)
         input_dict = {'src_image' : P1,

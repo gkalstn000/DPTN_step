@@ -10,9 +10,12 @@
             <mapping deploy="/home/minsu/dualattn" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
-            <excludedPath local="true" path="$PROJECT_DIR$/datasets/fashion" />
+            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
             <excludedPath path="/home/minsu/dualattn/checkpoints" />
-            <excludedPath path="/home/minsu/dualattn/datasets/fashion" />
+            <excludedPath path="/home/minsu/dualattn/datasets" />
+            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
+            <excludedPath local="true" path="$PROJECT_DIR$/results" />
+            <excludedPath path="/home/minsu/dualattn/results" />
           </excludedPaths>
         </serverdata>
       </paths>
@@ -33,6 +36,8 @@
             <excludedPath local="true" path="$PROJECT_DIR$/datasets/fashion" />
             <excludedPath path="/home/ubuntu/dualattn/checkpoints" />
             <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
+            <excludedPath path="/home/ubuntu/dualattn/results" />
+            <excludedPath local="true" path="$PROJECT_DIR$/results" />
           </excludedPaths>
         </serverdata>
       </paths>
