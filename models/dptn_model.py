@@ -117,7 +117,7 @@ class DPTNModel(nn.Module) :
                                src_image, src_map,
                                tgt_image, tgt_map,
                                can_image, can_map):
-        self.netD.train()
+        self.netD.eval()
         self.netG.train()
         G_losses = {}
         fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
@@ -125,7 +125,7 @@ class DPTNModel(nn.Module) :
                                                                   can_image, can_map,
                                                         self.opt.isTrain)
         loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
-        loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, can_image, use_d=False)
+        loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, src_image, use_d=False)
         G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
         G_losses['GAN_target'] = loss_ad_gen_t
         G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
@@ -151,7 +151,7 @@ class DPTNModel(nn.Module) :
                                    tgt_image, tgt_map,
                                    can_image, can_map):
         self.netD.train()
-        self.netG.train()
+        self.netG.eval()
         D_losses = {}
         with torch.no_grad():
             fake_image_t, fake_image_s = self.netG(src_image, src_map,
