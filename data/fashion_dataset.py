@@ -97,11 +97,11 @@ class FashionDataset(BaseDataset) :
 
         # self.check_bone_img_matching(src_image_tensor, src_bone)
         input_dict = {'src_image' : P1,
-                      'src_map': BP1,
+                      'src_map': self.resize_bone(BP1),
                       'tgt_image' : P2,
-                      'tgt_map' : BP2,
+                      'tgt_map' : self.resize_bone(BP2),
                       'canonical_image' : PC,
-                      'canonical_map' : BPC,
+                      'canonical_map' : self.resize_bone(BPC),
                       'path' : f'{P1_name.replace(".jpg", "")}_2_{P2_name.replace(".jpg", "")}_vis.jpg'}
 
         return input_dict
@@ -111,6 +111,10 @@ class FashionDataset(BaseDataset) :
                 '[88, 88, 67, 66, 63, 108, 111, 119, 78, 82, 81, 103, 100, 91, 84, 93, 77, 100]']
     def postprocess(self, input_dict):
         return input_dict
+
+    def resize_bone(self, bone):
+        bone_resized = torch.nn.functional.interpolate(bone[None, :, :, 40:-40], (256, 256))
+        return bone_resized.squeeze()
 
     def __len__(self):
         return self.dataset_size
