@@ -46,7 +46,7 @@ class DPTNModel(nn.Module) :
                 fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
                                                                   can_image, can_map,
-                                                                self.opt.isTrain)
+                                                                False)
             return fake_image_t, fake_image_s
     def create_optimizers(self, opt):
         G_params = list(self.netG.parameters())
@@ -117,7 +117,6 @@ class DPTNModel(nn.Module) :
                                src_image, src_map,
                                tgt_image, tgt_map,
                                can_image, can_map):
-        self.netD.train()
         self.netG.train()
         G_losses = {}
         fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
@@ -151,7 +150,7 @@ class DPTNModel(nn.Module) :
                                    tgt_image, tgt_map,
                                    can_image, can_map):
         self.netD.train()
-        self.netG.train()
+        self.netG.eval()
         D_losses = {}
         with torch.no_grad():
             fake_image_t, fake_image_s = self.netG(src_image, src_map,

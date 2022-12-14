@@ -67,6 +67,7 @@ for epoch in iter_counter.training_epochs():
                   (epoch, iter_counter.total_steps_so_far))
             trainer.save('latest')
             iter_counter.record_current_iter()
+        # break
 
     for i, data_i in tqdm(enumerate(dataloader_val), desc='Validation images generating') :
         fake_target, fake_source = trainer.model(data_i, mode='inference')

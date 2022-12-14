@@ -85,15 +85,15 @@ class FashionDataset(BaseDataset) :
         # P1 preprocessing
         P1 = self.trans(P1_img)
         # BP1 = self.obtain_bone(P1_name, self.load_size)
-        BP1 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P1_name.replace('jpg', 'pt')))[:18]
+        BP1 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P1_name.replace('jpg', 'pt')))
         # P2 preprocessing
         P2 = self.trans(P2_img)
         # BP2 = self.obtain_bone(P2_name, self.load_size)
-        BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))[:18]
+        BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))
         # Canonical_img
         PC = self.trans(Canonical_img)
         # BPC = self.obtain_bone(None, self.load_size)
-        BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:18]
+        BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))
 
         # self.check_bone_img_matching(src_image_tensor, src_bone)
         input_dict = {'src_image' : P1,
