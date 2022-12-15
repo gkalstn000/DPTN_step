@@ -30,7 +30,6 @@ class DPTNModel(nn.Module) :
     def forward(self, data, mode):
         src_image, src_map, tgt_image, tgt_map, can_image, can_map = self.preprocess_input(data)
         if mode == 'generator':
-
             g_loss, fake_t, fake_s = self.compute_generator_loss(src_image, src_map,
                                                             tgt_image, tgt_map,
                                                             can_image, can_map)
@@ -102,7 +101,6 @@ class DPTNModel(nn.Module) :
         # Calculate GAN loss
         loss_ad_gen = None
         if use_d:
-            self.netD.eval()
             with torch.no_grad():
                 D_fake = self.netD(fake_image)
             loss_ad_gen = self.GANloss(D_fake, True, False) * self.opt.lambda_g
@@ -124,6 +122,7 @@ class DPTNModel(nn.Module) :
                                                                   tgt_map,
                                                                   can_image, can_map,
                                                         self.opt.isTrain)
+        self.netD.train()
         loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
         loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, src_image, use_d=False)
         G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
@@ -161,7 +160,7 @@ class DPTNModel(nn.Module) :
             fake_image_t.requires_grad_()
             fake_image_s = fake_image_s.detach()
             fake_image_s.requires_grad_()
-
+        self.netG.train()
         D_real_loss, D_fake_loss, gradient_penalty = self.backward_D_basic(tgt_image, fake_image_t)
         D_losses['Real_loss'] = D_real_loss * 0.5
         D_losses['Fake_loss'] = D_fake_loss * 0.5

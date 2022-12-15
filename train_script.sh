@@ -15,5 +15,5 @@ python train.py --id decoder_img --tf_log --gpu_ids 2 --type_En_c default --type
 python train.py --id spade --tf_log --gpu_ids 0 --batchSize 18 --type_En_c spade --type_Dc spade
 python train.py --id baseline --tf_log --gpu_ids 1 --type_En_c default --type_Dc default --batchSize 20
 
-# original red test
-python train.py --id original --tf_log --gpu_ids 1 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 5 --continue_train
+# original red train
+python train.py --id original --tf_log --gpu_ids 2 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 22
