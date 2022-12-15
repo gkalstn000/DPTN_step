@@ -36,6 +36,8 @@ class BaseDataset(data.Dataset):
         keypoint = util.cords_to_map(coord, self.opt)
         keypoint = np.transpose(keypoint, (2, 0, 1))
         keypoint = torch.Tensor(keypoint)
+        if self.opt.pose_nc == 18 :
+            return keypoint
         # Limb map
         limb = util.limbs_to_map(coord, self.opt)
         limb = np.transpose(limb, (2, 0, 1))

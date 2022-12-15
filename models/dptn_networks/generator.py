@@ -38,7 +38,7 @@ class DPTNGenerator(BaseNetwork):
 
         parser.set_defaults(use_spect_g=True)
         parser.set_defaults(use_coord=False)
-        parser.set_defaults(norm='batch')
+        parser.set_defaults(norm='instance')
         parser.set_defaults(img_f=512)
         return parser
     def __init__(self, opt):
