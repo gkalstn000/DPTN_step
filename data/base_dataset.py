@@ -26,29 +26,29 @@ class BaseDataset(data.Dataset):
     def initialize(self, opt):
         pass
 
-    def obtain_bone(self, name, load_size):
+    def obtain_bone(self, name):
         if name :
             y, x = self.annotation_file.loc[name]
         else :
             y, x = self.get_canonical_pose()
         coord = util.make_coord_array(y, x)
         # Keypoint map
-        keypoint = util.cords_to_map(coord, load_size)
+        keypoint = util.cords_to_map(coord, self.opt)
         keypoint = np.transpose(keypoint, (2, 0, 1))
         keypoint = torch.Tensor(keypoint)
+        if self.opt.pose_nc == 18 :
+            return keypoint
         # Limb map
-        if name :
-            limb = util.limbs_to_map(coord, load_size, 3)
-        else :
-            limb = np.load(os.path.join(self.opt.dataroot, 'canonical_map.npy'))
+        limb = util.limbs_to_map(coord, self.opt)
         limb = np.transpose(limb, (2, 0, 1))
         limb = torch.Tensor(limb)
-
 
         return torch.cat([keypoint, limb])
 
 
-
+    def get_canonical_pose(self):
+        return ['[28, 54, 54, 93, 130, 55, 95, 131, 117, 180, 233, 117, 178, 230, 24, 23, 27, 26]',
+                '[88, 88, 67, 66, 63, 108, 111, 119, 78, 82, 81, 103, 100, 91, 84, 93, 77, 100]']
 
 def __resize(img, w, h, method=Image.BICUBIC):
     return img.resize((w, h), method)

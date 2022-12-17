@@ -14,3 +14,20 @@ python train.py --id decoder_img --tf_log --gpu_ids 2 --type_En_c default --type
 # NIPA script
 python train.py --id spade --tf_log --gpu_ids 0 --batchSize 18 --type_En_c spade --type_Dc spade
 python train.py --id baseline --tf_log --gpu_ids 1 --type_En_c default --type_Dc default --batchSize 20
+
+# original red train
+python train.py --id original --tf_log --gpu_ids 2 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 22
+
+# NIPA original train
+python train.py --id original_genmap --tf_log --gpu_ids 0 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 40
+# red original + limbmap train
+python train.py --id original_fullmap --tf_log --gpu_ids 3 --type_En_c default --type_Dc default --pose_nc 37 --batchSize 22
+
+# red original lsgan
+python train.py --id original_lsgan --tf_log --gpu_ids 3 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 22
+
+# red original lsgan+model.train inference
+python train.py --id original_vali --tf_log --gpu_ids 2 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 22
+
+# red original lsgan+instance norm
+python train.py --id original_instance --tf_log --gpu_ids 1 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 22

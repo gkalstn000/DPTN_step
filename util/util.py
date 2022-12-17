@@ -19,38 +19,49 @@ def make_coord_array(keypoint_y, keypoint_x):
     # [[x1, y1], [x2, y2], ..., [x18, y18]] 형식으로 만들기
     keypoint_y = json.loads(keypoint_y)
     keypoint_x = json.loads(keypoint_x)
-    keypoint_x = [x+40 if x != -1 else x for x in keypoint_x]
     return np.concatenate([np.expand_dims(keypoint_y, -1), np.expand_dims(keypoint_x, -1)], axis=1)
 
 
 
 # ============================ for heatmap ============================
 # =====================================================================
-def cords_to_map(cords, img_size, sigma=6):
+def cords_to_map(cords, opt, sigma=6):
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
     :param img_size: load image size/ type: tuple/ (H, W)
     :param sigma: scale of heatmap, large sigma makes bigger heatmap
     :return: keypoint(joint) heatmaps/ type: np.array/ shape: (B, H, W, 18)
     '''
+    if isinstance(opt.load_size, int):
+        img_size = (opt.load_size, opt.load_size)
+    else :
+        img_size = opt.load_size
+    old_size = opt.old_size
     cords = cords.astype(float)
     result = np.zeros(img_size + cords.shape[0:1], dtype='float32')
     for i, point in enumerate(cords):
         if point[0] == -1 or point[1] == -1:
             continue
+        point[0] = point[0]/old_size[0] * img_size[0]
+        point[1] = point[1]/old_size[1] * img_size[1]
         point_0 = int(point[0])
         point_1 = int(point[1])
         xx, yy = np.meshgrid(np.arange(img_size[1]), np.arange(img_size[0]))
         result[..., i] = np.exp(-((yy - point_0) ** 2 + (xx - point_1) ** 2) / (2 * sigma ** 2))
     return result
 
-def limbs_to_map(cords, img_size, sigma=8) :
+def limbs_to_map(cords, opt, sigma=3) :
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
     :param img_size: load image size/ type: tuple/ (H, W)
     :param sigma: scale of heatmap, large sigma makes bigger heatmap
     :return: limb line heatmaps/ type: np.array/ shape: (B, H, W, 19)
     '''
+    if isinstance(opt.load_size, int):
+        img_size = (opt.load_size, opt.load_size)
+    else:
+        img_size = opt.load_size
+    old_size = opt.old_size
     cords = cords.astype(float)
     result = np.zeros(list(img_size) + [len(LIMB_SEQ)], dtype='float32')
     for i, (src, tgt) in enumerate(LIMB_SEQ) :
@@ -61,6 +72,8 @@ def limbs_to_map(cords, img_size, sigma=8) :
         trajectories = Bresenham_line(src_point, tgt_point)
         tmp_tensor = np.zeros(list(img_size) + [len(trajectories)], dtype='float32')
         for j, point in enumerate(trajectories) :
+            point[0] = point[0] / old_size[0] * img_size[0]
+            point[1] = point[1] / old_size[1] * img_size[1]
             point_0 = int(point[0])
             point_1 = int(point[1])
             xx, yy = np.meshgrid(np.arange(img_size[1]), np.arange(img_size[0]))
@@ -81,7 +94,7 @@ def Bresenham_line(p0, p1):
     if dx > dy:
         err = dx / 2.0
         while x != x1:
-            points_in_line.append((x, y))
+            points_in_line.append([x, y])
             err -= dy
             if err < 0:
                 y += sy
@@ -90,13 +103,13 @@ def Bresenham_line(p0, p1):
     else:
         err = dy / 2.0
         while y != y1:
-            points_in_line.append((x, y))
+            points_in_line.append([x, y])
             err -= dx
             if err < 0:
                 x += sx
                 err += dy
             y += sy
-    points_in_line.append((x, y))
+    points_in_line.append([x, y])
     return points_in_line
 # ============================ for heatmap ============================
 # =====================================================================
