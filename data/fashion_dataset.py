@@ -95,9 +95,9 @@ class FashionDataset(BaseDataset) :
         BPC = self.obtain_bone(None)
         # BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:18]
 
-        self.check_bone_img_matching(P1, BP1, f'tmp/check_obtainbone/full_{index}_src.jpg')
-        self.check_bone_img_matching(P2, BP2, f'tmp/check_obtainbone/full_{index}_tgt.jpg')
-        self.check_bone_img_matching(PC, BPC, f'tmp/check_obtainbone/full_{index}_can.jpg')
+        # self.check_bone_img_matching(P1, BP1, f'tmp/check_obtainbone/full_{index}_src.jpg')
+        # self.check_bone_img_matching(P2, BP2, f'tmp/check_obtainbone/full_{index}_tgt.jpg')
+        # self.check_bone_img_matching(PC, BPC, f'tmp/check_obtainbone/full_{index}_can.jpg')
 
         input_dict = {'src_image' : P1,
                       'src_map': BP1,
