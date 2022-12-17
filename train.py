@@ -7,7 +7,7 @@ from options.train_options import TrainOptions
 from trainers.trainer import Trainer
 from util.iter_counter import IterationCounter
 from util.visualizer import Visualizer
-
+import torch
 import data
 
 
@@ -70,6 +70,8 @@ for epoch in iter_counter.training_epochs():
 
     for i, data_i in tqdm(enumerate(dataloader_val), desc='Validation images generating') :
         fake_target, fake_source = trainer.model(data_i, mode='inference')
+        # with torch.no_grad() :
+        #     _, fake_target, fake_source = trainer.model(data_i, mode='generator')
         visuals = OrderedDict([('src_image_val', data_i['src_image']),
                                ('canonical_image_val', data_i['canonical_image']),
                                ('tgt_map_val', data_i['tgt_map']),
