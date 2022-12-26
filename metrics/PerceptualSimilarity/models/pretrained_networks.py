@@ -1,8 +1,7 @@
 from collections import namedtuple
 import torch
 from torchvision import models as tv
-from . import models_dense
-from IPython import embed
+
 
 class squeezenet(torch.nn.Module):
     def __init__(self, requires_grad=False, pretrained=True):
@@ -61,8 +60,7 @@ class alexnet(torch.nn.Module):
         if(not dense):
             alexnet_pretrained_features = tv.alexnet(pretrained=pretrained).features
         elif(dense):
-            import models_dense.alexnet
-            alexnet_pretrained_features = models_dense.alexnet.alexnet(pretrained=pretrained).features
+            alexnet_pretrained_features = metrics.PerceptualSimilarity.models.models_dense.alexnet.alexnet(pretrained=pretrained).features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()
@@ -105,8 +103,7 @@ class vgg16(torch.nn.Module):
         if(not dense):
             vgg_pretrained_features = tv.vgg16(pretrained=pretrained).features
         elif(dense):
-            import models_dense.vgg
-            vgg_pretrained_features = models_dense.vgg.vgg16(pretrained=pretrained).features
+            vgg_pretrained_features = metrics.PerceptualSimilarity.models.models_dense.vgg.vgg16(pretrained=pretrained).features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()
@@ -152,8 +149,7 @@ class vgg19(torch.nn.Module):
         if(not dense):
             vgg_pretrained_features = tv.vgg19(pretrained=pretrained).features
         elif(dense):
-            import models_dense.vgg
-            vgg_pretrained_features = models_dense.vgg.vgg19(pretrained=pretrained).features
+            vgg_pretrained_features = metrics.PerceptualSimilarity.models.models_dense.vgg.vgg19(pretrained=pretrained).features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()

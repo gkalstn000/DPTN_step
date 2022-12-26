@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import time
 from . import util
 from . import html
 # from pdb import set_trace as st
@@ -33,11 +32,11 @@ class Visualizer():
             self.vis = visdom.Visdom(port = opt.display_port)
 
         self.web_dir = os.path.join(opt.checkpoints_dir, opt.name, 'web')
-        util.mkdirs([self.web_dir,])
+        util.mkdirs([self.web_dir, ])
         if self.use_html:
             self.img_dir = os.path.join(self.web_dir, 'images')
             print('create web directory %s...' % self.web_dir)
-            util.mkdirs([self.img_dir,])
+            util.mkdirs([self.img_dir, ])
 
     # |visuals|: dictionary of images to display or save
     def display_current_results(self, visuals, epoch, nrows=None, res=256):
@@ -159,7 +158,7 @@ class Visualizer():
             image_name = '%s_%s.png' % (prefix, name)
             save_path = os.path.join(image_dir, image_name)
             if(res is not None):
-                util.save_image(zoom_to_res(image_numpy,res=res,axis=2), save_path)
+                util.save_image(zoom_to_res(image_numpy, res=res, axis=2), save_path)
             else:
                 util.save_image(image_numpy, save_path)
 

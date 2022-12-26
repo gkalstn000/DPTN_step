@@ -1,4 +1,11 @@
+from . import get_image_list, compare_l1, compare_mae, pad_256
 from skimage.metrics import structural_similarity as compare_ssim
+from skimage.metrics import peak_signal_noise_ratio as compare_psnr
+import matplotlib.pyplot as plt
+from imageio import imread
+import numpy as np
+import os
+
 
 class Reconstruction_Metrics():
     def __init__(self, metric_list=['ssim', 'psnr', 'l1', 'mae'], data_range=1, win_size=51, multichannel=True):
@@ -54,7 +61,7 @@ class Reconstruction_Metrics():
         npz_file = os.path.join(save_path, 'metrics.npz')
         if os.path.exists(npz_file):
             f = np.load(npz_file)
-            psnr ,ssim ,ssim_256 ,mae ,l 1 =f['psnr'] ,f['ssim'] ,f['ssim_256'] ,f['mae'] ,f['l1']
+            psnr ,ssim ,ssim_256 ,mae ,l1 =f['psnr'] ,f['ssim'] ,f['ssim_256'] ,f['mae'] ,f['l1']
         else:
             psnr = []
             ssim = []
@@ -86,8 +93,8 @@ class Reconstruction_Metrics():
                 mae.append(compare_mae(img_gt, img_pred))
                 l1.append(compare_l1(img_gt, img_pred))
 
-                img_gt_256 = img_g t *255.0
-                img_pred_256 = img_pre d *255.0
+                img_gt_256 = img_gt *255.0
+                img_pred_256 = img_pred *255.0
                 ssim_256.append(compare_ssim(img_gt_256, img_pred_256, gaussian_weights=True, sigma=1.5,
                                              use_sample_covariance=False, multichannel=True,
                                              data_range=img_pred_256.max() - img_pred_256.min()))

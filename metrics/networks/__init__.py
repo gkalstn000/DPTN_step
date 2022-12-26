@@ -1,9 +1,7 @@
 import os
 import numpy as np
-from script.metrics.fid import FID
 
 import glob
-import argparse
 import json
 from skimage.draw import disk, polygon
 
@@ -37,7 +35,7 @@ def get_image_list(flist):
 def compare_l1(img_true, img_test):
     img_true = img_true.astype(np.float32)
     img_test = img_test.astype(np.float32)
-    return np.mean(np.abs(img_true - img_test))    
+    return np.mean(np.abs(img_true - img_test))
 
 
 def compare_mae(img_true, img_test):
@@ -61,7 +59,7 @@ def preprocess_path_for_deform_task(gt_path, distorted_path):
             print(gt_image)
             continue
         gt_list.append(gt_image)
-        distorated_list.append(distorted_image)    
+        distorated_list.append(distorted_image)
 
     return gt_list, distorated_list
 
@@ -102,88 +100,16 @@ def produce_ma_mask(kp_array, img_size=(128, 64), point_radius=4):
 
     mask = dilation(mask, square(5))
     mask = erosion(mask, square(5))
-    return mask 
+    return mask
 
 
 def load_pose_cords_from_strings(y_str, x_str):
     y_cords = json.loads(y_str)
     x_cords = json.loads(x_str)
-    return np.concatenate([np.expand_dims(y_cords, -1), np.expand_dims(x_cords, -1)], axis=1)       
+    return np.concatenate([np.expand_dims(y_cords, -1), np.expand_dims(x_cords, -1)], axis=1)
 
 
 def create_masked_image(ano_to):
     kp_to = load_pose_cords_from_strings(ano_to['keypoints_y'], ano_to['keypoints_x'])
     mask = produce_ma_mask(kp_to)
     return mask
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='script to compute all statistics')
-    parser.add_argument('--gt_path', help='Path to ground truth data', type=str)
-    parser.add_argument('--distorated_path', help='Path to output data', type=str)
-    parser.add_argument('--fid_real_path', help='Path to real images when calculate FID', type=str)
-    parser.add_argument('--name', help='name of the experiment', type=str)
-    parser.add_argument('--calculate_mask', action='store_true')
-    parser.add_argument('--market', action='store_true')
-    args = parser.parse_args()
-
-    print('load start')
-    for arg in vars(args):
-        print('[%s] =' % arg, getattr(args, arg))
-    gt_list, distorated_list = preprocess_path_for_deform_task(args.gt_path, args.distorated_path)
-
-
-    print('load FID')
-    fid = FID()
-
-    print('calculate fid metric...')
-    fid_score = fid.calculate_from_disk(args.distorated_path, args.fid_real_path)
-
-    dic = {}
-    dic['fid'] = [fid_score]
-    print('fid', fid_score)
-
-
-
-
-
-    #
-    # if args.market:
-    #     rec = Reconstruction_Market_Metrics()
-    #     print('load market rec')
-    # else:
-    #     rec = Reconstruction_Metrics()
-    #     print('load rec')
-    #
-    # lpips = LPIPS()
-    # print('load LPIPS')
-    #
-    # print('calculate LPIPS...')
-    # lpips_score = lpips.calculate_from_disk(distorated_list, gt_list, sort=False)
-
-    #
-    # print('calculate reconstruction metric...')
-    # rec_dic = rec.calculate_from_disk(distorated_list, gt_list, save_path=args.distorated_path, sort=False, debug=False)
-    #
-    # if args.calculate_mask:
-    #     mask_lpips_score = lpips.calculate_mask_lpips(distorated_list, gt_list, sort=False)
-
-    # dic['name'] = [args.name]
-    # for key in rec_dic:
-    #     dic[key] = rec_dic[key]
-    #
-    #
-    #
-    # dic['lpips']=[lpips_score]
-    # print('lpips_score', lpips_score)
-    #
-    # if args.calculate_mask:
-    #     dic['mask_lpips']=[mask_lpips_score]
-
-
-
-
-
-
-
-

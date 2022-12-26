@@ -11,7 +11,7 @@ import argparse
 
 
 # if __name__ == '__main__' :
-parser = argparse.ArgumentParser(description='script to compute all statistics')
+parser = argparse.ArgumentParser(description='scripts to compute all statistics')
 parser.add_argument('--mode', help='Path to ground truth data', type=str)
 parser.add_argument('--pose_nc', default = '37', help='Path to ground truth data', type=int)
 parser.set_defaults(load_size=256)
