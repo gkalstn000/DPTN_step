@@ -1,27 +1,12 @@
 import os
-import pathlib
-import torch
 import numpy as np
-from metrics.fid import FID
+from script.metrics.fid import FID
 
-
-
-
-
-
-from imageio import imread
-from torch.nn.functional import adaptive_avg_pool2d
-from skimage.metrics import structural_similarity as compare_ssim
-from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 import glob
 import argparse
-import matplotlib.pyplot as plt
-from script.PerceptualSimilarity.models import dist_model as dm
-import pandas as pd
 import json
-import imageio
-from skimage.draw import disk, line_aa, polygon
-import cv2
+from skimage.draw import disk, polygon
+
 
 def pad_256(img):
     result = np.ones((256, 256, 3), dtype=float) * 255

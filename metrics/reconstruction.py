@@ -1,3 +1,4 @@
+from skimage.metrics import structural_similarity as compare_ssim
 
 class Reconstruction_Metrics():
     def __init__(self, metric_list=['ssim', 'psnr', 'l1', 'mae'], data_range=1, win_size=51, multichannel=True):
