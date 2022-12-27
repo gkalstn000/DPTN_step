@@ -1,18 +1,16 @@
 
 from __future__ import absolute_import
 
-import sys
-import scipy
 import scipy.misc
 import numpy as np
 import torch
 from torch.autograd import Variable
-import models
+from metrics.PerceptualSimilarity import models
 
 use_gpu = True
 
-ref_path  = './imgs/ex_ref.png'
-pred_path = './imgs/ex_p1.png'
+ref_path  = 'imgs/ex_ref.png'
+pred_path = 'imgs/ex_p1.png'
 
 ref_img = scipy.misc.imread(ref_path).transpose(2, 0, 1) / 255.
 pred_img = scipy.misc.imread(pred_path).transpose(2, 0, 1) / 255.

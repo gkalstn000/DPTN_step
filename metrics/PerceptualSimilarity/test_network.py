@@ -1,9 +1,6 @@
 import argparse
-import torch
-from util import util
-import models
-from models import dist_model as dm
-from IPython import embed
+from metrics.PerceptualSimilarity.util import util
+from metrics.PerceptualSimilarity import models
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-p0','--path0', type=str, default='./imgs/ex_ref.png')

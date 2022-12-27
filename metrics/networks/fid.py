@@ -4,7 +4,7 @@ import torch
 from torch.nn.functional import adaptive_avg_pool2d
 from scipy import linalg
 from imageio import imread
-from metrics.inception import InceptionV3
+from .inception import InceptionV3
 import cv2
 import os
 from tqdm import tqdm, trange
@@ -162,7 +162,7 @@ class FID():
         n_used_imgs = n_batches * self.batch_size
 
         pred_arr = np.empty((n_used_imgs, self.dims))
-        for i in range(n_batches):
+        for i in trange(n_batches):
             if verbose:
                 print('\rPropagating batch %d/%d' % (i + 1, n_batches))
             start = i * self.batch_size
