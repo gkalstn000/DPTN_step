@@ -33,8 +33,8 @@ class DPTNGenerator(BaseNetwork):
     @staticmethod
     def modify_commandline_options(parser, is_train):
         parser.add_argument('--activation', type=str, default='LeakyReLU', help='type of activation function')
-        parser.add_argument('--type_En_c', type=str, default='default', help='selects En_c type to use for generator (default | spade)')
-        parser.add_argument('--type_Dc', type=str, default='default', help='selects Dc type to use for generator (default | spade)')
+        parser.add_argument('--type_En_c', type=str, default='default', help='selects En_c type to use for generator (default | spade | spadeattn)')
+        parser.add_argument('--type_Dc', type=str, default='default', help='selects Dc type to use for generator (default | spade | spadeattn)')
 
         parser.set_defaults(use_spect_g=True)
         parser.set_defaults(use_coord=False)
