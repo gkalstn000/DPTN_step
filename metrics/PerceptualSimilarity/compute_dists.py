@@ -1,6 +1,6 @@
 import argparse
-import models
-from util import util
+from metrics.PerceptualSimilarity import models
+from metrics.PerceptualSimilarity.util import util
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-p0','--path0', type=str, default='./imgs/ex_ref.png')
@@ -12,8 +12,8 @@ parser.add_argument('--net', type=str, default='alex')
 opt = parser.parse_args()
 
 ## Initializing the model
-model = models.PerceptualLoss(model=opt.model, net=opt.net, use_gpu=opt.use_gpu, 
-	dist=opt.dist, normalize=not opt.no_normalize)
+model = models.PerceptualLoss(model=opt.model, net=opt.net, use_gpu=opt.use_gpu,
+                              dist=opt.dist, normalize=not opt.no_normalize)
 
 # Load images
 img0 = util.im2tensor(util.load_image(opt.path0)) # RGB image from [-1,1]

@@ -1,4 +1,11 @@
-
+from PerceptualSimilarity.models import dist_model as dm
+from . import get_image_list, create_masked_image
+import numpy as np
+import torch
+from imageio import imread
+import pandas as pd
+from tqdm import tqdm, trange
+import torch.nn.functional as nnf
 
 class LPIPS():
     def __init__(self, use_gpu=True):
@@ -41,7 +48,7 @@ class LPIPS():
 
         n_batches = d0 // batch_size
 
-        for i in range(n_batches):
+        for i in trange(n_batches):
             if verbose:
                 print('\rPropagating batch %d/%d' % (i + 1, n_batches))
             start = i * batch_size
@@ -53,7 +60,8 @@ class LPIPS():
             if self.use_gpu:
                 img_1_batch = img_1_batch.cuda()
                 img_2_batch = img_2_batch.cuda()
-
+            if img_1_batch.size() != img_2_batch.size() :
+                img_1_batch = nnf.interpolate(img_1_batch, size=(256, 176), mode='bicubic', align_corners=False)
             a = self.model.forward(img_1_batch, img_2_batch).item()
             result.append(a)
 
