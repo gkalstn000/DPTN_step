@@ -61,4 +61,4 @@ if __name__ == "__main__":
         dic['mask_lpips'] = [mask_lpips_score]
     df = pd.DataFrame.from_dict(dic)
     df.set_index('name')
-    df.to_csv(f'./eval_results/{args.name}')
+    df.to_csv(f'./eval_results/{args.name}.csv')
