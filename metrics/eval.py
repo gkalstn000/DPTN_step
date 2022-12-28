@@ -1,6 +1,8 @@
 import argparse
 from networks import fid, inception, lpips, reconstruction
 from networks import preprocess_path_for_deform_task
+import pandas as pd
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='scripts to compute all statistics')
     parser.add_argument('--gt_path', help='Path to ground truth data', type=str)
@@ -33,7 +35,7 @@ if __name__ == "__main__":
     gt_list, distorated_list = preprocess_path_for_deform_task(args.gt_path, args.distorated_path)
 
     print('calculate LPIPS...')
-    lpips_score = lpips.calculate_from_disk(distorated_list, gt_list, batch_size=64, sort=False)
+    lpips_score = lpips.calculate_from_disk(distorated_list, gt_list, batch_size=1, sort=False)
 
     print('calculate fid metric...')
     fid_score = fid.calculate_from_disk(args.distorated_path, args.fid_real_path)
@@ -57,5 +59,6 @@ if __name__ == "__main__":
 
     if args.calculate_mask:
         dic['mask_lpips'] = [mask_lpips_score]
-
-    print(dic)
+    df = pd.DataFrame.from_dict(dic)
+    df.set_index('name')
+    df.to_csv(f'./eval_results/{args.name}')
