@@ -44,16 +44,18 @@ if __name__ == "__main__":
     if args.calculate_mask:
         mask_lpips_score = lpips.calculate_mask_lpips(distorated_list, gt_list, sort=False)
 
-    # dic = {}
-    # dic['name'] = [args.name]
-    # for key in rec_dic:
-    #     dic[key] = rec_dic[key]
-    # dic['fid'] = [fid_score]
-    #
-    # print('fid', fid_score)
-    #
-    # dic['lpips'] = [lpips_score]
-    # print('lpips_score', lpips_score)
-    #
-    # if args.calculate_mask:
-    #     dic['mask_lpips'] = [mask_lpips_score]
+    dic = {}
+    dic['name'] = [args.name]
+    for key in rec_dic:
+        dic[key] = rec_dic[key]
+    dic['fid'] = [fid_score]
+
+    print('fid', fid_score)
+
+    dic['lpips'] = [lpips_score]
+    print('lpips_score', lpips_score)
+
+    if args.calculate_mask:
+        dic['mask_lpips'] = [mask_lpips_score]
+
+    print(dic)
