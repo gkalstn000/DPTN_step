@@ -155,8 +155,9 @@ def save_image(image_numpy, image_path, create_dir=False):
         image_numpy = np.expand_dims(image_numpy, axis=2)
     if image_numpy.shape[2] == 1:
         image_numpy = np.repeat(image_numpy, 3, 2)
-
-    image_pil = Image.fromarray(image_numpy)
+    if image_numpy.shape[0] == 3 :
+        image_numpy = np.transpose(image_numpy, (1, 2, 0))
+    image_pil = Image.fromarray(image_numpy).resize((176, 256))
 
     # save to png
     image_pil.save(image_path.replace('.jpg', '.png'))
