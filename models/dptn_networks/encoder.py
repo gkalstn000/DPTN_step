@@ -35,8 +35,6 @@ class SpadeAttnEncoder(BaseNetwork) :
 
         self.down = nn.MaxPool2d(2, stride=2)
     def forward(self, x, texture_information):
-        texture_information = torch.cat(texture_information, 1)
-
         x = self.head_0(x, texture_information)
         x = self.down(x)
         for i in range(self.layers - 1):

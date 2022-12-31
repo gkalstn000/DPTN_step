@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import torch.nn.utils.spectral_norm as spectral_norm
-from models.spade_networks.normalization import SPADE
+from models.spade_networks.normalization import SPADE, SPADEAttn
 
 
 # ResNet block that uses SPADE.
@@ -38,11 +38,18 @@ class SPADEResnetBlock(nn.Module):
             self.conv_s = spectral_norm(self.conv_s)
 
         # define normalization layers
+        if opt.type_En_c.lower() == 'spade' :
+            cond_norm = SPADE
+        elif opt.type_En_c.lower() == 'spadeattn' :
+            cond_norm = SPADEAttn
+        else :
+            raise Exception(f'{opt.type_En_c} is unrecognized cond norm type')
+
         input_nc = opt.image_nc + 2 * opt.pose_nc # image channel + map channer * 2
-        self.norm_0 = SPADE(opt.norm, fin, input_nc)
-        self.norm_1 = SPADE(opt.norm, fmiddle, input_nc)
+        self.norm_0 = cond_norm(opt.norm, fin, opt.pose_nc)
+        self.norm_1 = cond_norm(opt.norm, fmiddle, opt.pose_nc)
         if self.learned_shortcut:
-            self.norm_s = SPADE(opt.norm, fin, input_nc)
+            self.norm_s = cond_norm(opt.norm, fin, opt.pose_nc)
 
     # note the resnet block with SPADE also takes in |seg|,
     # the semantic segmentation map as input
