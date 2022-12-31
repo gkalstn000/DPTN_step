@@ -43,37 +43,41 @@ class SPADEAttn(nn.Module):
                              % param_free_norm_type)
 
 
-        nhidden = 128
+        self.nhidden = 128
         # Cross attention part
-        self.conv_pose = nn.Conv2d(texture_information_nc, nhidden, kernel_size=3, padding=1)
-        self.conv_img = nn.Conv2d(3, nhidden, kernel_size=3, padding=1)
-        self.pos_encoder = PositionalEncoding(nhidden)
-        self.attn = nn.MultiheadAttention(nhidden, 2)
+        self.conv_pose = nn.Conv2d(texture_information_nc, self.nhidden, kernel_size=3, padding=1)
+        self.conv_img = nn.Conv2d(3, self.nhidden, kernel_size=3, padding=1)
+        self.pos_encoder = PositionalEncoding(self.nhidden)
+        self.attn = nn.MultiheadAttention(self.nhidden, 2)
 
         # The dimension of the intermediate embedding space. Yes, hardcoded.
         self.mlp_shared = nn.Sequential(
-            nn.Conv2d(nhidden, nhidden, kernel_size=3, padding=1),
+            nn.Conv2d(self.nhidden, self.nhidden, kernel_size=3, padding=1),
             nn.ReLU()
         )
-        self.mlp_gamma = nn.Conv2d(nhidden, norm_nc, kernel_size=3, padding=1)
-        self.mlp_beta = nn.Conv2d(nhidden, norm_nc, kernel_size=3, padding=1)
+        self.mlp_gamma = nn.Conv2d(self.nhidden, norm_nc, kernel_size=3, padding=1)
+        self.mlp_beta = nn.Conv2d(self.nhidden, norm_nc, kernel_size=3, padding=1)
+
+        self.down_ratio = 4
+        self.up = nn.Upsample(scale_factor=self.down_ratio)
 
     def forward(self, x, texture_information):
-
         # Part 1. generate parameter-free normalized activations
         normalized = self.param_free_norm(x)
 
         # Part 2. Multi-head Cross Attention Q: Bone_1, K: Bone_2, V: Image_2
         # texture_information = F.interpolate(texture_information, size=x.size()[2:], mode='nearest')
-        q_bone = F.interpolate(texture_information[0], size=x.size()[2:], mode='nearest')
+        downsampling_size = [x.size(2)//self.down_ratio, x.size(3)//self.down_ratio]
+        q_bone = F.interpolate(texture_information[0], size=downsampling_size, mode='nearest')
         Q = self.conv_pose(q_bone).flatten(2).permute(2, 0, 1)
-        k_bone = F.interpolate(texture_information[1], size=x.size()[2:], mode='nearest')
+        k_bone = F.interpolate(texture_information[1], size=downsampling_size, mode='nearest')
         K = self.conv_pose(k_bone).flatten(2).permute(2, 0, 1)
-        v_img = F.interpolate(texture_information[2], size=x.size()[2:], mode='nearest')
+        v_img = F.interpolate(texture_information[2], size=downsampling_size, mode='nearest')
         V = self.conv_img(v_img).flatten(2).permute(2, 0, 1)
-
+        attn_output, attn_output_weights = self.attn(Q, K, V)
+        texture_information = attn_output.permute((1, 2, 0)).view([-1, self.nhidden] + downsampling_size)
         # Part 3. produce scaling and bias conditioned on semantic map
-        actv = self.mlp_shared(texture_information)
+        actv = self.mlp_shared(self.up(texture_information))
         gamma = self.mlp_gamma(actv)
         beta = self.mlp_beta(actv)
 

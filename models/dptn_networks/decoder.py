@@ -25,7 +25,7 @@ class SpadeDecoder(BaseNetwork) :
             setattr(self, 'decoder' + str(i), down)
 
         self.conv_img = nn.Conv2d(nf, 3, 3, padding=1)
-        self.up = nn.Upsample(scale_factor=2)
+        self.up = nn.Upsample(scale_factor=4)
 
     def forward(self, x, texture_information):
         texture_information = torch.cat(texture_information, 1)
