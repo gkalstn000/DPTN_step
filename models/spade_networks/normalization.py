@@ -42,7 +42,7 @@ class SPADEAttn(nn.Module):
             raise ValueError('%s is not a recognized param-free norm type in SPADE'
                              % param_free_norm_type)
 
-
+        texture_information_nc = (texture_information_nc - 3) // 2
         self.nhidden = 128
         # Cross attention part
         self.conv_pose = nn.Conv2d(texture_information_nc, self.nhidden, kernel_size=3, padding=1)

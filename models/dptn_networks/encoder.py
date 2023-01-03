@@ -18,13 +18,13 @@ class SpadeAttnEncoder(BaseNetwork) :
 
         input_nc = 2 * opt.pose_nc + opt.image_nc
 
-        self.head_0 = SPADEResnetBlock(input_nc, nf, opt)
+        self.head_0 = SPADEResnetBlock(input_nc, nf, opt, 'encoder')
 
         self.mult = 1
         for i in range(self.layers - 1) :
             mult_prev = self.mult
             self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
-            block = SPADEResnetBlock(opt.ngf * mult_prev, opt.ngf * self.mult, opt)
+            block = SPADEResnetBlock(opt.ngf * mult_prev, opt.ngf * self.mult, opt, 'encoder')
             setattr(self, 'down' + str(i), block)
 
         # ResBlocks
@@ -60,13 +60,13 @@ class SpadeEncoder(BaseNetwork) :
 
         input_nc = 2 * opt.pose_nc + opt.image_nc
 
-        self.head_0 = SPADEResnetBlock(input_nc, nf, opt)
+        self.head_0 = SPADEResnetBlock(input_nc, nf, opt, 'encoder')
 
         self.mult = 1
         for i in range(self.layers - 1) :
             mult_prev = self.mult
             self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
-            block = SPADEResnetBlock(opt.ngf * mult_prev, opt.ngf * self.mult, opt)
+            block = SPADEResnetBlock(opt.ngf * mult_prev, opt.ngf * self.mult, opt, 'encoder')
             setattr(self, 'down' + str(i), block)
 
         # ResBlocks

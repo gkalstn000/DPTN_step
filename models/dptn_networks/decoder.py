@@ -21,11 +21,11 @@ class SpadeDecoder(BaseNetwork) :
         for i in range(self.layers):
             mult_prev = mult
             mult = min(2 ** (self.layers - i - 2), opt.img_f // opt.ngf) if i != self.layers - 1 else 1
-            down = SPADEResnetBlock(nf * mult_prev, nf * mult, opt)
+            down = SPADEResnetBlock(nf * mult_prev, nf * mult, opt, 'decoder')
             setattr(self, 'decoder' + str(i), down)
 
         self.conv_img = nn.Conv2d(nf, 3, 3, padding=1)
-        self.up = nn.Upsample(scale_factor=4)
+        self.up = nn.Upsample(scale_factor=2)
 
     def forward(self, x, texture_information):
         texture_information = torch.cat(texture_information, 1)

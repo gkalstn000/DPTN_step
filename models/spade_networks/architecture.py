@@ -19,7 +19,7 @@ from models.spade_networks.normalization import SPADE, SPADEAttn
 # class-conditional GAN architecture using residual block.
 # The code was inspired from https://github.com/LMescheder/GAN_stability.
 class SPADEResnetBlock(nn.Module):
-    def __init__(self, fin, fout, opt):
+    def __init__(self, fin, fout, opt, type):
         super().__init__()
         # Attributes
         self.learned_shortcut = (fin != fout)
@@ -38,18 +38,26 @@ class SPADEResnetBlock(nn.Module):
             self.conv_s = spectral_norm(self.conv_s)
 
         # define normalization layers
-        if opt.type_En_c.lower() == 'spade' :
-            cond_norm = SPADE
-        elif opt.type_En_c.lower() == 'spadeattn' :
-            cond_norm = SPADEAttn
+        if type == 'encoder' :
+            if opt.type_En_c.lower() == 'spade' :
+                cond_norm = SPADE
+            elif opt.type_En_c.lower() == 'spadeattn' :
+                cond_norm = SPADEAttn
+            else :
+                raise Exception(f'{opt.type_En_c} is unrecognized cond norm type')
         else :
-            raise Exception(f'{opt.type_En_c} is unrecognized cond norm type')
+            if opt.type_Dc.lower() == 'spade' :
+                cond_norm = SPADE
+            elif opt.type_Dc.lower() == 'spadeattn' :
+                cond_norm = SPADEAttn
+            else :
+                raise Exception(f'{opt.type_En_c} is unrecognized cond norm type')
 
         input_nc = opt.image_nc + 2 * opt.pose_nc # image channel + map channer * 2
-        self.norm_0 = cond_norm(opt.norm, fin, opt.pose_nc)
-        self.norm_1 = cond_norm(opt.norm, fmiddle, opt.pose_nc)
+        self.norm_0 = cond_norm(opt.norm, fin, input_nc)
+        self.norm_1 = cond_norm(opt.norm, fmiddle, input_nc)
         if self.learned_shortcut:
-            self.norm_s = cond_norm(opt.norm, fin, opt.pose_nc)
+            self.norm_s = cond_norm(opt.norm, fin, input_nc)
 
     # note the resnet block with SPADE also takes in |seg|,
     # the semantic segmentation map as input
