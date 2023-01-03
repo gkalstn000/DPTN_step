@@ -19,7 +19,11 @@ python train.py --id baseline --tf_log --gpu_ids 1 --type_En_c default --type_Dc
 python train.py --id original --tf_log --gpu_ids 2 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 22
 
 # NIPA original train
-python train.py --id original_genmap --tf_log --gpu_ids 0 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 40
+python train.py --id c2c_spade_full --tf_log --gpu_ids 0 --type_En_c spade --type_Dc spade --batchSize 18
+python train.py --id c2c_spade_dec --tf_log --gpu_ids 0 --type_En_c default --type_Dc spade --batchSize 18
+
+
+
 # red original + limbmap train
 python train.py --id original_fullmap --tf_log --gpu_ids 3 --type_En_c default --type_Dc default --pose_nc 37 --batchSize 22
 

@@ -16,6 +16,21 @@
           </excludedPaths>
         </serverdata>
       </paths>
+      <paths name="ubuntu@211.253.164.238:16022 password (7)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ubuntu/dualattn" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath path="/home/ubuntu/dualattn/datasets" />
+            <excludedPath path="/home/ubuntu/dualattn/checkpoints" />
+            <excludedPath path="/home/ubuntu/dualattn/results" />
+            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
+            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
+            <excludedPath local="true" path="$PROJECT_DIR$/results" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
     </serverData>
     <option name="myAutoUpload" value="ALWAYS" />
   </component>
