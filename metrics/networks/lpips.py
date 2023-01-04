@@ -30,8 +30,8 @@ class LPIPS():
             files_2 = get_image_list(path_2)
 
 
-        imgs_1 = np.array([imread(str(fn)).astype(np.float32)/127.5-1 for fn in files_1])
-        imgs_2 = np.array([imread(str(fn)).astype(np.float32)/127.5-1 for fn in files_2])
+        imgs_1 = np.array([imread(str(fn)).astype(np.float32)/127.5-1 for fn in tqdm(files_1, desc='load gen files')])
+        imgs_2 = np.array([imread(str(fn)).astype(np.float32)/127.5-1 for fn in tqdm(files_2, desc='load gt files')])
 
         # Bring images to shape (B, 3, H, W)
         imgs_1 = imgs_1.transpose((0, 3, 1, 2))
