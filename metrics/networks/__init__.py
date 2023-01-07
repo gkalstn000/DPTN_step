@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from PIL import Image
 
 import glob
 import json
@@ -7,6 +8,9 @@ from skimage.draw import disk, polygon
 
 
 def pad_256(img):
+    if img.size != (176, 256) :
+        img = img.resize((176, 256), Image.BICUBIC)
+    img = np.array(img)
     result = np.ones((256, 256, 3), dtype=float) * 255
     result[:,40:216,:] = img
     return result
@@ -52,10 +56,9 @@ def preprocess_path_for_deform_task(gt_path, distorted_path):
     for distorted_image in distorted_image_list:
         image = os.path.basename(distorted_image)
         image = image.split('_2_')[-1]
-        image = image.split('_vis')[0] +'.jpg'
+        image = image.split('_vis')[0] + '.jpg' if '.jpg' not in image else image.split('_vis')[0]
         gt_image = os.path.join(gt_path, image)
         if not os.path.isfile(gt_image):
-            print("hhhhhhhhh")
             print(gt_image)
             continue
         gt_list.append(gt_image)

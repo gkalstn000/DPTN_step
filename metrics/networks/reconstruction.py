@@ -3,6 +3,7 @@ from skimage.metrics import structural_similarity as compare_ssim
 from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 import matplotlib.pyplot as plt
 from imageio import imread
+from PIL import Image
 import numpy as np
 import os
 
@@ -74,8 +75,8 @@ class Reconstruction_Metrics():
                 name = os.path.basename(input_image_list[index])
                 names.append(name)
 
-                img_gt = pad_256(imread(str(gt_image_list[index]))).astype(np.float32) / 255.0
-                img_pred = pad_256(imread(str(input_image_list[index]))).astype(np.float32) / 255.0
+                img_gt = pad_256(Image.open(str(gt_image_list[index]))).astype(np.float32) / 255.0
+                img_pred = pad_256(Image.open(str(input_image_list[index]))).astype(np.float32) / 255.0
 
 
                 if debug != 0:

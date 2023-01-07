@@ -11,8 +11,8 @@ if __name__ == "__main__":
     parser.add_argument('--name', help='name of the experiment', type=str)
     parser.add_argument('--calculate_mask', action='store_true')
     parser.add_argument('--market', action='store_true')
-    parser.add_argument('--old_size', type=int)
-    parser.add_argument('--load_size', type=int)
+    parser.set_defaults(old_size=(256, 256))
+    parser.set_defaults(load_size=(256, 176))
     args = parser.parse_args()
 
     print('load start')

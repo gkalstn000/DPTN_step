@@ -6,6 +6,7 @@ from imageio import imread
 import pandas as pd
 from tqdm import tqdm, trange
 import torch.nn.functional as nnf
+from PIL import Image
 
 class LPIPS():
     def __init__(self, use_gpu=True):
@@ -30,8 +31,8 @@ class LPIPS():
             files_2 = get_image_list(path_2)
 
 
-        imgs_1 = np.array([imread(str(fn)).astype(np.float32)/127.5-1 for fn in tqdm(files_1, desc='load gen files')])
-        imgs_2 = np.array([imread(str(fn)).astype(np.float32)/127.5-1 for fn in tqdm(files_2, desc='load gt files')])
+        imgs_1 = np.array([np.array(Image.open(str(fn)).resize((176, 256), Image.BICUBIC)).astype(np.float32)/127.5-1 for fn in tqdm(files_1, desc='load gen files')])
+        imgs_2 = np.array([np.array(Image.open(str(fn)).resize((176, 256), Image.BICUBIC)).astype(np.float32)/127.5-1 for fn in tqdm(files_2, desc='load gt files')])
 
         # Bring images to shape (B, 3, H, W)
         imgs_1 = imgs_1.transpose((0, 3, 1, 2))
@@ -60,8 +61,11 @@ class LPIPS():
             if self.use_gpu:
                 img_1_batch = img_1_batch.cuda()
                 img_2_batch = img_2_batch.cuda()
-            if img_1_batch.size() != img_2_batch.size() :
+            # print(img_1_batch.size())
+            if img_1_batch.size()[2:] != (256, 176) :
                 img_1_batch = nnf.interpolate(img_1_batch, size=(256, 176), mode='bicubic', align_corners=False)
+            if img_2_batch.size()[2:] != (256, 176) :
+                img_2_batch = nnf.interpolate(img_2_batch, size=(256, 176), mode='bicubic', align_corners=False)
             a = self.model.forward(img_1_batch, img_2_batch).item()
             result.append(a)
 

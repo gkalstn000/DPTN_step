@@ -13,7 +13,7 @@ import argparse
 # if __name__ == '__main__' :
 parser = argparse.ArgumentParser(description='scripts to compute all statistics')
 parser.add_argument('--mode', help='Path to ground truth data', type=str)
-parser.add_argument('--pose_nc', help='Path to ground truth data', type=int)
+parser.add_argument('--pose_nc', default=37, help='Path to ground truth data', type=int)
 parser.set_defaults(load_size=256)
 parser.set_defaults(old_size=(256, 176))
 opt = parser.parse_args()
