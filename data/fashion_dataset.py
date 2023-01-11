@@ -52,7 +52,7 @@ class FashionDataset(BaseDataset) :
         pairLst = os.path.join(root, 'fasion-pairs-%s.csv' % self.phase)
         name_pairs = self.init_categories(pairLst)
 
-        image_dir = os.path.join(root, '%s' % self.phase)
+        image_dir = os.path.join(root, '%s_higher' % self.phase)
         bonesLst = os.path.join(root, 'fasion-annotation-%s.csv' % self.phase)
         canonical_dir = os.path.join(root, '%s_canonical' % self.phase)
         return image_dir, canonical_dir, bonesLst, name_pairs
@@ -85,15 +85,15 @@ class FashionDataset(BaseDataset) :
         # P1 preprocessing
         P1 = self.trans(P1_img)
         # BP1 = self.obtain_bone(P1_name)
-        BP1 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P1_name.replace('jpg', 'pt')))
+        BP1 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P1_name.replace('jpg', 'pt')))[:18]
         # P2 preprocessing
         P2 = self.trans(P2_img)
         # BP2 = self.obtain_bone(P2_name)
-        BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))
+        BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))[:18]
         # Canonical_img
         PC = self.trans(Canonical_img)
         # BPC = self.obtain_bone(None)
-        BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))
+        BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:18]
 
         # self.check_bone_img_matching(P1, BP1, f'tmp/check_obtainbone/full_{index}_src.jpg')
         # self.check_bone_img_matching(P2, BP2, f'tmp/check_obtainbone/full_{index}_tgt.jpg')
