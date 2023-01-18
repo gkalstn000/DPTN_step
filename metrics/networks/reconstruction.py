@@ -36,7 +36,7 @@ class Reconstruction_Metrics():
 
 
         if hasattr(self, 'psnr'):
-            psnr_value = compare_psnr(inputs, gts, self.data_range)
+            psnr_value = compare_psnr(inputs, gts, data_range=self.data_range)
             result['psnr'] = psnr_value
 
         if hasattr(self, 'l1'):

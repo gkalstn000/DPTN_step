@@ -107,7 +107,12 @@ class FID():
             np.savez(npz_file, mu=m, sigma=s)
 
         return m, s
-
+    def calculate_activation_statistics_of_images(self, images):
+        self.model.eval()
+        pred = self.model(images)[0]
+        if pred.shape[2] != 1 or pred.shape[3] != 1:
+            pred = adaptive_avg_pool2d(pred, output_size=(1, 1))
+        return pred.cpu().data.numpy().reshape(images.shape[0], -1)
     def calculate_activation_statistics(self, images, verbose):
         """Calculation of the statistics used by the FID.
         Params:
