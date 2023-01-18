@@ -30,7 +30,7 @@ class Reconstruction_Metrics():
         gts = gts.view( b *n, w, h).detach().cpu().numpy().astype(np.float32).transpose(1 ,2 ,0)
 
         if hasattr(self, 'ssim'):
-            ssim_value = compare_ssim(inputs, gts, data_range=self.data_range,
+            ssim_value = compare_ssim(inputs * 255.0, gts * 255.0, data_range=self.data_range,
                                       win_size=self.win_size, multichannel=self.multichannel)
             result['ssim'] = ssim_value
 
