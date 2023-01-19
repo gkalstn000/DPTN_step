@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from collections import defaultdict
+import os
+print(os.getcwd())
 from util import util
 from tqdm import tqdm
 import glob

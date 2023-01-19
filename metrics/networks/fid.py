@@ -90,7 +90,7 @@ class FID():
             files = list(path.glob('*.jpg')) + list(path.glob('*.png'))
 
             imgs = []
-            for fn in files :
+            for fn in tqdm(files, desc= 'Preprocessing GT FID images...') :
                 img_array = imread(str(fn))
                 if img_array.shape != (256, 176, 3) :
                     img_array = cv2.resize(img_array, load_size)

@@ -1,4 +1,4 @@
-from PerceptualSimilarity.models import dist_model as dm
+from ..PerceptualSimilarity.models import dist_model as dm
 from . import get_image_list, create_masked_image
 import numpy as np
 import torch

@@ -1,6 +1,6 @@
 import argparse
-from networks import fid, inception, lpips, reconstruction
-from networks import preprocess_path_for_deform_task
+from metrics.networks import fid, inception, lpips, reconstruction
+from metrics.networks import preprocess_path_for_deform_task
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
