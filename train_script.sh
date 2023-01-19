@@ -34,4 +34,7 @@ python train.py --id original_lsgan --tf_log --gpu_ids 3 --type_En_c default --t
 python train.py --id original_vali --tf_log --gpu_ids 2 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 22
 
 # red original lsgan+instance norm
-python train.py --id original_instance --tf_log --gpu_ids 1 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 22
+python train.py --id original_instance --tf_log --gpu_ids 1 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 2
+
+# red DPTN higher
+python train.py --id DPTN_higher --tf_log --gpu_ids 2 --batchSize 25 --type_En_c default --type_Dc default --pose_nc 18
