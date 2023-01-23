@@ -21,18 +21,17 @@ class MetricDataset(data.Dataset) :
         gt_path = self.gt_list[index]
         distorated_path = self.distorated_list[index]
 
-        # gt_image = Image.open(gt_path).convert('RGB')
-        # distorated_image = Image.open(distorated_path).convert('RGB')
-        #
-        # gt_image = F.resize(gt_image, self.opt.load_size)
-        # distorated_image = F.resize(distorated_image, self.opt.load_size)
-        #
-        # return self.trans(gt_image), self.trans(distorated_image)
+        gt_image = Image.open(gt_path).convert('RGB')
+        distorated_image = Image.open(distorated_path).convert('RGB')
 
-        gt_image = self.cv2_loading(gt_path)
-        distorated_image = self.cv2_loading(distorated_path)
+        gt_image = F.resize(gt_image, self.opt.load_size)
+        distorated_image = F.resize(distorated_image, self.opt.load_size)
 
-        return torch.Tensor(gt_image), torch.Tensor(distorated_image)
+        return self.trans(gt_image), self.trans(distorated_image)
+
+        # gt_image = self.cv2_loading(gt_path)
+        # distorated_image = self.cv2_loading(distorated_path)
+        # return torch.Tensor(gt_image), torch.Tensor(distorated_image)
 
     def cv2_loading(self, image_path):
         img_array = imread(image_path)

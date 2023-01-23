@@ -1,6 +1,7 @@
 import argparse
+import os
 from metrics.networks import fid, inception, lpips, reconstruction
-from metrics.networks import preprocess_path_for_deform_task
+from metrics.networks import preprocess_path_for_deform_task, get_image_list
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
@@ -19,9 +20,10 @@ if __name__ == "__main__":
     parser.add_argument('--name', help='name of the experiment', type=str)
     parser.add_argument('--calculate_mask', action='store_true')
     parser.add_argument('--market', action='store_true')
-    parser.add_argument('--gpu_id', type=int, default = 2)
+    parser.add_argument('--gpu_id', type=int, default = 3)
+    parser.add_argument('--batchsize', type=int, default=128)
     parser.set_defaults(old_size=(256, 256))
-    parser.set_defaults(load_size=(256, 176))
+    parser.set_defaults(load_size=(256, 256))
     args = parser.parse_args()
 
     torch.cuda.set_device(args.gpu_id)
@@ -52,12 +54,26 @@ if __name__ == "__main__":
                   'psnr' : [0] * 20,
                   'l1' : [0] * 20,
                   'mae' : [0] * 20}
+    # Calculate FID from scratch
+    fid_real_list = get_image_list(args.fid_real_path)
+    dataloader = MetricDataset(args, fid_real_list, fid_real_list)
+    dataloader1 = make_dataloader(dataloader, args.batchsize)
+    fid_real_buffer = []
+    for _, real_imgs in tqdm(dataloader1, desc= 'Calculating FID real statics...') :
+        real_imgs = real_imgs.cuda()
+        with torch.no_grad():
+            fid_score = fid.calculate_activation_statistics_of_images(real_imgs)
+        fid_real_buffer.append(fid_score)
+    act = np.concatenate(fid_real_buffer, axis=0)
+    m1 = np.mean(act, axis=0)
+    s1 = np.cov(act, rowvar=False)
 
-    m1, s1 = fid.compute_statistics_of_path(args.fid_real_path, False)
+    # m1, s1 = fid.compute_statistics_of_path(args.fid_real_path, False)
 
     for (num_keypoint, gt_list), (num_keypoint, distorated_list) in zip(gt_dict.items(), distorated_dict.items()) :
+        if num_keypoint < 19: continue
         dataloader = MetricDataset(args, gt_list, distorated_list)
-        dataloader1 = make_dataloader(dataloader, 64)
+        dataloader1 = make_dataloader(dataloader, args.batchsize)
 
         # score buffers
         lpips_buffers = []
@@ -95,6 +111,6 @@ if __name__ == "__main__":
     df_score = df_score[[19]+[x for x in range(7, 19)]]
     df_score.rename(columns = {19 : 'Total'}, inplace=True)
     df_score.to_csv(f'./eval_results/{args.name}.csv')
-
-    fid_score = fid.calculate_from_disk(args.distorated_path, args.fid_real_path)
-    print(f'Origin FID score {fid_score} / My FID score {df_score["Total"]["fid"]}')
+    #
+    # fid_score = fid.calculate_from_disk(args.distorated_path, args.fid_real_path)
+    print(f'My FID score {df_score["Total"]["fid"]}')
