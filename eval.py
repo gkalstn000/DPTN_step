@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument('--gpu_id', type=int, default = 0)
     parser.add_argument('--batchsize', type=int, default=128)
     parser.set_defaults(old_size=(256, 256))
-    parser.set_defaults(load_size=(256, 256))
+    parser.set_defaults(load_size=(256, 176))
     args = parser.parse_args()
 
     torch.cuda.set_device(args.gpu_id)

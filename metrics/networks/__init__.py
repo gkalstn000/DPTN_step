@@ -25,7 +25,7 @@ def make_dataloader(dataloader, batchsize) :
     return  torch.utils.data.DataLoader(
             dataloader,
             batch_size=batchsize,
-            num_workers=6,
+            num_workers=40,
             shuffle=False
         )
 
@@ -76,6 +76,8 @@ def check_keypoint(keypoint_dict, img_name) :
     assert 'something wrong with check keypoint'
 def preprocess_path_for_deform_task(gt_path, distorted_path):
     distorted_image_list = sorted(get_image_list(distorted_path))
+    if not distorted_image_list :
+        distorted_image_list = sorted(get_image_list(os.path.join(distorted_path,'test_latest/images/synthesized_target_image')))
     gt_list= defaultdict(list)
     distorated_list= defaultdict(list)
     keypoint_dict = get_keypoint_dict()
