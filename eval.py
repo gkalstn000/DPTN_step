@@ -19,12 +19,12 @@ if __name__ == "__main__":
     parser.add_argument('--name', help='name of the experiment', type=str)
     parser.add_argument('--calculate_mask', action='store_true')
     parser.add_argument('--market', action='store_true')
-    parser.add_argument('--gpu_id', type=int, default = 2)
+    parser.add_argument('--gpu_ids', type=int, default = 2)
     parser.set_defaults(old_size=(256, 256))
     parser.set_defaults(load_size=(256, 176))
     args = parser.parse_args()
 
-    torch.cuda.set_device(args.gpu_id)
+    torch.cuda.set_device(args.gpu_ids)
 
     for arg in vars(args):
         print('[%s] =' % arg, getattr(args, arg))

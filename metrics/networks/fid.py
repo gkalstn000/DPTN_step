@@ -104,7 +104,7 @@ class FID():
             imgs /= 255
 
             m, s = self.calculate_activation_statistics(imgs, verbose)
-            np.savez(npz_file, mu=m, sigma=s)
+            # np.savez(npz_file, mu=m, sigma=s)
 
         return m, s
     def calculate_activation_statistics_of_images(self, images):
