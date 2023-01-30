@@ -17,6 +17,7 @@ class MetricDataset(data.Dataset) :
         transform_list.append(transforms.ToTensor())
         # transform_list.append(transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5)))
         self.trans = transforms.Compose(transform_list)
+        self.interpolation = Image.BILINEAR
     def __getitem__(self, index):
         gt_path = self.gt_list[index]
         distorated_path = self.distorated_list[index]
@@ -24,10 +25,10 @@ class MetricDataset(data.Dataset) :
         gt_image = Image.open(gt_path).convert('RGB')
         distorated_image = Image.open(distorated_path).convert('RGB')
 
-        gt_image = F.resize(gt_image, self.opt.load_size)
-        distorated_image = F.resize(distorated_image, self.opt.load_size)
+        gt_image = F.resize(gt_image, self.opt.load_size, self.interpolation)
+        distorated_image = F.resize(distorated_image, self.opt.load_size, self.interpolation)
 
-        return self.trans(gt_image), self.trans(distorated_image)
+        return self.trans(gt_image).float(), self.trans(distorated_image).float()
 
         # gt_image = self.cv2_loading(gt_path)
         # distorated_image = self.cv2_loading(distorated_path)
