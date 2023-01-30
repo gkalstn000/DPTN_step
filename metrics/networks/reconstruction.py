@@ -25,9 +25,9 @@ class Reconstruction_Metrics():
         gts:    the ground-truth image, size (b,c,w,h), data range(0, data_range)
         """
         result = dict()
-        [b ,n ,w ,h] = inputs.size()
-        inputs = inputs.view( b *n, w, h).detach().cpu().numpy().astype(np.float32).transpose(1 ,2 ,0)
-        gts = gts.view( b *n, w, h).detach().cpu().numpy().astype(np.float32).transpose(1 ,2 ,0)
+        [b ,n ,h ,w] = inputs.size()
+        inputs = inputs.view( b *n, h, w).detach().cpu().numpy().astype(np.float32).transpose(1 ,2 ,0)
+        gts = gts.view( b *n, h, w).detach().cpu().numpy().astype(np.float32).transpose(1 ,2 ,0)
 
         if hasattr(self, 'ssim'):
             ssim_value = compare_ssim(inputs * 255.0, gts * 255.0, data_range=self.data_range,

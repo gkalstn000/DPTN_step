@@ -88,7 +88,6 @@ class FID():
         else:
             path = pathlib.Path(path)
             files = list(path.glob('*.jpg')) + list(path.glob('*.png'))
-
             imgs = []
             for fn in tqdm(files, desc= 'Preprocessing GT FID images...') :
                 img_array = imread(str(fn))

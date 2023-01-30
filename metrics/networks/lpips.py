@@ -19,7 +19,7 @@ class LPIPS():
             image_1: images with size (n, 3, w, h) with value [-1, 1]
             image_2: images with size (n, 3, w, h) with value [-1, 1]
         """
-        result = self.model.forward(image_1, image_2)
+        result = self.model.forward(image_1 * 2 - 1, image_2 * 2 - 1)
         return result
 
     def calculate_from_disk(self, path_1, path_2, batch_size=1, verbose=False, sort=True):

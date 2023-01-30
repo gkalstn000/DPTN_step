@@ -25,28 +25,19 @@ if __name__ == "__main__":
     parser.set_defaults(old_size=(256, 256))
     parser.set_defaults(load_size=(256, 176))
     args = parser.parse_args()
-
-    torch.cuda.set_device(args.gpu_id)
-
     for arg in vars(args):
         print('[%s] =' % arg, getattr(args, arg))
-
-
-    print('load start')
-    gt_dict, distorated_dict = preprocess_path_for_deform_task(args.gt_path, args.distorated_path)
-
-    if args.market:
-        rec = reconstruction.Reconstruction_Market_Metrics()
-        print('load market rec')
-    else:
-        rec = reconstruction.Reconstruction_Metrics()
-        print('load rec')
-
+    torch.cuda.set_device(args.gpu_id)
+    # Loading models
+    fid = fid.FID()
+    print('load FID')
+    rec = reconstruction.Reconstruction_Market_Metrics() if args.market else reconstruction.Reconstruction_Metrics()
+    print('load rec')
     lpips = lpips.LPIPS()
     print('load LPIPS')
 
-    fid = fid.FID()
-    print('load FID')
+    print('load start')
+    gt_dict, distorated_dict = preprocess_path_for_deform_task(args.gt_path, args.distorated_path)
 
     score_dict = {'lpips' : [0] * 20,
                   'fid' : [0] * 20,
@@ -87,7 +78,7 @@ if __name__ == "__main__":
             gt_imgs = gt_imgs.cuda()
             distorated_imgs = distorated_imgs.cuda()
             with torch.no_grad() :
-                lpips_score = lpips(distorated_imgs * 2 - 1, gt_imgs * 2 - 1)
+                lpips_score = lpips(distorated_imgs, gt_imgs)
                 rec_dict = rec(distorated_imgs, gt_imgs)
                 fid_score = fid.calculate_activation_statistics_of_images(distorated_imgs)
             lpips_buffers.append(lpips_score.mean().item())
@@ -113,4 +104,4 @@ if __name__ == "__main__":
     df_score.to_csv(f'./eval_results/{args.name}.csv')
     #
     # fid_score = fid.calculate_from_disk(args.distorated_path, args.fid_real_path)
-    print(f'My FID score {df_score["Total"]["fid"]}')
+    # print(f'My FID score {df_score["Total"]["fid"]}')
