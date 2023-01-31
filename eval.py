@@ -22,6 +22,7 @@ if __name__ == "__main__":
     parser.add_argument('--market', action='store_true')
     parser.add_argument('--gpu_id', type=int, default = 0)
     parser.add_argument('--batchsize', type=int, default=128)
+    parser.add_argument('--interpolation', type=str, default='bilinear')
     parser.set_defaults(old_size=(256, 256))
     parser.set_defaults(load_size=(256, 176))
     args = parser.parse_args()
@@ -42,6 +43,7 @@ if __name__ == "__main__":
     score_dict = {'lpips' : [0] * 20,
                   'fid' : [0] * 20,
                   'ssim' : [0] * 20,
+                  'ssim_256': [0] * 20,
                   'psnr' : [0] * 20,
                   'l1' : [0] * 20,
                   'mae' : [0] * 20}
@@ -62,7 +64,7 @@ if __name__ == "__main__":
     # m1, s1 = fid.compute_statistics_of_path(args.fid_real_path, False)
 
     for (num_keypoint, gt_list), (num_keypoint, distorated_list) in zip(gt_dict.items(), distorated_dict.items()) :
-        if num_keypoint < 19: continue
+        # if num_keypoint < 19: continue
         dataloader = MetricDataset(args, gt_list, distorated_list)
         dataloader1 = make_dataloader(dataloader, args.batchsize)
 
@@ -70,6 +72,7 @@ if __name__ == "__main__":
         lpips_buffers = []
         fid_buffers = []
         ssim_buffers = []
+        ssim_256_buffers = []
         psnr_buffers = []
         l1_buffers = []
         mae_buffers = []
@@ -84,6 +87,7 @@ if __name__ == "__main__":
             lpips_buffers.append(lpips_score.mean().item())
             fid_buffers.append(fid_score)
             ssim_buffers.append(rec_dict['ssim'])
+            ssim_256_buffers.append(rec_dict['ssim_256'])
             psnr_buffers.append(rec_dict['psnr'])
             l1_buffers.append(rec_dict['l1'])
             mae_buffers.append(rec_dict['mae'])
@@ -94,6 +98,7 @@ if __name__ == "__main__":
         score_dict['fid'][num_keypoint] = fid.calculate_frechet_distance(m1, s1, m2, s2)
         score_dict['lpips'][num_keypoint] = mean(lpips_buffers)
         score_dict['ssim'][num_keypoint] = mean(ssim_buffers)
+        score_dict['ssim_256'][num_keypoint] = mean(ssim_256_buffers)
         score_dict['psnr'][num_keypoint] = mean(psnr_buffers)
         score_dict['l1'][num_keypoint] = mean(l1_buffers)
         score_dict['mae'][num_keypoint] = mean(mae_buffers)
