@@ -37,3 +37,6 @@ python train.py --id original_vali --tf_log --gpu_ids 2 --type_En_c default --ty
 python train.py --id original_instance --tf_log --gpu_ids 1 --type_En_c default --type_Dc default --pose_nc 18 --batchSize 22
 
 python train.py --id DPTN_higher --tf_log --gpu_ids 0 --type_En_c default --type_Dc default --pose_nc 18 --continue_train --batchSize 40
+
+# DPTN_higher_original_SPADEFULL
+python train.py --id DPTN_higher_spade_full --tf_log --gpu_ids 1 --type_En_c spade --type_Dc spade --pose_nc 18 --batchSize 14
