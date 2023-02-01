@@ -46,6 +46,9 @@ class PoseTransformerModule(nn.Module):
                 nn.init.xavier_uniform_(p)
 
     def forward(self, src, tgt, val, pos_embed=None):
+        # src: key
+        # tgt: query
+        # val: value
         bs, c, h, w = src.shape
         src = src.flatten(2).permute(2, 0, 1)
         tgt = tgt.flatten(2).permute(2, 0, 1)
@@ -53,8 +56,8 @@ class PoseTransformerModule(nn.Module):
         if pos_embed != None:
             pos_embed = pos_embed.flatten(2).permute(2, 0, 1)
         memory = self.encoder(src, pos=pos_embed)
-        hs = self.decoder(tgt, memory, val, pos=pos_embed)
-        return hs.view(bs, c, h, w)
+        hs, first_attn_weights, last_attn_weights = self.decoder(tgt, memory, val, pos=pos_embed) # query, key, value 순서
+        return hs.view(bs, c, h, w), first_attn_weights, last_attn_weights
 
 
 class CABs(nn.Module):
@@ -95,13 +98,14 @@ class TTBs(nn.Module):
 
     def forward(self, tgt, memory, val, pos = None):
         output = tgt
-
+        weight_list = []
         for layer in self.layers:
-            output = layer(output, memory, val, pos=pos)
+            output, attn_output_weights = layer(output, memory, val, pos=pos)
+            weight_list.append(attn_output_weights.cpu())
 
         if self.norm is not None:
             output = self.norm(output.permute(1, 2, 0))
-        return output
+        return output, weight_list[0], weight_list[-1]
 
 
 class CAB(nn.Module):
@@ -181,15 +185,19 @@ class TTB(nn.Module):
         tgt2 = self.self_attn(q, k, value=tgt)[0]
         tgt = tgt + tgt2
         tgt = self.norm1(tgt.permute(1, 2, 0)).permute(2, 0, 1)
-        tgt2 = self.multihead_attn(query=self.with_pos_embed(tgt, pos),
+        tgt2, attn_output_weights = self.multihead_attn(query=self.with_pos_embed(tgt, pos),
                                    key=self.with_pos_embed(memory, pos),
-                                   value=val)[0]
+                                   value=val)
         tgt = tgt + tgt2
         tgt = self.norm2(tgt.permute(1, 2, 0)).permute(2, 0, 1)
         tgt2 = self.linear2(self.activation(self.linear1(tgt)))
         tgt = tgt + tgt2
         tgt = self.norm3(tgt.permute(1, 2, 0)).permute(2, 0, 1)
-        return tgt
+        return tgt, attn_output_weights
+
+
+
+
 
 
 def _get_clones(module, N):

@@ -146,7 +146,36 @@ def save_network(net, label, epoch, opt):
         net.cuda()
 # model parameter I/O
 
+import seaborn as sns
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+from torch import nn
+# ============= Attention Map vis ==============
+def upsampling_weight(weight):
+    min_value, max_value = weight.min(), weight.max()
+    weight = (weight - min_value) / (max_value - min_value)
+    weight = weight.view(32, 32)
+    upsampling = nn.Upsample(scale_factor=8, mode='bicubic')
+    weight = upsampling(weight[None, None, :, :])
+    color = torch.Tensor([255, 255, 255])
+    return weight #* color[None, :, None, None]
 
+def save_heatmap(weight, path) :
+    fig = plt.figure()
+    sns.heatmap(weight.squeeze(), vmin=0.0, vmax=1.0)
+    plt.savefig(path)
+
+def bonemap_emphasis(heatmap, index) :
+    heatmap[heatmap < 0.5] = 0
+    # heatmap[heatmap >= 0.7] = 1
+    colors = [[255, 255, 255], [0,255,0]]
+    heatmap_color = heatmap.cpu() * torch.Tensor(colors[0])[:, None, None, None]
+    heatmap_color[:, index, :, :] = heatmap_color[:, index, :, :] / \
+                                    torch.Tensor(colors[0])[:, None,None] * torch.Tensor(colors[1])[:, None, None]
+    heatmap_color, _ = heatmap_color.max(1)
+    return heatmap_color
+
+# ============= Attention Map vis ==============
 
 def save_image(image_numpy, image_path, create_dir=False):
     if create_dir:
@@ -157,7 +186,7 @@ def save_image(image_numpy, image_path, create_dir=False):
         image_numpy = np.repeat(image_numpy, 3, 2)
     if image_numpy.shape[0] == 3 :
         image_numpy = np.transpose(image_numpy, (1, 2, 0))
-    image_pil = Image.fromarray(image_numpy).resize((176, 256))
+    image_pil = Image.fromarray(image_numpy)#.resize((176, 256))
 
     # save to png
     image_pil.save(image_path.replace('.jpg', '.png'))

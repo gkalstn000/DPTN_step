@@ -176,10 +176,13 @@ class DPTNModel(nn.Module) :
                       can_image, can_map,
                       is_train=True):
 
-        fake_image_t, fake_image_s = self.netG(src_image, src_map,
-                                               tgt_map,
-                                               can_image, can_map,
-                                               is_train)
+        fake_image_t, fake_image_s, first_attn_weights, last_attn_weights = self.netG(src_image, src_map,
+                                                                                      tgt_map,
+                                                                                      can_image, can_map,
+                                                                                      is_train)
+
+        self.first_attn_weights = first_attn_weights
+        self.last_attn_weights = last_attn_weights
         return fake_image_t, fake_image_s
     def use_gpu(self):
         return len(self.opt.gpu_ids) > 0
