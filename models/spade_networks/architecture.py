@@ -53,7 +53,7 @@ class SPADEResnetBlock(nn.Module):
             else :
                 raise Exception(f'{opt.type_En_c} is unrecognized cond norm type')
 
-        input_nc = opt.image_nc + 2 * opt.pose_nc # image channel + map channer * 2
+        input_nc = opt.image_nc + 1 * opt.pose_nc # image channel + map channer * 2
         self.norm_0 = cond_norm(opt.norm, fin, input_nc)
         self.norm_1 = cond_norm(opt.norm, fmiddle, input_nc)
         if self.learned_shortcut:
