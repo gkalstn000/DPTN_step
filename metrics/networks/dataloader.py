@@ -46,7 +46,7 @@ class MetricDataset(data.Dataset) :
                               'bicubic' : cv2.INTER_CUBIC,
                               'area' : cv2.INTER_AREA}
         img_array = imread(image_path)
-        img_array = cv2.resize(img_array, self.opt.load_size[::-1], interpolation_dict_[self.opt.interpolation]).astype(np.float32)
+        img_array = cv2.resize(img_array, self.opt.load_size[::-1], interpolation = interpolation_dict_[self.opt.interpolation]).astype(np.float32)
         img_array = img_array.transpose((2, 0, 1)) / 255.0
         return img_array
     def __len__(self):
