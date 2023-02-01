@@ -21,7 +21,7 @@ if __name__ == "__main__":
     parser.add_argument('--calculate_mask', action='store_true')
     parser.add_argument('--market', action='store_true')
     parser.add_argument('--gpu_id', type=int, default = 0)
-    parser.add_argument('--batchsize', type=int, default=128)
+    parser.add_argument('--batchsize', type=int, default=64)
     parser.add_argument('--interpolation', type=str, default='bilinear')
     parser.set_defaults(old_size=(256, 256))
     parser.set_defaults(load_size=(256, 176))
