@@ -13,6 +13,11 @@
             <excludedPath path="/home/minsu/dualattn/checkpoints" />
             <excludedPath path="/home/minsu/dualattn/datasets" />
             <excludedPath path="/home/minsu/dualattn/results" />
+            <excludedPath path="/home/minsu/dualattn/attention_map" />
+            <excludedPath local="true" path="$PROJECT_DIR$/attention_map" />
+            <excludedPath local="true" path="$PROJECT_DIR$/results" />
+            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
+            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
           </excludedPaths>
         </serverdata>
       </paths>
