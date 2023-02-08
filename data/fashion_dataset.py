@@ -74,7 +74,7 @@ class FashionDataset(BaseDataset) :
 
         P1_path = os.path.join(self.image_dir, P1_name) # person 1
         P2_path = os.path.join(self.image_dir, P2_name) # person 2
-        Canonical_path = os.path.join(self.canonical_dir, f'{P1_name[:-4]}_2_{P2_name[:-4]}_vis.jpg')
+        Canonical_path = os.path.join(self.canonical_dir, PC_name)
 
         P1_img = Image.open(P1_path).convert('RGB')
         P2_img = Image.open(P2_path).convert('RGB')
