@@ -1,10 +1,16 @@
 import os
 import numpy as np
+import pandas as pd
 from PIL import Image
-
+from collections import defaultdict
+import os
+print(os.getcwd())
+from util import util
+from tqdm import tqdm
 import glob
 import json
 from skimage.draw import disk, polygon
+import torch.utils.data
 
 
 def pad_256(img):
@@ -15,6 +21,13 @@ def pad_256(img):
     result[:,40:216,:] = img
     return result
 
+def make_dataloader(dataloader, batchsize) :
+    return  torch.utils.data.DataLoader(
+            dataloader,
+            batch_size=batchsize,
+            num_workers=40,
+            shuffle=False
+        )
 
 def get_image_list(flist):
     if isinstance(flist, list):
@@ -47,24 +60,43 @@ def compare_mae(img_true, img_test):
     img_test = img_test.astype(np.float32)
     return np.sum(np.abs(img_true - img_test)) / np.sum(img_true + img_test)
 
-
+def get_keypoint_dict() :
+    keypoint_path = 'datasets/fashion/fasion-annotation-test.csv'
+    df_keypoint = pd.read_csv(keypoint_path, sep=':')
+    keypoint_dict = defaultdict(list)
+    for idx, (name, keypoints_y, keypoints_x) in df_keypoint.iterrows() :
+        coord = util.make_coord_array(keypoints_y, keypoints_x)
+        num_keypoint = 18 - sum(coord.sum(-1) == -2)
+        keypoint_dict[num_keypoint].append(name)
+    return keypoint_dict
+def check_keypoint(keypoint_dict, img_name) :
+    for num_keypoint, img_list in keypoint_dict.items() :
+        if img_name in img_list :
+            return num_keypoint
+    assert 'something wrong with check keypoint'
 def preprocess_path_for_deform_task(gt_path, distorted_path):
     distorted_image_list = sorted(get_image_list(distorted_path))
-    gt_list=[]
-    distorated_list=[]
+    if not distorted_image_list :
+        distorted_image_list = sorted(get_image_list(os.path.join(distorted_path,'test_latest/images/synthesized_target_image')))
+    gt_list= defaultdict(list)
+    distorated_list= defaultdict(list)
+    keypoint_dict = get_keypoint_dict()
 
-    for distorted_image in distorted_image_list:
+    for distorted_image in tqdm(distorted_image_list, desc='classfing image by keypoints'):
         image = os.path.basename(distorted_image)
         image = image.split('_2_')[-1]
-        image = image.split('_vis')[0] + '.jpg' if '.jpg' not in image else image.split('_vis')[0]
+        image = image.split('_vis')[0] + '.jpg' # if '.jpg' not in image else image.split('_vis')[0]
         gt_image = os.path.join(gt_path, image)
         if not os.path.isfile(gt_image):
             print(gt_image)
             continue
-        gt_list.append(gt_image)
-        distorated_list.append(distorted_image)
+        num_keypoint = check_keypoint(keypoint_dict, image.replace('.png', '.jpg'))
+        gt_list[num_keypoint].append(gt_image)
+        gt_list[19].append(gt_image)
+        distorated_list[num_keypoint].append(distorted_image)
+        distorated_list[19].append(distorted_image)
 
-    return gt_list, distorated_list
+    return dict(sorted(gt_list.items())), dict(sorted(distorated_list.items()))
 
 
 def produce_ma_mask(kp_array, img_size=(128, 64), point_radius=4):

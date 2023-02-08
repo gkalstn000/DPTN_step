@@ -1,6 +1,7 @@
 from . import get_image_list, compare_l1, compare_mae, pad_256
 from skimage.metrics import structural_similarity as compare_ssim
 from skimage.metrics import peak_signal_noise_ratio as compare_psnr
+import torch
 import matplotlib.pyplot as plt
 from imageio import imread
 from PIL import Image
@@ -9,43 +10,67 @@ import os
 
 
 class Reconstruction_Metrics():
-    def __init__(self, metric_list=['ssim', 'psnr', 'l1', 'mae'], data_range=1, win_size=51, multichannel=True):
+    def __init__(self, metric_list=['ssim', 'ssim_256', 'psnr', 'l1', 'mae'], data_range=1, win_size=51, multichannel=True):
         self.data_range = data_range
         self.win_size = win_size
         self.multichannel = multichannel
         for metric in metric_list:
-            if metric in ['ssim', 'psnr', 'l1', 'mae']:
+            if metric in ['ssim', 'ssim_256','psnr', 'l1', 'mae']:
                 setattr(self, metric, True)
             else:
                 print('unsupport reconstruction metric: %s ' %metric)
 
-    def __call__(self, inputs, gts):
+    def __call__(self, inputs, gts, padding=True):
         """
         inputs: the generated image, size (b,c,w,h), data range(0, data_range)
         gts:    the ground-truth image, size (b,c,w,h), data range(0, data_range)
         """
         result = dict()
-        [b ,n ,w ,h] = inputs.size()
-        inputs = inputs.view( b *n, w, h).detach().cpu().numpy().astype(np.float32).transpose(1 ,2 ,0)
-        gts = gts.view( b *n, w, h).detach().cpu().numpy().astype(np.float32).transpose(1 ,2 ,0)
+        [b ,c ,h ,w] = inputs.size()
+        if padding:
+            padding = torch.ones([b, c, h, 40])
+            inputs = torch.concatenate([padding, inputs.cpu(), padding], dim = 3).numpy().transpose(0, 2 ,3 ,1)
+            gts = torch.concatenate([padding, gts.cpu(), padding], dim=3).numpy().transpose(0, 2 ,3 ,1)
+        else :
+            inputs = inputs.cpu().numpy().transpose(0, 2 ,3 ,1)
+            gts = gts.cpu().numpy().transpose(0, 2 ,3 ,1)
 
-        if hasattr(self, 'ssim'):
-            ssim_value = compare_ssim(inputs, gts, data_range=self.data_range,
-                                      win_size=self.win_size, multichannel=self.multichannel)
-            result['ssim'] = ssim_value
+        # inputs = inputs.view( b *n, h, w).detach().cpu().numpy().astype(np.float32).transpose(1 ,2 ,0)
+        # gts = gts.view( b *n, h, w).detach().cpu().numpy().astype(np.float32).transpose(1 ,2 ,0)
+        psnr = []
+        ssim = []
+        ssim_256 = []
+        mae = []
+        l1 = []
+        for gt, input in zip(gts, inputs) :
+            if hasattr(self, 'ssim'):
+                ssim_value = compare_ssim(gt, input, data_range=self.data_range,
+                                          win_size=self.win_size, multichannel=self.multichannel)
+                ssim.append(ssim_value)
 
+                gt_256 = gt * 255.0
+                input_256 = input * 255.0
+                ssim_256_value = compare_ssim(gt_256, input_256, gaussian_weights=True, sigma=1.5,
+                                                 use_sample_covariance=False, multichannel=True,
+                                                 data_range=255)
+                ssim_256.append(ssim_256_value)
 
-        if hasattr(self, 'psnr'):
-            psnr_value = compare_psnr(inputs, gts, self.data_range)
-            result['psnr'] = psnr_value
+            if hasattr(self, 'psnr'):
+                psnr_value = compare_psnr(gt, input, data_range=self.data_range)
+                psnr.append(psnr_value)
 
-        if hasattr(self, 'l1'):
-            l1_value = compare_l1(inputs, gts)
-            result['l1'] = l1_value
+            if hasattr(self, 'l1'):
+                l1_value = compare_l1(gt, input)
+                l1.append(l1_value)
 
-        if hasattr(self, 'mae'):
-            mae_value = compare_mae(inputs, gts)
-            result['mae'] = mae_value
+            if hasattr(self, 'mae'):
+                mae_value = compare_mae(gt, input)
+                mae.append(mae_value)
+        result['ssim'] = round(np.mean(ssim), 4)
+        result['ssim_256'] = round(np.mean(ssim_256), 4)
+        result['psnr'] = round(np.mean(psnr), 4)
+        result['l1'] = round(np.mean(l1), 4)
+        result['mae'] = round(np.mean(mae), 4)
         return result
 
     def calculate_from_disk(self, inputs, gts, save_path=None, sort=True, debug=0):

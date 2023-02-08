@@ -88,9 +88,8 @@ class FID():
         else:
             path = pathlib.Path(path)
             files = list(path.glob('*.jpg')) + list(path.glob('*.png'))
-
             imgs = []
-            for fn in files :
+            for fn in tqdm(files, desc= 'Preprocessing GT FID images...') :
                 img_array = imread(str(fn))
                 if img_array.shape != (256, 176, 3) :
                     img_array = cv2.resize(img_array, load_size)
@@ -104,10 +103,15 @@ class FID():
             imgs /= 255
 
             m, s = self.calculate_activation_statistics(imgs, verbose)
-            np.savez(npz_file, mu=m, sigma=s)
+            # np.savez(npz_file, mu=m, sigma=s)
 
         return m, s
-
+    def calculate_activation_statistics_of_images(self, images):
+        self.model.eval()
+        pred = self.model(images)[0]
+        if pred.shape[2] != 1 or pred.shape[3] != 1:
+            pred = adaptive_avg_pool2d(pred, output_size=(1, 1))
+        return pred.cpu().data.numpy().reshape(images.shape[0], -1)
     def calculate_activation_statistics(self, images, verbose):
         """Calculation of the statistics used by the FID.
         Params:
