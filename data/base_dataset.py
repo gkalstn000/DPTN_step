@@ -27,10 +27,10 @@ class BaseDataset(data.Dataset):
         pass
 
     def obtain_bone(self, name):
-        if name :
-            y, x = self.annotation_file.loc[name]
+        if '_2_' in name :
+            y, x = self.annotation_file_canonical.loc[name]
         else :
-            y, x = self.get_canonical_pose()
+            y, x = self.annotation_file.loc[name]
         coord = util.make_coord_array(y, x)
         # Keypoint map
         keypoint = util.cords_to_map(coord, self.opt)

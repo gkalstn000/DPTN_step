@@ -38,8 +38,8 @@ class FashionDataset(BaseDataset) :
 
 
         # transform_list.append(transforms.Resize(size=self.load_size))
-        self.annotation_file = pd.read_csv(self.bone_file, sep=':')
-        self.annotation_file = self.annotation_file.set_index('name')
+        self.annotation_file = pd.read_csv(self.bone_file, sep=':').set_index('name')
+        self.annotation_file_canonical = pd.read_csv(self.bone_file.replace(opt.phase, opt.phase+'-canonical'), sep=':').set_index('name')
 
         transform_list=[]
         # transform_list.append(transforms.Resize(size=self.load_size))
@@ -70,6 +70,8 @@ class FashionDataset(BaseDataset) :
 
     def __getitem__(self, index):
         P1_name, P2_name = self.name_pairs[index]
+        PC_name = f'{P1_name.replace(".jpg", "")}_2_{P2_name.replace(".jpg", "")}_vis.jpg'
+
         P1_path = os.path.join(self.image_dir, P1_name) # person 1
         P2_path = os.path.join(self.image_dir, P2_name) # person 2
         Canonical_path = os.path.join(self.canonical_dir, f'{P1_name[:-4]}_2_{P2_name[:-4]}_vis.jpg')
@@ -92,8 +94,9 @@ class FashionDataset(BaseDataset) :
         BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))[:18]
         # Canonical_img
         PC = self.trans(Canonical_img)
-        # BPC = self.obtain_bone(None)
-        BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:18]
+        # BPC = self.obtain_bone(PC_name)
+        # BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:18]
+        BPC = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map_canonical', PC_name.replace('jpg', 'pt')))[:18]
 
         # self.check_bone_img_matching(P1, BP1, f'tmp/check_obtainbone/full_{index}_src.jpg')
         # self.check_bone_img_matching(P2, BP2, f'tmp/check_obtainbone/full_{index}_tgt.jpg')
@@ -105,7 +108,7 @@ class FashionDataset(BaseDataset) :
                       'tgt_map' : BP2,
                       'canonical_image' : PC,
                       'canonical_map' : BPC,
-                      'path' : f'{P1_name.replace(".jpg", "")}_2_{P2_name.replace(".jpg", "")}_vis.jpg'}
+                      'path' : PC_name}
 
         return input_dict
 
