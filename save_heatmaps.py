@@ -31,5 +31,7 @@ dataset.opt = opt
 dataset.annotation_file = annotation_file
 dataset.annotation_file_canonical = annotation_file
 for name  in tqdm(annotation_file.index, desc=f'{mode} heatmap processing') :
+    filename = name.replace('jpg', 'pt')
+    if os.path.isfile(os.path.join(save_path, filename)) : continue
     map_tensor = dataset.obtain_bone(name)
-    torch.save(map_tensor, os.path.join(save_path, name.replace('jpg', 'pt')))
+    torch.save(map_tensor, os.path.join(save_path, filename))
