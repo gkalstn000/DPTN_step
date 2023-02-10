@@ -12,7 +12,7 @@ import argparse
 
 # if __name__ == '__main__' :
 parser = argparse.ArgumentParser(description='scripts to compute all statistics')
-parser.add_argument('--mode', help='Path to ground truth data', type=str)
+parser.add_argument('--mode', default='test', help='Path to ground truth data', type=str)
 parser.add_argument('--pose_nc', default = '37', help='Path to ground truth data', type=int)
 parser.add_argument('--canonical', action='store_true', help='generate canonical heatmaps')
 parser.set_defaults(load_size=256)
@@ -20,18 +20,20 @@ parser.set_defaults(old_size=(256, 176))
 opt = parser.parse_args()
 
 mode = opt.mode
+# root = '/home/red/external/msha/datasets/fashion'
 root = './datasets/fashion'
+
 save_path = os.path.join(root, f'{mode}_map' if not opt.canonical else f'{mode}_map_canonical')
 mkdirs(save_path)
-annotation_file = pd.read_csv(os.path.join(root, f'fasion-annotation-{mode}.csv' if not opt.canonical else f'fasion-annotation-{mode}-canonical.csv'), sep=':')
-annotation_file = annotation_file.set_index('name')
+annotation_file = pd.read_csv(os.path.join(root, f'fasion-annotation-{mode}.csv' if not opt.canonical else f'fasion-annotation-{mode}-canonical.csv'), sep=':').set_index('name')
 
 dataset = BaseDataset()
 dataset.opt = opt
 dataset.annotation_file = annotation_file
 dataset.annotation_file_canonical = annotation_file
-for name  in tqdm(annotation_file.index, desc=f'{mode} heatmap processing') :
+for name in tqdm(annotation_file.index, desc=f'{mode} heatmap processing') :
     filename = name.replace('jpg', 'pt')
     if os.path.isfile(os.path.join(save_path, filename)) : continue
+    # if os.path.exists(os.path.join(save_path, filename)) : continue
     map_tensor = dataset.obtain_bone(name)
     torch.save(map_tensor, os.path.join(save_path, filename))

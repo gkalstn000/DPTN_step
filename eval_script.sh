@@ -91,9 +91,10 @@
 #python eval.py --gt_path ./datasets/fashion/test --fid_real_path ./datasets/fashion/train --distorated_path ./results/GFLA_fashion --gpu_id 0 --name GFLA_lower_256_pil_bicubic --interpolation bicubic
 
 
-python eval.py --gt_path ./datasets/fashion/test_higher --fid_real_path ./datasets/fashion/train_higher --distorated_path ./results/GFLA_fashion --gpu_id 0 --name GFLA_fashion_higher --interpolation bilinear
-python eval.py --gt_path ./datasets/fashion/test_higher --fid_real_path ./datasets/fashion/train_higher --distorated_path ./results/DPTN_higher --gpu_id 0 --name DPTN_fashion_higher --interpolation bilinear
+#python eval.py --gt_path ./datasets/fashion/test_higher --fid_real_path ./datasets/fashion/train_higher --distorated_path ./results/GFLA_fashion --gpu_id 0 --name GFLA_fashion_higher --interpolation bilinear
+#python eval.py --gt_path ./datasets/fashion/test_higher --fid_real_path ./datasets/fashion/train_higher --distorated_path ./results/DPTN_higher --gpu_id 0 --name DPTN_fashion_higher --interpolation bilinear
 
 
 
 
+python save_heatmaps.py --mode test --pose_nc 37 --canonical
