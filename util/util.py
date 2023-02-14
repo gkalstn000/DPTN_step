@@ -159,8 +159,8 @@ def save_image(image_numpy, image_path, create_dir=False):
         image_numpy = np.transpose(image_numpy, (1, 2, 0))
     image_pil = Image.fromarray(image_numpy)#.resize((176, 256))
 
-    # save to png
-    image_pil.save(image_path.replace('.jpg', '.png'))
+    # save image
+    image_pil.save(image_path)
 
 def map_to_img(tensor, threshold = 0.5) :
     '''
