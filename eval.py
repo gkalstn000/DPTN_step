@@ -1,11 +1,12 @@
 import argparse
 import os
+
 from metrics.networks import fid, inception, lpips, reconstruction
 from metrics.networks import preprocess_path_for_deform_task, get_image_list
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-import torch
+import torch, gc
 from metrics.networks.dataloader import MetricDataset
 from metrics.networks import make_dataloader
 def mean(buffer) :
@@ -28,7 +29,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     for arg in vars(args):
         print('[%s] =' % arg, getattr(args, arg))
-    torch.cuda.set_device(args.gpu_id)
+    print(f'Set GPU id : {args.gpu_id}')
+    # device = torch.device(f"cuda:{args.gpu_id}")
+    # torch.cuda.set_device(args.gpu_id)
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_id)
+
     # Loading models
     fid = fid.FID()
     print('load FID')
@@ -48,7 +53,7 @@ if __name__ == "__main__":
                   'l1' : [0] * 20,
                   'mae' : [0] * 20}
     # Calculate FID from scratch
-    fid_real_list = get_image_list(args.fid_real_path)
+    fid_real_list = get_image_list(args.fid_real_path, False)
     dataloader = MetricDataset(args, fid_real_list, fid_real_list)
     dataloader1 = make_dataloader(dataloader, args.batchsize)
     fid_real_buffer = []
@@ -57,6 +62,8 @@ if __name__ == "__main__":
         with torch.no_grad():
             fid_score = fid.calculate_activation_statistics_of_images(real_imgs)
         fid_real_buffer.append(fid_score)
+    gc.collect()
+    torch.cuda.empty_cache()
     act = np.concatenate(fid_real_buffer, axis=0)
     m1 = np.mean(act, axis=0)
     s1 = np.cov(act, rowvar=False)
@@ -64,7 +71,7 @@ if __name__ == "__main__":
     # m1, s1 = fid.compute_statistics_of_path(args.fid_real_path, False)
 
     for (num_keypoint, gt_list), (num_keypoint, distorated_list) in zip(gt_dict.items(), distorated_dict.items()) :
-        # if num_keypoint < 19: continue
+        if num_keypoint < 19: continue
         dataloader = MetricDataset(args, gt_list, distorated_list)
         dataloader1 = make_dataloader(dataloader, args.batchsize)
 
@@ -91,7 +98,8 @@ if __name__ == "__main__":
             psnr_buffers.append(rec_dict['psnr'])
             l1_buffers.append(rec_dict['l1'])
             mae_buffers.append(rec_dict['mae'])
-
+            gc.collect()
+            torch.cuda.empty_cache()
         act = np.concatenate(fid_buffers, axis = 0)
         m2 = np.mean(act, axis=0)
         s2 = np.cov(act, rowvar=False)
