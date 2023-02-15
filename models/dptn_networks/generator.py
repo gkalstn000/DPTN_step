@@ -58,23 +58,23 @@ class DPTNGenerator(BaseNetwork):
     def forward(self, source_image, source_bone, target_bone,
                 canonical_image, canonical_bone, is_train=True):
         # Encode source-to-source
-        input_s_s = torch.cat((source_image, source_bone, source_bone), 1)
-        texture_information = [source_bone, source_image] # canonical->canonical information
+        input_s_s = torch.cat((canonical_image, canonical_bone, canonical_bone), 1)
+        texture_information = [canonical_bone, source_bone, source_image] # canonical->canonical information
         F_s_s = self.En_c(input_s_s, texture_information)
         # Encode source-to-target
-        input_s_t = torch.cat((source_image, source_bone, target_bone), 1)
-        texture_information = [source_bone, source_image]  # source-canonical information
+        input_s_t = torch.cat((canonical_image, canonical_bone, target_bone), 1)
+        texture_information = [canonical_bone, source_bone, source_image]  # source-canonical information
         F_s_t = self.En_c(input_s_t, texture_information)
         # Source Image Encoding
         F_s = self.En_s(source_image)
         # Pose Transformer Module for Dual-task Correlation
-        F_s_t = self.PTM(F_s_s, F_s_t, F_s)
+        F_s_t, first_attn_weights, last_attn_weights = self.PTM(F_s_s, F_s_t, F_s)
         # Source-to-source Decoder (only for training)
         out_image_s = None
         if is_train:
-            texture_information = [source_bone, source_image] # [canonical_bone, source_bone, source_image]
+            texture_information = [canonical_bone, source_bone, source_image] # [canonical_bone, source_bone, source_image]
             out_image_s = self.De(F_s_s, texture_information)
         # Source-to-target Decoder
-        texture_information = [source_bone, source_image] # [target_bone, source_bone, source_image]
+        texture_information = [target_bone, source_bone, source_image] # [target_bone, source_bone, source_image]
         out_image_t = self.De(F_s_t, texture_information)
-        return out_image_t, out_image_s
+        return out_image_t, out_image_s, first_attn_weights, last_attn_weights
