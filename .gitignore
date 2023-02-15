@@ -5,3 +5,4 @@
 /tmp/
 /*.out
 /attention_map/
+/eval_results/
