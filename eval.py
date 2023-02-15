@@ -21,8 +21,9 @@ if __name__ == "__main__":
     parser.add_argument('--name', help='name of the experiment', type=str)
     parser.add_argument('--calculate_mask', action='store_true')
     parser.add_argument('--market', action='store_true')
+    parser.add_argument('--cv2', action='store_true')
     parser.add_argument('--gpu_id', type=int, default = 0)
-    parser.add_argument('--batchsize', type=int, default=64)
+    parser.add_argument('--batchsize', type=int, default=128)
     parser.add_argument('--interpolation', type=str, default='bilinear')
     parser.set_defaults(old_size=(256, 256))
     parser.set_defaults(load_size=(256, 176))
@@ -53,7 +54,7 @@ if __name__ == "__main__":
                   'l1' : [0] * 20,
                   'mae' : [0] * 20}
     # Calculate FID from scratch
-    fid_real_list = get_image_list(args.fid_real_path, False)
+    fid_real_list = get_image_list(args.fid_real_path)
     dataloader = MetricDataset(args, fid_real_list, fid_real_list)
     dataloader1 = make_dataloader(dataloader, args.batchsize)
     fid_real_buffer = []
@@ -71,7 +72,7 @@ if __name__ == "__main__":
     # m1, s1 = fid.compute_statistics_of_path(args.fid_real_path, False)
 
     for (num_keypoint, gt_list), (num_keypoint, distorated_list) in zip(gt_dict.items(), distorated_dict.items()) :
-        if num_keypoint < 19: continue
+        # if num_keypoint < 19: continue
         dataloader = MetricDataset(args, gt_list, distorated_list)
         dataloader1 = make_dataloader(dataloader, args.batchsize)
 

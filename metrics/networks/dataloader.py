@@ -27,19 +27,18 @@ class MetricDataset(data.Dataset) :
     def __getitem__(self, index):
         gt_path = self.gt_list[index]
         distorated_path = self.distorated_list[index]
+        if self.opt.cv2 :
+            gt_image = self.cv2_loading(gt_path)
+            distorated_image = self.cv2_loading(distorated_path)
+            return torch.Tensor(gt_image), torch.Tensor(distorated_image)
+        else :
+            gt_image = Image.open(gt_path).convert('RGB')
+            distorated_image = Image.open(distorated_path).convert('RGB')
 
-        # gt_image = Image.open(gt_path).convert('RGB')
-        # distorated_image = Image.open(distorated_path).convert('RGB')
-        #
-        # gt_image = F.resize(gt_image, self.opt.load_size, self.interpolation)
-        # distorated_image = F.resize(distorated_image, self.opt.load_size, self.interpolation)
-        #
-        # return self.trans(gt_image).float(), self.trans(distorated_image).float()
+            gt_image = F.resize(gt_image, self.opt.load_size, self.interpolation)
+            distorated_image = F.resize(distorated_image, self.opt.load_size, self.interpolation)
 
-        gt_image = self.cv2_loading(gt_path)
-        distorated_image = self.cv2_loading(distorated_path)
-        return torch.Tensor(gt_image), torch.Tensor(distorated_image)
-
+            return self.trans(gt_image).float(), self.trans(distorated_image).float()
     def cv2_loading(self, image_path):
         interpolation_dict_ = {'bilinear' : cv2.INTER_LINEAR,
                               'nearest' : cv2.INTER_NEAREST,
