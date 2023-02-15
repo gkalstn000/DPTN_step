@@ -151,14 +151,12 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from torch import nn
 # ============= Attention Map vis ==============
-def upsampling_weight(weight):
+def weight_to_image(weight):
     min_value, max_value = weight.min(), weight.max()
     weight = (weight - min_value) / (max_value - min_value)
-    weight = weight.view(32, 32)
-    upsampling = nn.Upsample(scale_factor=8, mode='bicubic')
-    weight = upsampling(weight[None, None, :, :])
-    color = torch.Tensor([255, 255, 255])
-    return weight #* color[None, :, None, None]
+    weight = weight.view(32, 32) * 255
+    weight_image = Image.fromarray(weight.numpy().astype(np.uint8) )
+    return weight_image.resize((256, 256)) #* color[None, :, None, None]
 
 def save_heatmap(weight, path) :
     fig = plt.figure()

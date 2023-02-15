@@ -22,9 +22,10 @@ model = models.create_model(opt)
 model.eval()
 
 annotation_file = pd.read_csv(dataloader.dataset.bone_file, sep=':').set_index('name')
+annotation_file_canonical = pd.read_csv(dataloader.dataset.bone_file.replace(opt.phase, opt.phase + '-canonical'), sep=':').set_index('name')
 
 # test
-for i, data_i in tqdm(enumerate(dataloader)):
+for i, data_i in enumerate(tqdm(dataloader)):
     fake_target, fake_source = model(data_i, mode='inference')
     src_name, tgt_name = data_i['path'][0].replace('_vis.jpg', '').split('_2_')
     tgt_y, tgt_x = annotation_file.loc[tgt_name+'.jpg']
@@ -33,19 +34,18 @@ for i, data_i in tqdm(enumerate(dataloader)):
     for index, (y, x) in enumerate(tgt_coord) :
         if y == -1 or x == -1 :
             blank = torch.zeros((3, 256, 256))
-            transform(blank).save(os.path.join(path, f'{filename}_{index}_query.jpg'))
-            transform(blank).save(os.path.join(path, f'{filename}_{index}_weight.jpg'))
-        query_index = y//8 * 32 + x//8
+            transform(blank).save(os.path.join(opt.results_dir, f'{filename}_{index}_query.jpg'))
+            transform(blank).save(os.path.join(opt.results_dir, f'{filename}_{index}_weight.jpg'))
+        query_index = int(y//8 * 32 + (x * 256 / 176)//8)
         weight = model.last_attn_weights.squeeze()[query_index].cpu()
-        upsampling_weight = util.upsampling_weight(weight)
+        weight_image = util.weight_to_image(weight)
         bonemap_color = util.bonemap_emphasis(data_i['tgt_map'], index)
 
         filename = data_i['path'][0].replace('.jpg', '')
-        path = os.path.join(f'attention_map/{opt.id}')
-        util.mkdir(path)
+        util.mkdir(opt.results_dir)
 
-        transform(bonemap_color).save(os.path.join(path, f'{filename}_{index}_query.jpg'))
-        transform(upsampling_weight.squeeze()).save(os.path.join(path, f'{filename}_{index}_weight.jpg'))
+        transform(bonemap_color).save(os.path.join(opt.results_dir, f'{filename}_{index}_query.jpg'))
+        weight_image.save(os.path.join(opt.results_dir, f'{filename}_{index}_weight.jpg'))
         # util.save_heatmap(upsampling_weight, os.path.join(path, f'{filename}_weight_{index}.jpg'))
 
 

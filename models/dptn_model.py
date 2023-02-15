@@ -154,7 +154,7 @@ class DPTNModel(nn.Module) :
         self.netG.eval()
         D_losses = {}
         with torch.no_grad():
-            fake_image_t, fake_image_s = self.netG(src_image, src_map,
+            fake_image_t, fake_image_s, _, _ = self.netG(src_image, src_map,
                                                    tgt_map,
                                                    can_image, can_map)
             fake_image_t = fake_image_t.detach()
