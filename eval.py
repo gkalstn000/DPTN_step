@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser.add_argument('--batchsize', type=int, default=128)
     parser.add_argument('--interpolation', type=str, default='bilinear')
     parser.set_defaults(old_size=(256, 256))
-    parser.set_defaults(load_size=(256, 176))
+    parser.set_defaults(load_size=(256, 176)) # (h, w)
     args = parser.parse_args()
     for arg in vars(args):
         print('[%s] =' % arg, getattr(args, arg))
