@@ -95,6 +95,29 @@
 #python eval.py --gt_path ./datasets/fashion/test_higher --fid_real_path ./datasets/fashion/train_higher --distorated_path ./results/DPTN_higher --gpu_id 0 --name DPTN_fashion_higher --interpolation bilinear
 
 
+#
+## low
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_lower --fid_real_path /home/red/external/msha/datasets/fashion/train_lower --distorated_path ./results/DPTN_lower --gpu_id 3 --name DPTN_lower_cv2_bilinear --interpolation bilinear --cv2
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_lower --fid_real_path /home/red/external/msha/datasets/fashion/train_lower --distorated_path ./results/DPTN_lower --gpu_id 3 --name DPTN_lower_cv2_nearest --interpolation nearest --cv2
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_lower --fid_real_path /home/red/external/msha/datasets/fashion/train_lower --distorated_path ./results/DPTN_lower --gpu_id 3 --name DPTN_lower_cv2_bicubic --interpolation bicubic --cv2
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_lower --fid_real_path /home/red/external/msha/datasets/fashion/train_lower --distorated_path ./results/DPTN_lower --gpu_id 3 --name DPTN_lower_pil_bilinear --interpolation bilinear
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_lower --fid_real_path /home/red/external/msha/datasets/fashion/train_lower --distorated_path ./results/DPTN_lower --gpu_id 3 --name DPTN_lower_pil_nearest --interpolation nearest
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_lower --fid_real_path /home/red/external/msha/datasets/fashion/train_lower --distorated_path ./results/DPTN_lower --gpu_id 3 --name DPTN_lower_pil_bicubic --interpolation bicubic
+#
+## high
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --fid_real_path /home/red/external/msha/datasets/fashion/train_higher --distorated_path ./results/DPTN_higher --gpu_id 3 --name DPTN_higher_cv2_bilinear --interpolation bilinear --cv2
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --fid_real_path /home/red/external/msha/datasets/fashion/train_higher --distorated_path ./results/DPTN_higher --gpu_id 3 --name DPTN_higher_cv2_nearest --interpolation nearest --cv2
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --fid_real_path /home/red/external/msha/datasets/fashion/train_higher --distorated_path ./results/DPTN_higher --gpu_id 3 --name DPTN_higher_cv2_bicubic --interpolation bicubic --cv2
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --fid_real_path /home/red/external/msha/datasets/fashion/train_higher --distorated_path ./results/DPTN_higher --gpu_id 3 --name DPTN_higher_pil_bilinear --interpolation bilinear
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --fid_real_path /home/red/external/msha/datasets/fashion/train_higher --distorated_path ./results/DPTN_higher --gpu_id 3 --name DPTN_higher_pil_nearest --interpolation nearest
+#python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --fid_real_path /home/red/external/msha/datasets/fashion/train_higher --distorated_path ./results/DPTN_higher --gpu_id 3 --name DPTN_higher_pil_bicubic --interpolation bicubic
 
 
-python save_heatmaps.py --mode test --pose_nc 37 --canonical
+python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_lower --fid_real_path /home/red/external/msha/datasets/fashion/train_lower --distorated_path ./results/DPTN_lower_fix_2stage --gpu_id 3 --name DPTN_lower_fix_2stage --interpolation bicubic --cv2
+python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_lower --fid_real_path /home/red/external/msha/datasets/fashion/train_lower --distorated_path ./results/DPTN_lower_nonfix_2stage --gpu_id 3 --name DPTN_lower_nonfix_2stage --interpolation bicubic --cv2
+
+python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --fid_real_path /home/red/external/msha/datasets/fashion/train_higher --distorated_path ./results/DPTN_higher_fix_2stage --gpu_id 3 --name DPTN_higher_fix_2stage --interpolation bilinear
+python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --fid_real_path /home/red/external/msha/datasets/fashion/train_higher --distorated_path ./results/DPTN_higher_nonfix_2stage --gpu_id 3 --name DPTN_higher_nonfix_2stage --interpolation bilinear
+
+
+

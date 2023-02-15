@@ -1,2 +1,0 @@
-,name,psnr,psnr_variance,ssim,ssim_variance,ssim_256,ssim_256_variance,mae,mae_variance,l1,l1_variance,fid,lpips
-0,DPTN_canonical_to_origin,18.858272,6.995473,0.757018,0.009617,0.779442,0.004862,0.029891,0.000271,0.049087,0.000511,16.288114072127115,0.2330106575767941
