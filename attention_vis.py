@@ -31,7 +31,7 @@ image_root = '/home/red/external/msha/datasets/fashion'
 result_root = './results'
 save_path = 'results/attention_vis'
 
-attention_folders = ['DPTN_higher', 'DPTN_higher_spade', 'DPTN_higher_spade_109_can']
+attention_folders = ['DPTN_higher', 'DPTN_higher_fix_2stage', 'DPTN_higher_nonfix_2stage']
 
 gt_dict, distorated_dict = preprocess_path_for_deform_task(os.path.join(image_root, 'test_higher'), os.path.join(result_root, 'DPTN_higher'))
 
@@ -44,26 +44,32 @@ for num in distorated_dict.keys() :
 
         src_img = Image.open(os.path.join(image_root, 'test_higher', src_img_name)).resize((176, 256))
         tgt_img = Image.open(os.path.join(image_root, 'test_higher', tgt_img_name)).resize((176, 256))
-        can_img = Image.open(os.path.join(image_root, 'test_higher_fix_canonical', fake_img_name)).resize((176, 256))
+        fix_can_img = Image.open(os.path.join(image_root, 'test_higher_fix_canonical', fake_img_name)).resize((176, 256))
+        nonfix_can_img = Image.open(os.path.join(image_root, 'test_higher_nonfix_canonical', fake_img_name)).resize((176, 256))
+
         ex0_img = Image.open(os.path.join(result_root, attention_folders[0], fake_img_name)).resize((176, 256))
         ex1_img = Image.open(os.path.join(result_root, attention_folders[1], fake_img_name)).resize((176, 256))
         ex2_img = Image.open(os.path.join(result_root, attention_folders[2], fake_img_name)).resize((176, 256))
         grid = get_concat_h([tgt_img, ex0_img, ex1_img, ex2_img])
 
         for i in range(18):
-            bonemap = Image.open(
-                os.path.join(attention_root, 'DPTN_higher', f'{fake_img_name.replace(".jpg", "")}_{i}_query.jpg')).resize((176, 256))
+            bonemap = Image.open(os.path.join(attention_root, attention_folders[0],
+                                              f'{fake_img_name.replace(".jpg", "")}_{i}_query.jpg')).resize((176, 256))
             bonemap = overlay(tgt_img, bonemap)
 
             ex0_map = Image.open(os.path.join(attention_root, attention_folders[0],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
             ex0_map = overlay(src_img, ex0_map)
+
             ex1_map = Image.open(os.path.join(attention_root, attention_folders[1],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
-            ex1_map = overlay(src_img, ex1_map)
+            ex1_map = overlay(fix_can_img, ex1_map)
+
             ex2_map = Image.open(os.path.join(attention_root, attention_folders[2],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
-            ex2_map = overlay(can_img, ex2_map)
+            ex2_map = overlay(nonfix_can_img, ex2_map)
+
+
             map_grid = get_concat_h([bonemap, ex0_map, ex1_map, ex2_map])
             grid = get_concat_v(grid, map_grid)
 

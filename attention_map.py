@@ -4,6 +4,7 @@ import models
 import numpy as np
 import torch
 from tqdm import tqdm
+from PIL import Image
 from util.visualizer import Visualizer
 from util import html
 from collections import OrderedDict
@@ -35,6 +36,10 @@ for i, data_i in enumerate(tqdm(dataloader)):
         if y == -1 or x == -1 :
             y = np.random.randint(64, 196)
             x = np.random.randint(44, 132)
+            zero = Image.fromarray(np.zeros((256, 256)))
+            zero.convert('L').save(os.path.join(opt.results_dir, f'{filename}_{index}_query.jpg'))
+            zero.convert('L').save(os.path.join(opt.results_dir, f'{filename}_{index}_weight.jpg'))
+            continue
 
         query_index = int(y//8 * 32 + x //5.5)
         assert query_index < 1024, 'Query index calculating is wrong'
