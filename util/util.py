@@ -25,6 +25,16 @@ def make_coord_array(keypoint_y, keypoint_x):
 
 # ============================ for heatmap ============================
 # =====================================================================
+def point_to_map(point, size=[256, 256], sigma=6) :
+    x, y = point
+    y = int(y / 256 * 176)
+
+    xx, yy = np.meshgrid(np.arange(size[1]), np.arange(size[0]))
+    result = np.exp(-((yy - y) ** 2 + (xx - x) ** 2) / (2 * sigma ** 2))
+
+    return Image.fromarray((result * 255).astype(np.uint8))
+
+
 def cords_to_map(cords, opt, sigma=6):
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
@@ -155,7 +165,7 @@ def weight_to_image(weight):
     min_value, max_value = weight.min(), weight.max()
     weight = (weight - min_value) / (max_value - min_value)
     weight = weight.view(32, 32) * 255
-    weight_image = Image.fromarray(weight.numpy().astype(np.uint8) )
+    weight_image = Image.fromarray(weight.numpy().astype(np.uint8))
     return weight_image.resize((256, 256)) #* color[None, :, None, None]
 
 def save_heatmap(weight, path) :
@@ -275,3 +285,7 @@ def tile_images(imgs, picturesPerRow=20):
 
     tiled = np.concatenate(tiled, axis=0)
     return tiled
+
+def print_PILimg(img) :
+    plt.imshow(img)
+    plt.show()

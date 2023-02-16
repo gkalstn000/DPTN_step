@@ -25,9 +25,7 @@ def get_concat_v(im1, im2):
 def overlay(img, weight) :
     added_image = cv2.addWeighted(np.array(img),0.3,np.array(weight.convert('RGB')),1,0)
     return Image.fromarray(added_image)
-def print_img(img) :
-    plt.imshow(img)
-    plt.show()
+
 attention_root = './attention_map'
 image_root = '/home/red/external/msha/datasets/fashion'
 result_root = './results'
