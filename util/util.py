@@ -27,7 +27,7 @@ def make_coord_array(keypoint_y, keypoint_x):
 # =====================================================================
 def point_to_map(point, size=[256, 256], sigma=6) :
     x, y = point
-    y = int(y / 256 * 176)
+    x = int(x / 176 * 256)
 
     xx, yy = np.meshgrid(np.arange(size[1]), np.arange(size[0]))
     result = np.exp(-((yy - y) ** 2 + (xx - x) ** 2) / (2 * sigma ** 2))
