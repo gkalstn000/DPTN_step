@@ -25,9 +25,29 @@ def get_csv_list(flist):
     print('can not read files from %s return empty list'%flist)
     return []
 colors = ['r', 'g', 'b', 'c', 'm', 'y', 'lightcoral', 'orangered']
-csv_list = get_csv_list('./eval_results')
+# csv_list = get_csv_list('./eval_results')
 # csv_list = [x for x in csv_list if 'higher' not in x]
-csv_list = ['./eval_results/DPTN_fashion.csv', './eval_results/c_to_c.csv', './eval_results/c_to_s.csv', './eval_results/s_to_s.csv', './eval_results/DPTN_2_stage.csv']
+# csv_list = ['./eval_results/DPTN_higher.csv',
+#             './eval_results/DPTN_higher_fix_2stage.csv',
+#             './eval_results/DPTN_higher_nonfix_2stage.csv',
+#             './eval_results/DPTN_higher_spade.csv',
+#             './eval_results/DPTN_higher_spade_ex1.csv',
+#             './eval_results/DPTN_higher_spade_ex2.csv',
+#             './eval_results/DPTN_higher_spade_ex3.csv']
+
+# csv_list = ['./eval_results/DPTN_lower.csv',
+#             './eval_results/DPTN_lower_fix_2stage.csv',
+#             './eval_results/DPTN_lower_nonfix_2stage.csv',
+#             './eval_results/DPTN_lower_spade.csv']
+csv_list = ['./eval_results/DPTN_higher.csv',
+            './eval_results/DPTN_higher_fix_2stage.csv',
+            './eval_results/DPTN_higher_nonfix_2stage.csv',
+            './eval_results/DPTN_higher_spade.csv',
+            './eval_results/DPTN_lower.csv',
+            './eval_results/DPTN_lower_fix_2stage.csv',
+            './eval_results/DPTN_lower_nonfix_2stage.csv',
+            './eval_results/DPTN_lower_spade.csv'
+            ]
 df_dict = {}
 for file_path in csv_list:
     file_name = file_path.split('/')[-1].replace('.csv', '')
