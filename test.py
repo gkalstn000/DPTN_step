@@ -29,7 +29,7 @@ if not opt.simple_test:
 trans = T.ToPILImage()
 util.mkdirs(opt.results_dir)
 # test
-for i, data_i in tqdm(enumerate(dataloader)):
+for i, data_i in enumerate(tqdm(dataloader)):
     fake_target, fake_source = model(data_i, mode='inference')
 
     img_path = data_i['path']
