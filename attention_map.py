@@ -36,6 +36,7 @@ for i, data_i in enumerate(tqdm(dataloader)):
             blank = torch.zeros((3, 256, 256))
             transform(blank).save(os.path.join(opt.results_dir, f'{filename}_{index}_query.jpg'))
             transform(blank).save(os.path.join(opt.results_dir, f'{filename}_{index}_weight.jpg'))
+            continue
         query_index = int(y//8 * 32 + (x * 256 / 176)//8)
         weight = model.last_attn_weights.squeeze()[query_index].cpu()
         weight_image = util.weight_to_image(weight)
