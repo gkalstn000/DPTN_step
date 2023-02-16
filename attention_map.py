@@ -24,6 +24,7 @@ model.eval()
 
 annotation_file = pd.read_csv(dataloader.dataset.bone_file, sep=':').set_index('name')
 annotation_file_canonical = pd.read_csv(dataloader.dataset.bone_file.replace(opt.phase, opt.phase + '-canonical'), sep=':').set_index('name')
+util.mkdir(opt.results_dir)
 
 # test
 for i, data_i in enumerate(tqdm(dataloader)):
@@ -31,7 +32,7 @@ for i, data_i in enumerate(tqdm(dataloader)):
     src_name, tgt_name = data_i['path'][0].replace('_vis.jpg', '').split('_2_')
     tgt_y, tgt_x = annotation_file.loc[tgt_name+'.jpg']
     tgt_coord = util.make_coord_array(tgt_y, tgt_x)
-
+    filename = data_i['path'][0].replace('.jpg', '')
     for index, (y, x) in enumerate(tgt_coord) :
         if y == -1 or x == -1 :
             y = np.random.randint(64, 196)
@@ -47,9 +48,6 @@ for i, data_i in enumerate(tqdm(dataloader)):
         weight = model.last_attn_weights.squeeze()[query_index].cpu()
         weight_image = util.weight_to_image(weight)
         bonemap = util.point_to_map((x, y))
-
-        filename = data_i['path'][0].replace('.jpg', '')
-        util.mkdir(opt.results_dir)
 
         bonemap.convert('L').save(os.path.join(opt.results_dir, f'{filename}_{index}_query.jpg'))
         weight_image.convert('L').save(os.path.join(opt.results_dir, f'{filename}_{index}_weight.jpg'))
