@@ -9,22 +9,6 @@ from metrics.networks import preprocess_path_for_deform_task
 import matplotlib.pyplot as plt
 import cv2
 
-def get_concat_h(imgs):
-    width, height = imgs[0].size
-    dst = Image.new('RGB', (width * len(imgs), height))
-    for i, img in enumerate(imgs) :
-        dst.paste(img, (i*width, 0))
-    return dst
-
-def get_concat_v(im1, im2):
-    dst = Image.new('RGB', (im1.width, im1.height + im2.height))
-    dst.paste(im1, (0, 0))
-    dst.paste(im2, (0, im1.height))
-    return dst
-
-def overlay(img, weight) :
-    added_image = cv2.addWeighted(np.array(img),0.3,np.array(weight.convert('RGB')),1,0)
-    return Image.fromarray(added_image)
 
 attention_root = './attention_map'
 image_root = '/home/red/external/msha/datasets/fashion'
@@ -60,44 +44,44 @@ for num in distorated_dict.keys() :
         ex4_img = Image.open(os.path.join(result_root, attention_folders[4], fake_img_name)).resize((176, 256))
         ex5_img = Image.open(os.path.join(result_root, attention_folders[5], fake_img_name)).resize((176, 256))
         ex6_img = Image.open(os.path.join(result_root, attention_folders[6], fake_img_name)).resize((176, 256))
-        grid = get_concat_h([tgt_img, ex0_img, ex1_img, ex2_img, ex3_img, ex4_img, ex5_img, ex6_img])
+        grid = util.get_concat_h([tgt_img, ex0_img, ex1_img, ex2_img, ex3_img, ex4_img, ex5_img, ex6_img])
 
         for i in range(18):
             bonemap = Image.open(os.path.join(attention_root, attention_folders[0],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_query.jpg')).resize((176, 256))
-            bonemap = overlay(tgt_img, bonemap)
+            bonemap = util.overlay(tgt_img, bonemap)
 
             ex0_map = Image.open(os.path.join(attention_root, attention_folders[0],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
-            ex0_map = overlay(src_img, ex0_map)
+            ex0_map = util.overlay(src_img, ex0_map)
 
             ex1_map = Image.open(os.path.join(attention_root, attention_folders[1],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
-            ex1_map = overlay(fix_can_img, ex1_map)
+            ex1_map = util.overlay(fix_can_img, ex1_map)
             try :
                 ex2_map = Image.open(os.path.join(attention_root, attention_folders[2],
                                                   f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
-                ex2_map = overlay(nonfix_can_img, ex2_map)
+                ex2_map = util.overlay(nonfix_can_img, ex2_map)
             except :
                 continue
             ex3_map = Image.open(os.path.join(attention_root, attention_folders[3],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
-            ex3_map = overlay(src_img, ex3_map)
+            ex3_map = util.overlay(src_img, ex3_map)
 
             ex4_map = Image.open(os.path.join(attention_root, attention_folders[4],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
-            ex4_map = overlay(fix_can_img, ex4_map)
+            ex4_map = util.overlay(fix_can_img, ex4_map)
 
             ex5_map = Image.open(os.path.join(attention_root, attention_folders[5],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
-            ex5_map = overlay(src_img, ex5_map)
+            ex5_map = util.overlay(src_img, ex5_map)
 
             ex6_map = Image.open(os.path.join(attention_root, attention_folders[6],
                                               f'{fake_img_name.replace(".jpg", "")}_{i}_weight.jpg')).resize((176, 256))
-            ex6_map = overlay(src_img, ex6_map)
+            ex6_map = util.overlay(src_img, ex6_map)
 
-            map_grid = get_concat_h([bonemap, ex0_map, ex1_map, ex2_map, ex3_map, ex4_map, ex5_map, ex6_map])
-            grid = get_concat_v(grid, map_grid)
+            map_grid = util.get_concat_h([bonemap, ex0_map, ex1_map, ex2_map, ex3_map, ex4_map, ex5_map, ex6_map])
+            grid = util.get_concat_v(grid, map_grid)
 
         util.mkdir(save_path)
         grid.save(os.path.join(save_path, f'{num}_{fake_img_name}'))

@@ -7,27 +7,84 @@ import numpy as np
 from PIL import Image
 from torchvision.utils import make_grid
 import torchvision.transforms as transforms
+from torchvision.transforms.functional import to_pil_image
 import os
 import json
-
+import cv2
 
 LIMB_SEQ = [[1,2], [1,5], [2,3], [3,4], [5,6], [6,7], [1,8], [8,9],
            [9,10], [1,11], [11,12], [12,13], [1,0], [0,14], [14,16],
            [0,15], [15,17], [0, 16], [0, 17]]
+def get_concat_h(imgs):
+    width, height = imgs[0].size
+    dst = Image.new('RGB', (width * len(imgs), height))
+    for i, img in enumerate(imgs) :
+        dst.paste(img, (i*width, 0))
+    return dst
 
+def get_concat_v(im1, im2):
+    dst = Image.new('RGB', (im1.width, im1.height + im2.height))
+    dst.paste(im1, (0, 0))
+    dst.paste(im2, (0, im1.height))
+    return dst
+
+def overlay(img, weight) :
+    added_image = cv2.addWeighted(np.array(img),0.3,np.array(weight.convert('RGB')),1,0)
+    return Image.fromarray(added_image)
 def make_coord_array(keypoint_y, keypoint_x):
     # [[x1, y1], [x2, y2], ..., [x18, y18]] 형식으로 만들기
     keypoint_y = json.loads(keypoint_y)
     keypoint_x = json.loads(keypoint_x)
     return np.concatenate([np.expand_dims(keypoint_y, -1), np.expand_dims(keypoint_x, -1)], axis=1)
 
+def make_map_videos() :
+    map_list = []
+    for w in range(32) :
+        for h in range(32) :
+            map_list.append(point_to_map((w, h), size = (32, 32), sigma=1))
+    return np.stack(map_list, axis = 0)
+def tensor_to_PIL(tensor) :
+    # tensor image [-1, 1]
+    image = to_pil_image((tensor.cpu().squeeze() + 1) / 2)
+    return image
 
+def src_feature_map_video(tensors) :
+    feature_maps = tensors.squeeze()
+    frames = []
+    for map in feature_maps:
+        min_val = map.min()
+        max_val = map.max()
+        map = (map - min_val) / (max_val - min_val)
+        map_array = (map.cpu() * 255).numpy().astype(np.uint8)
+        frames.append(Image.fromarray(map_array))
+    frames_to_video(frames, 'tmp/src_featuremap.mp4')
+def frames_to_video(frames, save_path) :
+    videodims = frames[0].size
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    video = cv2.VideoWriter(save_path, fourcc, 60, videodims)
+    # draw stuff that goes on every frame here
+    for frame in frames:
+        video.write(cv2.cvtColor(np.array(frame), cv2.COLOR_RGB2BGR))
+    video.release()
+def make_attention_video(tgt_img, src_img, attention_weight, maps, save_path) :
+    video_frames = []
+    tgt_PIL = tensor_to_PIL(tgt_img)
+    src_PIL = tensor_to_PIL(src_img)
+
+    for weight, map in zip(attention_weight, maps) :
+        weight_img = weight_to_image(weight)
+        map_img = Image.fromarray(map.astype(np.uint8)).resize(weight_img.size)
+        left = overlay(tgt_PIL, map_img)
+        right = overlay(src_PIL, weight_img)
+        img_frame = get_concat_h([left, right])
+        video_frames.append(img_frame)
+    frames_to_video(video_frames, save_path)
 
 # ============================ for heatmap ============================
 # =====================================================================
 def point_to_map(point, size=[256, 256], sigma=6) :
     x, y = point
-    x = int(x / 176 * 256)
+    # x = int(x / 176 * 256)
 
     xx, yy = np.meshgrid(np.arange(size[1]), np.arange(size[0]))
     result = np.exp(-((yy - y) ** 2 + (xx - x) ** 2) / (2 * sigma ** 2))
@@ -165,7 +222,7 @@ def weight_to_image(weight):
     min_value, max_value = weight.min(), weight.max()
     weight = (weight - min_value) / (max_value - min_value)
     weight = weight.view(32, 32) * 255
-    weight_image = Image.fromarray(weight.numpy().astype(np.uint8))
+    weight_image = Image.fromarray(weight.numpy().astype(np.uint8)).convert('L')
     return weight_image.resize((256, 256)) #* color[None, :, None, None]
 
 def save_heatmap(weight, path) :
