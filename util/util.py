@@ -39,8 +39,8 @@ def make_coord_array(keypoint_y, keypoint_x):
 
 def make_map_videos() :
     map_list = []
-    for w in range(32) :
-        for h in range(32) :
+    for h in range(32) :
+        for w in range(32) :
             map_list.append(point_to_map((w, h), size = (32, 32), sigma=1))
     return np.stack(map_list, axis = 0)
 def tensor_to_PIL(tensor) :
@@ -48,7 +48,7 @@ def tensor_to_PIL(tensor) :
     image = to_pil_image((tensor.cpu().squeeze() + 1) / 2)
     return image
 
-def src_feature_map_video(tensors) :
+def src_feature_map_video(tensors, save_path) :
     feature_maps = tensors.squeeze()
     frames = []
     for map in feature_maps:
@@ -57,7 +57,7 @@ def src_feature_map_video(tensors) :
         map = (map - min_val) / (max_val - min_val)
         map_array = (map.cpu() * 255).numpy().astype(np.uint8)
         frames.append(Image.fromarray(map_array))
-    frames_to_video(frames, 'tmp/src_featuremap.mp4')
+    frames_to_video(frames, save_path)
 def frames_to_video(frames, save_path) :
     videodims = frames[0].size
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
