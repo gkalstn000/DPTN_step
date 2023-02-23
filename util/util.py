@@ -262,8 +262,9 @@ def map_to_img(tensor, threshold = 0.5) :
     :param threshold:
     :return:
     '''
-    tensor_img, _ = tensor.max(1)
+    tensor_img, _ = tensor.max(len(tensor.size()) - 3)
     tensor_img[tensor_img < threshold] = 0
+    return tensor_img
 def tensor2label(tensor, tile) :
 
     tensor[tensor < 0.5] = 0

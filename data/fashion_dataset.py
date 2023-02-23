@@ -54,7 +54,7 @@ class FashionDataset(BaseDataset) :
 
         image_dir = os.path.join(root, f'{self.phase}_higher')
         bonesLst = os.path.join(root, f'fasion-annotation-{self.phase}.csv')
-        canonical_dir = os.path.join(root, f'{self.phase}_higher_fix_canonical')
+        canonical_dir = os.path.join(root, f'{self.phase}_lower_fix_canonical')
         return image_dir, canonical_dir, bonesLst, name_pairs
 
     def init_categories(self, pairLst):
@@ -84,6 +84,7 @@ class FashionDataset(BaseDataset) :
         P2_img = F.resize(P2_img, self.load_size)
         Canonical_img = F.resize(Canonical_img, self.load_size)
 
+        T_ST, T_ST_inv = self.calculate_transformation_matrix(P1_name, P2_name)
         # P1 preprocessing
         P1 = self.trans(P1_img)
         # BP1 = self.obtain_bone(P1_name)
