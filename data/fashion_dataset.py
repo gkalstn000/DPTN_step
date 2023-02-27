@@ -78,13 +78,13 @@ class FashionDataset(BaseDataset) :
 
         P1_img = Image.open(P1_path).convert('RGB')
         P2_img = Image.open(P2_path).convert('RGB')
-        Canonical_img = Image.open(Canonical_path).convert('RGB')
+        # Canonical_img = Image.open(Canonical_path).convert('RGB')
 
         P1_img = F.resize(P1_img, self.load_size)
         P2_img = F.resize(P2_img, self.load_size)
-        Canonical_img = F.resize(Canonical_img, self.load_size)
+        # Canonical_img = F.resize(Canonical_img, self.load_size)
 
-        T_ST, T_ST_inv = self.calculate_transformation_matrix(P1_name, P2_name)
+        # T_ST, T_ST_inv = self.calculate_transformation_matrix(P1_name, P2_name)
         # P1 preprocessing
         P1 = self.trans(P1_img)
         # BP1 = self.obtain_bone(P1_name)
@@ -94,9 +94,9 @@ class FashionDataset(BaseDataset) :
         # BP2 = self.obtain_bone(P2_name)
         BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))[:self.opt.pose_nc]
         # Canonical_img
-        PC = self.trans(Canonical_img)
+        # PC = self.trans(Canonical_img)
         # BPC = self.obtain_bone(PC_name)
-        BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:self.opt.pose_nc]
+        # BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:self.opt.pose_nc]
         # BPC = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', self.annotation_file_canonical.loc[PC_name].item()))[:self.opt.pose_nc]
 
         # self.check_bone_img_matching(P1, BP1, f'tmp/check_obtainbone/full_{index}_src.jpg')
@@ -107,8 +107,8 @@ class FashionDataset(BaseDataset) :
                       'src_map': BP1,
                       'tgt_image' : P2,
                       'tgt_map' : BP2,
-                      'canonical_image' : PC,
-                      'canonical_map' : BPC,
+                      'canonical_image' : P2,
+                      'canonical_map' : BP2,
                       'path' : PC_name}
 
         return input_dict
