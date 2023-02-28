@@ -9,6 +9,8 @@ import torch
 
 from tqdm import tqdm, trange
 import numpy as np
+import time
+
 
 class FashionDataset(BaseDataset) :
 
@@ -46,6 +48,8 @@ class FashionDataset(BaseDataset) :
         transform_list.append(transforms.ToTensor())
         transform_list.append(transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5)))
         self.trans = transforms.Compose(transform_list)
+        self.cum_time = 0
+        self.count = 0
 
     def get_paths(self, opt):
         root = opt.dataroot
@@ -69,6 +73,7 @@ class FashionDataset(BaseDataset) :
         return pairs
 
     def __getitem__(self, index):
+        start = time.time()
         P1_name, P2_name = self.name_pairs[index]
         PC_name = f'{P1_name.replace(".jpg", "")}_2_{P2_name.replace(".jpg", "")}_vis.jpg'
 
@@ -110,7 +115,13 @@ class FashionDataset(BaseDataset) :
                       'canonical_image' : P2,
                       'canonical_map' : BP2,
                       'path' : PC_name}
-
+        # end = time.time()
+        # self.cum_time += end - start
+        # self.count += 1
+        # if self.count == self.opt.batchSize :
+        #     print(f'{self.cum_time}')
+        #     self.cum_time = 0
+        #     self.count = 0
         return input_dict
 
 

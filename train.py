@@ -9,6 +9,7 @@ from util.iter_counter import IterationCounter
 from util.visualizer import Visualizer
 import torch
 import data
+import time
 
 
 # parse options
@@ -35,7 +36,6 @@ for epoch in iter_counter.training_epochs():
     iter_counter.record_epoch_start(epoch)
     for i, data_i in enumerate(tqdm(dataloader), start=iter_counter.epoch_iter):
         iter_counter.record_one_iteration()
-
         # Training
         # train generator
         if i % opt.D_steps_per_G == 0:
@@ -43,7 +43,6 @@ for epoch in iter_counter.training_epochs():
 
         # train discriminator
         trainer.run_discriminator_one_step(data_i)
-
         # Visualizations
         if iter_counter.needs_printing():
             losses = trainer.get_latest_losses()
