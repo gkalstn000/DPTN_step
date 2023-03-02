@@ -115,9 +115,7 @@ class DefaultEncoder(BaseNetwork):
             in_channel_bone = out_channel
             out_channel = opt.ngf * self.mult
         self.mult //= 2
-        self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead)
-
-
+        self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead, opt.ngf * self.mult)
 
         # ResBlocks
         for i in range(opt.num_blocks):
@@ -138,14 +136,8 @@ class DefaultEncoder(BaseNetwork):
         for layer in self.image_encoder :
             V = layer(V)
 
-        out = self.Attn(Q, K, V)
+        x, _ = self.Attn(Q, K, V)
 
-        # Source-to-source Encoder
-        x = self.block0(x) # (B, C, H, W) -> (B, ngf, H/2, W/2)
-        for i in range(self.layers - 1):
-            model = getattr(self, 'encoder' + str(i))
-            x = model(x)
-        # input_ size : (B, ngf * 2^2, H/2^layers, C/2^layers)
         # Source-to-source Resblocks
         for i in range(self.opt.num_blocks):
             model = getattr(self, 'mblock' + str(i))

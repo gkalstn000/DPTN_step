@@ -187,9 +187,6 @@ class CrossAttnModule(nn.Module):
 
         self.activation = get_nonlinearity_layer(activation)
 
-        self.ff_layer = nn.Sequential(self.linear1, self.norm1, self.activation,
-                                      self.linear2, self.norm2, self.activation)
-
     def with_pos_embed(self, tensor, pos):
         return tensor if pos is None else tensor + pos
 
@@ -203,8 +200,11 @@ class CrossAttnModule(nn.Module):
         attn_output, attn_output_weights = self.multihead_attn(query=self.with_pos_embed(q, pos),
                                    key=self.with_pos_embed(k, pos),
                                    value=v)
-        attn_output = self.ff_layer(attn_output.permute(1, 2, 0))
-        return attn_output, attn_output_weights
+        x = self.activation(self.norm1(self.linear1(attn_output).permute(1, 2, 0))).permute(2, 0, 1)
+        x = self.activation(self.norm2(self.linear2(x).permute(1, 2, 0)))
+
+
+        return x.view(bs, c, h, w), attn_output_weights
 
 
 ######################################################################################
