@@ -39,7 +39,7 @@ class BaseOptions():
         parser.add_argument('--max_dataset_size', type=int, default=sys.maxsize, help='Maximum number of samples allowed per dataset. If the dataset directory contains more than max_dataset_size, only a subset is loaded.')
         parser.add_argument('--load_from_opt_file', action='store_true', help='load the options from checkpoints and use that as default')
         parser.add_argument('--nThreads', default=2, type=int, help='# threads for loading data')
-        parser.add_argument('--img_f', type=int, default=512, help=".")
+        parser.add_argument('--img_f', type=int, default=512, help="the largest feature channels")
 
         # for displays
         parser.add_argument('--display_winsize', type=int, default=400, help='display window size')

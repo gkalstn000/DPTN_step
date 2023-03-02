@@ -58,13 +58,12 @@ class DPTNGenerator(BaseNetwork):
     def forward(self, source_image, source_bone, target_bone,
                 canonical_image, canonical_bone, is_train=True):
         # Encode source-to-source
-        input_s_s = torch.cat((source_image, source_bone, source_bone), 1)
-        texture_information = [source_bone, source_image] # canonical->canonical information
-        F_s_s = self.En_c(input_s_s, texture_information)
+        F_s_s = self.En_c(source_bone, source_bone, source_image)
         # Encode source-to-target
-        input_s_t = torch.cat((source_image, source_bone, target_bone), 1)
-        texture_information = [source_bone, source_image]  # source-canonical information
-        F_s_t = self.En_c(input_s_t, texture_information)
+        F_s_t = self.En_c(target_bone, source_bone, source_image)
+
+
+
         # Source Image Encoding
         F_s = self.En_s(source_image)
         # Pose Transformer Module for Dual-task Correlation

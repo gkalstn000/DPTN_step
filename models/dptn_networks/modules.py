@@ -4,6 +4,9 @@ from torch.nn.utils.spectral_norm import spectral_norm as SpectralNorm
 import functools
 
 
+
+
+
 ######################################################################################
 # >>>>>>>>> Generator Network basic modules >>>>>>>>>>>
 ######################################################################################
@@ -157,6 +160,53 @@ class Output(nn.Module):
         out = self.model(x)
 
         return out
+
+class CrossAttnModule(nn.Module):
+    """
+    Texture Transfer Block (TTB)
+    :param d_model: number of channels in input
+    :param nhead: number of heads in attention module
+    :param dim_feedforward: dimension in feedforward
+    :param activation: activation function 'ReLU, SELU, LeakyReLU, PReLU'
+    :param affine: affine in normalization
+    :param norm: normalization function 'instance, batch'
+    """
+    def __init__(self, d_model, nhead, dim_feedforward=2048,
+                 activation="LeakyReLU", affine=True, norm='instance'):
+        super(CrossAttnModule, self).__init__()
+        self.multihead_attn = nn.MultiheadAttention(d_model, nhead)
+
+        self.linear1 = nn.Linear(d_model, dim_feedforward)
+        self.linear2 = nn.Linear(dim_feedforward, d_model)
+        if norm == 'batch':
+            self.norm1 = nn.BatchNorm1d(d_model, affine=affine)
+            self.norm2 = nn.BatchNorm1d(dim_feedforward, affine=affine)
+        else:
+            self.norm1 = nn.InstanceNorm1d(dim_feedforward, affine=affine)
+            self.norm2 = nn.InstanceNorm1d(d_model, affine=affine)
+
+        self.activation = get_nonlinearity_layer(activation)
+
+        self.ff_layer = nn.Sequential(self.linear1, self.norm1, self.activation,
+                                      self.linear2, self.norm2, self.activation)
+
+    def with_pos_embed(self, tensor, pos):
+        return tensor if pos is None else tensor + pos
+
+    def forward(self, q, k, v, pos = None):
+        bs, c, h, w = q.shape
+        # Transform (bs, c, h, w) -> (L, N, E) = (h*w, bs, c)
+        q = q.flatten(2).permute(2, 0, 1)
+        k = k.flatten(2).permute(2, 0, 1)
+        v = v.flatten(2).permute(2, 0, 1)
+
+        attn_output, attn_output_weights = self.multihead_attn(query=self.with_pos_embed(q, pos),
+                                   key=self.with_pos_embed(k, pos),
+                                   value=v)
+        attn_output = self.ff_layer(attn_output.permute(1, 2, 0))
+        return attn_output, attn_output_weights
+
+
 ######################################################################################
 # <<<<<<<<<<< Generator Network basic modules <<<<<<<<<<<
 ######################################################################################

@@ -98,17 +98,26 @@ class DefaultEncoder(BaseNetwork):
         self.layers = opt.layers_g
         norm_layer = modules.get_norm_layer(norm_type=opt.norm)
         nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
-        input_nc = 2 * opt.pose_nc + opt.image_nc
 
-        self.block0 = modules.EncoderBlockOptimized(input_nc, opt.ngf, norm_layer,
-                                                    nonlinearity, opt.use_spect_g, opt.use_coord)
-        self.mult = 1
-        for i in range(self.layers - 1):
-            mult_prev = self.mult
+        self.image_encoder = nn.ModuleList()
+        self.bone_encoder = nn.ModuleList()
+
+        in_channel_image = opt.image_nc
+        in_channel_bone = opt.pose_nc
+        out_channel = opt.ngf
+        for i in range(self.layers):
+            self.image_encoder.append(modules.EncoderBlock(in_channel_image, out_channel, norm_layer,
+                                         nonlinearity, opt.use_spect_g, opt.use_coord))
+            self.bone_encoder.append(modules.EncoderBlock(in_channel_bone, out_channel, norm_layer,
+                                         nonlinearity, opt.use_spect_g, opt.use_coord))
             self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
-            block = modules.EncoderBlock(opt.ngf * mult_prev, opt.ngf * self.mult, norm_layer,
-                                         nonlinearity, opt.use_spect_g, opt.use_coord)
-            setattr(self, 'encoder' + str(i), block)
+            in_channel_image = out_channel
+            in_channel_bone = out_channel
+            out_channel = opt.ngf * self.mult
+        self.mult //= 2
+        self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead)
+
+
 
         # ResBlocks
         for i in range(opt.num_blocks):
@@ -116,7 +125,21 @@ class DefaultEncoder(BaseNetwork):
                                      nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
             setattr(self, 'mblock' + str(i), block)
 
-    def forward(self, x, texture_information):
+    def forward(self, Q, K, V):
+        '''
+        :param Query: Query Bone
+        :param Key: Source Bone
+        :param Value: Source Image
+        :return:
+        '''
+        for layer in self.bone_encoder :
+            Q = layer(Q)
+            K = layer(K)
+        for layer in self.image_encoder :
+            V = layer(V)
+
+        out = self.Attn(Q, K, V)
+
         # Source-to-source Encoder
         x = self.block0(x) # (B, C, H, W) -> (B, ngf, H/2, W/2)
         for i in range(self.layers - 1):
