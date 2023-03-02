@@ -115,6 +115,8 @@ class FashionDataset(BaseDataset) :
                       'canonical_image' : P2,
                       'canonical_map' : BP2,
                       'path' : PC_name}
+
+        # num_worker optimizing
         # end = time.time()
         # self.cum_time += end - start
         # self.count += 1
@@ -122,6 +124,7 @@ class FashionDataset(BaseDataset) :
         #     print(f'{self.cum_time}')
         #     self.cum_time = 0
         #     self.count = 0
+        # ====================
         return input_dict
 
 

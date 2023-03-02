@@ -62,8 +62,6 @@ class DPTNGenerator(BaseNetwork):
         # Encode source-to-target
         F_s_t = self.En_c(target_bone, source_bone, source_image)
 
-
-
         # Source Image Encoding
         F_s = self.En_s(source_image)
         # Pose Transformer Module for Dual-task Correlation

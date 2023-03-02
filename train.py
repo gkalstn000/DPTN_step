@@ -36,6 +36,7 @@ for epoch in iter_counter.training_epochs():
     iter_counter.record_epoch_start(epoch)
     for i, data_i in enumerate(tqdm(dataloader), start=iter_counter.epoch_iter):
         iter_counter.record_one_iteration()
+        start = time.time()
         # Training
         # train generator
         if i % opt.D_steps_per_G == 0:
@@ -43,6 +44,7 @@ for epoch in iter_counter.training_epochs():
 
         # train discriminator
         trainer.run_discriminator_one_step(data_i)
+        # print(-(time.time() - start))
         # Visualizations
         if iter_counter.needs_printing():
             losses = trainer.get_latest_losses()
