@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.spectral_norm import spectral_norm as SpectralNorm
 import functools
-
+import math
 
 
 
@@ -367,3 +367,15 @@ def spectral_norm(module, use_spect=True):
         return SpectralNorm(module)
     else:
         return module
+
+
+def positional_encoding_2d_matrix(H, W, d_model):
+    pe_matrix = torch.zeros(d_model, 2*H, 2*W)
+    div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
+    pos_h = torch.arange(0, 2*H).reshape(-1, 1)
+    pos_w = torch.arange(0, 2*W).reshape(1, -1)
+    pe_matrix[:, 0::2, :] = torch.sin(pos_w[:, 0::2] * div_term)
+    pe_matrix[:, 1::2, :] = torch.cos(pos_w[:, 1::2] * div_term)
+    pe_matrix[:, :, 1::2] = torch.cos(pos_h[1::2] * div_term)
+    pe_matrix[:, :, 0::2] = torch.sin(pos_h[0::2] * div_term)
+    return pe_matrix

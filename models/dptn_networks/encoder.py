@@ -91,9 +91,9 @@ class SpadeEncoder(BaseNetwork) :
             x = model(x)
         return x
 
-class DefaultEncoder(BaseNetwork):
+class AttnEncoder(BaseNetwork):
     def __init__(self, opt):
-        super(DefaultEncoder, self).__init__()
+        super(AttnEncoder, self).__init__()
         self.opt = opt
         self.layers = opt.layers_g
         norm_layer = modules.get_norm_layer(norm_type=opt.norm)
@@ -123,6 +123,8 @@ class DefaultEncoder(BaseNetwork):
                                      nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
             setattr(self, 'mblock' + str(i), block)
 
+        self.Positional_matrix = modules.positional_encoding_2d_matrix(opt.load_size // 2**self.layers, opt.load_size // 2**self.layers, opt.ngf * self.mult)
+
     def forward(self, Q, K, V):
         '''
         :param Query: Query Bone
@@ -144,7 +146,43 @@ class DefaultEncoder(BaseNetwork):
             x = model(x)
         return x
 
+class DefaultEncoder(BaseNetwork):
+    def __init__(self, opt):
+        super(DefaultEncoder, self).__init__()
+        self.opt = opt
+        self.layers = opt.layers_g
+        norm_layer = modules.get_norm_layer(norm_type=opt.norm)
+        nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
+        input_nc = 2 * opt.pose_nc + opt.image_nc
 
+        self.block0 = modules.EncoderBlockOptimized(input_nc, opt.ngf, norm_layer,
+                                                    nonlinearity, opt.use_spect_g, opt.use_coord)
+        self.mult = 1
+        for i in range(self.layers - 1):
+            mult_prev = self.mult
+            self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
+            block = modules.EncoderBlock(opt.ngf * mult_prev, opt.ngf * self.mult, norm_layer,
+                                         nonlinearity, opt.use_spect_g, opt.use_coord)
+            setattr(self, 'encoder' + str(i), block)
+
+        # ResBlocks
+        for i in range(opt.num_blocks):
+            block = modules.ResBlock(opt.ngf * self.mult, opt.ngf * self.mult, norm_layer=norm_layer,
+                                     nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
+            setattr(self, 'mblock' + str(i), block)
+
+    def forward(self, x, texture_information):
+        # Source-to-source Encoder
+        x = self.block0(x) # (B, C, H, W) -> (B, ngf, H/2, W/2)
+        for i in range(self.layers - 1):
+            model = getattr(self, 'encoder' + str(i))
+            x = model(x)
+        # input_ size : (B, ngf * 2^2, H/2^layers, C/2^layers)
+        # Source-to-source Resblocks
+        for i in range(self.opt.num_blocks):
+            model = getattr(self, 'mblock' + str(i))
+            x = model(x)
+        return x
 class SourceEncoder(nn.Module):
     """
     Source Image Encoder (En_s)
