@@ -43,4 +43,4 @@ python train.py --id DPTN_higher_spade_full --tf_log --gpu_ids 3 --type_En_c spa
 
 python train.py --id DPTN_higher_spade_dec --tf_log --gpu_ids 1 --type_En_c default --type_Dc spade --pose_nc 18 --batchSize 24 --continue_train
 
-python train.py --id DPTN_higher_spade_attninput --tf_log --gpu_ids 0 --type_En_c default --type_Dc spade --pose_nc 18 --batchSize 20 --continue_train
+python train.py --id DPTN_higher_spade_attninput --tf_log --gpu_ids 0 --type_En_c attn --type_Dc spade --pose_nc 18 --batchSize 20 --continue_train

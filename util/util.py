@@ -11,6 +11,7 @@ from torchvision.transforms.functional import to_pil_image
 import os
 import json
 import cv2
+import math
 
 LIMB_SEQ = [[1,2], [1,5], [2,3], [3,4], [5,6], [6,7], [1,8], [8,9],
            [9,10], [1,11], [11,12], [12,13], [1,0], [0,14], [14,16],
@@ -347,3 +348,14 @@ def tile_images(imgs, picturesPerRow=20):
 def print_PILimg(img) :
     plt.imshow(img)
     plt.show()
+
+def positional_encoding_2d_matrix(H, W, d_model):
+    pe_matrix = torch.zeros(d_model, 2 * H, 2 * W)
+    div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
+    pos_h = torch.arange(0, 2 * H).reshape(-1, 1)
+    pos_w = torch.arange(0, 2 * W).reshape(1, -1)
+    pe_matrix[:, 0::2, :] = torch.sin(pos_w[:, 0::2] * div_term)
+    pe_matrix[:, 1::2, :] = torch.cos(pos_w[:, 1::2] * div_term)
+    pe_matrix[:, :, 1::2] = torch.cos(pos_h[1::2] * div_term)
+    pe_matrix[:, :, 0::2] = torch.sin(pos_h[0::2] * div_term)
+    return pe_matrix

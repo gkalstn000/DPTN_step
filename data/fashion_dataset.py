@@ -51,6 +51,8 @@ class FashionDataset(BaseDataset) :
         self.cum_time = 0
         self.count = 0
 
+        self.Positional_matrix = util.positional_encoding_2d_matrix(opt.load_size, opt.load_size, opt.pose_nc)
+
     def get_paths(self, opt):
         root = opt.dataroot
         pairLst = os.path.join(root, f'fasion-pairs-{self.phase}.csv')

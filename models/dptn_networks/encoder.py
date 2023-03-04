@@ -123,7 +123,6 @@ class AttnEncoder(BaseNetwork):
                                      nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
             setattr(self, 'mblock' + str(i), block)
 
-        self.Positional_matrix = modules.positional_encoding_2d_matrix(opt.load_size // 2**self.layers, opt.load_size // 2**self.layers, opt.ngf * self.mult)
 
     def forward(self, Q, K, V):
         '''
