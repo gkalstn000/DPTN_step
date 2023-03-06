@@ -38,7 +38,7 @@ def get_option_setter(dataset_name):
     return dataset_class.modify_commandline_options
 
 
-def create_dataloader(opt):
+def create_dataloader(opt, valid = False):
     dataset = find_dataset_using_name(opt.dataset_mode)
     instance = dataset()
     instance.initialize(opt)
@@ -48,7 +48,7 @@ def create_dataloader(opt):
         instance,
         batch_size=opt.batchSize,
         drop_last=opt.isTrain,
-        num_workers= opt.numworkers,
+        num_workers= opt.num_workers if not valid else 1,
         shuffle = opt.isTrain
     )
     return dataloader

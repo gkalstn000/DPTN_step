@@ -108,8 +108,8 @@ def cords_to_map(cords, opt, sigma=6):
     cords = cords.astype(float)
     result = np.zeros(img_size + cords.shape[0:1], dtype='float32')
     for i, point in enumerate(cords):
-        if point[0] == -1 or point[1] == -1:
-            continue
+        if point[0] <= -1 or point[1] <= -1:continue
+        if not (0 <= point[0] < 256 and 0 <= point[1] < 176): continue
         point[0] = point[0]/old_size[0] * img_size[0]
         point[1] = point[1]/old_size[1] * img_size[1]
         point_0 = int(point[0])
@@ -349,13 +349,26 @@ def print_PILimg(img) :
     plt.imshow(img)
     plt.show()
 
-def positional_encoding_2d_matrix(H, W, d_model):
-    pe_matrix = torch.zeros(d_model, 2 * H, 2 * W)
+def positional_encoding(pos, d_model):
     div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
-    pos_h = torch.arange(0, 2 * H).reshape(-1, 1)
-    pos_w = torch.arange(0, 2 * W).reshape(1, -1)
-    pe_matrix[:, 0::2, :] = torch.sin(pos_w[:, 0::2] * div_term)
-    pe_matrix[:, 1::2, :] = torch.cos(pos_w[:, 1::2] * div_term)
-    pe_matrix[:, :, 1::2] = torch.cos(pos_h[1::2] * div_term)
-    pe_matrix[:, :, 0::2] = torch.sin(pos_h[0::2] * div_term)
-    return pe_matrix
+    encoding = torch.zeros(d_model)
+    encoding[0::2] = torch.sin(pos * div_term)
+    encoding[1::2] = torch.cos(pos * div_term)
+    encoding = encoding
+    return encoding
+
+def positional_matrix(pos, d_model) :
+    encoding_list = torch.stack([positional_encoding(p, d_model) for p in range(pos)])
+    matrix = torch.zeros(d_model, pos, pos)
+    for i in range(pos) :
+        matrix[:, i, i] = encoding_list[i]
+        for j in range(i) :
+            matrix[:, j, i] = encoding_list[i]
+            matrix[:, i, j] = encoding_list[i]
+
+    matrix_expand = torch.zeros(d_model, pos*2, pos*2)
+    matrix_expand[:, pos:, pos:] = matrix
+    matrix_expand[:, :pos, pos:] = torch.flip(matrix, dims=[1])
+    matrix_expand[:, pos:, :pos] = torch.flip(matrix, dims=[2])
+    matrix_expand[:, :pos, :pos] = torch.flip(matrix, dims=[1, 2])
+    return matrix_expand

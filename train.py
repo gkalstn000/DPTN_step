@@ -23,7 +23,7 @@ dataloader = data.create_dataloader(opt)
 
 # Validation Setting
 opt.phase = 'test'
-dataloader_val = data.create_dataloader(opt)
+dataloader_val = data.create_dataloader(opt, valid = True)
 opt.phase = 'train'
 
 # create trainer for our model

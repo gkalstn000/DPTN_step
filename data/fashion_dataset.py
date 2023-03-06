@@ -51,7 +51,7 @@ class FashionDataset(BaseDataset) :
         self.cum_time = 0
         self.count = 0
 
-        self.Positional_matrix = util.positional_encoding_2d_matrix(opt.load_size, opt.load_size, opt.pose_nc)
+        self.Positional_matrix = util.positional_matrix(opt.load_size, opt.pose_nc)
 
     def get_paths(self, opt):
         root = opt.dataroot
@@ -81,7 +81,7 @@ class FashionDataset(BaseDataset) :
 
         P1_path = os.path.join(self.image_dir, P1_name) # person 1
         P2_path = os.path.join(self.image_dir, P2_name) # person 2
-        Canonical_path = os.path.join(self.canonical_dir, PC_name)
+        # Canonical_path = os.path.join(self.canonical_dir, PC_name)
 
         P1_img = Image.open(P1_path).convert('RGB')
         P2_img = Image.open(P2_path).convert('RGB')
@@ -100,15 +100,23 @@ class FashionDataset(BaseDataset) :
         P2 = self.trans(P2_img)
         # BP2 = self.obtain_bone(P2_name)
         BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))[:self.opt.pose_nc]
+
+        if self.opt.pos_encoding :
+            BP1_pos = self.obtain_bone_pos(P1_name)
+            BP1 = BP1 + BP1_pos
+            BP1_max, BP1_min = BP1.view(self.opt.pose_nc, -1).max(-1, keepdims=True)[0], BP1.view(self.opt.pose_nc, -1).min(-1, keepdims=True)[0]
+            BP1 = (BP1 - BP1_min.unsqueeze(1)) / (BP1_max - BP1_min).unsqueeze(1)
+
+            BP2_pos = self.obtain_bone_pos(P2_name)
+            BP2 = BP2 + BP2_pos
+            BP2_max, BP2_min = BP2.view(self.opt.pose_nc, -1).max(-1, keepdims=True)[0], BP2.view(self.opt.pose_nc, -1).min(-1, keepdims=True)[0]
+            BP2 = (BP2 - BP2_min.unsqueeze(1)) / (BP2_max - BP2_min).unsqueeze(1)
         # Canonical_img
         # PC = self.trans(Canonical_img)
         # BPC = self.obtain_bone(PC_name)
         # BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:self.opt.pose_nc]
         # BPC = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', self.annotation_file_canonical.loc[PC_name].item()))[:self.opt.pose_nc]
 
-        # self.check_bone_img_matching(P1, BP1, f'tmp/check_obtainbone/full_{index}_src.jpg')
-        # self.check_bone_img_matching(P2, BP2, f'tmp/check_obtainbone/full_{index}_tgt.jpg')
-        # self.check_bone_img_matching(PC, BPC, f'tmp/check_obtainbone/full_{index}_can.jpg')
 
         input_dict = {'src_image' : P1,
                       'src_map': BP1,
