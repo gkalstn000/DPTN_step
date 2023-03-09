@@ -124,7 +124,13 @@ class DPTNModel(nn.Module) :
         with torch.no_grad() :
             F_t_t = self.netG.En_c(tgt_map, tgt_map, tgt_image)
         self.netD.train()
-        G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
+
+        fake_image_s_cycle, _, _ = self.self.generate_fake(fake_image_t, tgt_map,
+                                                                  src_map,
+                                                                  can_image, can_map,
+                                                        self.opt.isTrain)
+
+        G_losses['L1_cycle'] = self.opt.t_s_ratio * self.L1loss(fake_image_s_cycle, src_image) * self.opt.lambda_rec
         G_losses['GAN_target'] = loss_ad_gen_t
         G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
         G_losses['L1_source'] = (1-self.opt.t_s_ratio) * loss_app_gen_s
