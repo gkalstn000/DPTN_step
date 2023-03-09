@@ -125,7 +125,7 @@ class DPTNModel(nn.Module) :
             F_t_t = self.netG.En_c(tgt_map, tgt_map, tgt_image)
         self.netD.train()
 
-        fake_image_s_cycle, _, _ = self.self.generate_fake(fake_image_t, tgt_map,
+        fake_image_s_cycle, _, _ = self.generate_fake(fake_image_t, tgt_map,
                                                                   src_map,
                                                                   can_image, can_map,
                                                         self.opt.isTrain)
