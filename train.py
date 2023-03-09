@@ -44,7 +44,7 @@ for epoch in iter_counter.training_epochs():
 
         # train discriminator
         trainer.run_discriminator_one_step(data_i)
-        print(-(time.time() - start))
+        # print(-(time.time() - start))
         # Visualizations
         if iter_counter.needs_printing():
             losses = trainer.get_latest_losses()

@@ -129,7 +129,7 @@ class DPTNModel(nn.Module) :
         G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
         G_losses['L1_source'] = (1-self.opt.t_s_ratio) * loss_app_gen_s
         G_losses['VGG_source'] = (1-self.opt.t_s_ratio) * (loss_style_gen_s + loss_content_gen_s)
-        G_losses['F_s_t_loss'] = self.L2loss(F_s_t, F_t_t)
+        G_losses['F_s_t_loss'] = self.L2loss(F_s_t, F_t_t) * self.opt.lambda_feat
 
 
         return G_losses, fake_image_t, fake_image_s

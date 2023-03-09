@@ -127,13 +127,13 @@ class FashionDataset(BaseDataset) :
                       'path' : PC_name}
 
         # num_worker optimizing
-        end = time.time()
-        self.cum_time += end - start
-        self.count += 1
-        if self.count == self.opt.batchSize :
-            print(f'{self.cum_time}')
-            self.cum_time = 0
-            self.count = 0
+        # end = time.time()
+        # self.cum_time += end - start
+        # self.count += 1
+        # if self.count == self.opt.batchSize :
+        #     print(f'{self.cum_time}')
+        #     self.cum_time = 0
+        #     self.count = 0
         # ====================
         return input_dict
 
