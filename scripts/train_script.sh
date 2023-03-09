@@ -49,3 +49,6 @@ python train.py --id DPTN_higher_spade_dec --tf_log --gpu_ids 1 --type_En_c defa
 python train.py --id DPTN_higher_spade_attn --tf_log --gpu_ids 0 --type_En_c attn --type_Dc spade --pose_nc 18 --batchSize 20 --num_workers 25 --continue_train --which_epoch 30
 # decoder default, attn input, pos encoding
 python train.py --id DPTN_higher_default_attn_pos --tf_log --gpu_ids 1 --type_En_c attn --type_Dc default --pose_nc 18 --batchSize 20 --num_workers 25 --pos_encoding --continue_train
+
+# 1. base
+python train.py --id base --tf_log --gpu_ids 0 --type_En_c attn --type_Dc default --pose_nc 18 --batchSize 24 --num_workers 5

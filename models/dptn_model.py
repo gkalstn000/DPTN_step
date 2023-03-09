@@ -25,6 +25,7 @@ class DPTNModel(nn.Module) :
             self.GANloss = loss.GANLoss(opt.gan_mode).cuda()
             self.L1loss = torch.nn.L1Loss()
             self.Vggloss = loss.VGGLoss().cuda()
+            self.L2loss = torch.nn.MSELoss()
 
 
     def forward(self, data, mode):
@@ -43,7 +44,7 @@ class DPTNModel(nn.Module) :
         elif mode == 'inference' :
             self.netG.eval()
             with torch.no_grad():
-                fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
+                fake_image_t, fake_image_s, F_s_t = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
                                                                   can_image, can_map,
                                                                 False)
@@ -78,18 +79,12 @@ class DPTNModel(nn.Module) :
         return netG, netD
     def preprocess_input(self, data):
         if self.use_gpu():
-            # data['src_image'] = data['src_image'].to(f'cuda:{self.opt.gpu_ids[0]}')
-            # data['src_map'] = data['src_map'].to(f'cuda:{self.opt.gpu_ids[0]}')
-            # data['tgt_image'] = data['tgt_image'].to(f'cuda:{self.opt.gpu_ids[0]}')
-            # data['tgt_map'] = data['tgt_map'].to(f'cuda:{self.opt.gpu_ids[0]}')
-            # data['canonical_image'] = data['canonical_image'].to(f'cuda:{self.opt.gpu_ids[0]}')
-            # data['canonical_map'] = data['canonical_map'].to(f'cuda:{self.opt.gpu_ids[0]}')
             data['src_image'] = data['src_image'].float().cuda()
             data['src_map'] = data['src_map'].float().cuda()
             data['tgt_image'] = data['tgt_image'].float().cuda()
             data['tgt_map'] = data['tgt_map'].float().cuda()
-            data['canonical_image'] = data['canonical_image'].float().cuda()
-            data['canonical_map'] = data['canonical_map'].float().cuda()
+            # data['canonical_image'] = data['canonical_image'].float().cuda()
+            # data['canonical_map'] = data['canonical_map'].float().cuda()
 
         return data['src_image'], data['src_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
         # return data['canonical_image'], data['canonical_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
@@ -119,18 +114,23 @@ class DPTNModel(nn.Module) :
         self.netD.eval()
         self.netG.train()
         G_losses = {}
-        fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
+        fake_image_t, fake_image_s, F_s_t = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
                                                                   can_image, can_map,
                                                         self.opt.isTrain)
         loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
         loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, src_image, use_d=False)
+
+        with torch.no_grad() :
+            F_t_t = self.netG.En_c(tgt_map, tgt_map, tgt_image)
         self.netD.train()
         G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
         G_losses['GAN_target'] = loss_ad_gen_t
         G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
         G_losses['L1_source'] = (1-self.opt.t_s_ratio) * loss_app_gen_s
         G_losses['VGG_source'] = (1-self.opt.t_s_ratio) * (loss_style_gen_s + loss_content_gen_s)
+        G_losses['F_s_t_loss'] = self.L2loss(F_s_t, F_t_t)
+
 
         return G_losses, fake_image_t, fake_image_s
     def backward_D_basic(self, real, fake):
@@ -154,7 +154,7 @@ class DPTNModel(nn.Module) :
         self.netG.eval()
         D_losses = {}
         with torch.no_grad():
-            fake_image_t, fake_image_s, _, _ = self.netG(src_image, src_map,
+            fake_image_t, fake_image_s, _ = self.netG(src_image, src_map,
                                                    tgt_map,
                                                    can_image, can_map)
             fake_image_t = fake_image_t.detach()
@@ -176,13 +176,10 @@ class DPTNModel(nn.Module) :
                       can_image, can_map,
                       is_train=True):
 
-        fake_image_t, fake_image_s, first_attn_weights, last_attn_weights = self.netG(src_image, src_map,
-                                                                                      tgt_map,
-                                                                                      can_image, can_map,
-                                                                                      is_train)
+        fake_image_t, fake_image_s, F_s_t = self.netG(src_image, src_map, tgt_map,
+                                                      can_image, can_map,
+                                                      is_train)
 
-        self.first_attn_weights = first_attn_weights
-        self.last_attn_weights = last_attn_weights
-        return fake_image_t, fake_image_s
+        return fake_image_t, fake_image_s, F_s_t
     def use_gpu(self):
         return len(self.opt.gpu_ids) > 0

@@ -94,12 +94,12 @@ class FashionDataset(BaseDataset) :
         # T_ST, T_ST_inv = self.calculate_transformation_matrix(P1_name, P2_name)
         # P1 preprocessing
         P1 = self.trans(P1_img)
-        # BP1 = self.obtain_bone(P1_name)
-        BP1 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P1_name.replace('jpg', 'pt')))[:self.opt.pose_nc]
+        BP1 = self.obtain_bone(P1_name)
+        # BP1 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P1_name.replace('jpg', 'pt')))[:self.opt.pose_nc]
         # P2 preprocessing
         P2 = self.trans(P2_img)
-        # BP2 = self.obtain_bone(P2_name)
-        BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))[:self.opt.pose_nc]
+        BP2 = self.obtain_bone(P2_name)
+        # BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))[:self.opt.pose_nc]
 
         if self.opt.pos_encoding :
             BP1_pos = self.obtain_bone_pos(P1_name)
@@ -127,13 +127,13 @@ class FashionDataset(BaseDataset) :
                       'path' : PC_name}
 
         # num_worker optimizing
-        # end = time.time()
-        # self.cum_time += end - start
-        # self.count += 1
-        # if self.count == self.opt.batchSize :
-        #     print(f'{self.cum_time}')
-        #     self.cum_time = 0
-        #     self.count = 0
+        end = time.time()
+        self.cum_time += end - start
+        self.count += 1
+        if self.count == self.opt.batchSize :
+            print(f'{self.cum_time}')
+            self.cum_time = 0
+            self.count = 0
         # ====================
         return input_dict
 
