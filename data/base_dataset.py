@@ -31,18 +31,19 @@ class BaseDataset(data.Dataset):
 
         relative_pos_matrix = []
         for h, w in coord :
-            if h <= -1 or w <= -1 : continue
-            if not (0<= h < 256 and 0<=w<176) : continue
+            if (h <= -1 or w <= -1) or (not (0<= h < self.opt.old_size[0] and 0<=w<self.opt.old_size[1])) :
+                relative_pos_matrix.append(torch.zeros(1, self.opt.load_size, self.opt.load_size))
+                continue
             h = int(h / self.opt.old_size[0] * self.opt.load_size)
             w = int(w / self.opt.old_size[1] * self.opt.load_size)
 
             h_index = self.opt.load_size - h
             w_index = self.opt.load_size - w
             matrix = self.Positional_matrix[:, h_index: h_index + self.opt.load_size, w_index: w_index + self.opt.load_size]
-            assert matrix.shape == (self.opt.pose_nc, self.opt.load_size, self.opt.load_size), print(f'({h_index}, {w_index}) / ({h, w})')
+            assert matrix.shape == (1, self.opt.load_size, self.opt.load_size), print(f'({h_index}, {w_index}) / ({h, w})')
             relative_pos_matrix.append(matrix)
-        relative_pos_matrix = torch.stack(relative_pos_matrix)
-        return relative_pos_matrix.mean(0)
+        relative_pos_matrix = torch.concatenate(relative_pos_matrix)
+        return relative_pos_matrix
     def obtain_bone(self, name):
         if '_2_' in name :
             y, x = self.annotation_file_canonical.loc[name]

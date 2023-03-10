@@ -51,7 +51,7 @@ class FashionDataset(BaseDataset) :
         self.cum_time = 0
         self.count = 0
 
-        self.Positional_matrix = util.positional_matrix(opt.load_size, opt.pose_nc)
+        self.Positional_matrix = util.positional_matrix(opt.load_size, 1)
 
     def get_paths(self, opt):
         root = opt.dataroot
