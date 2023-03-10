@@ -128,7 +128,7 @@ class DPTNModel(nn.Module) :
         fake_image_s_cycle, _, _ = self.generate_fake(fake_image_t, tgt_map,
                                                                   src_map,
                                                                   can_image, can_map,
-                                                        self.opt.isTrain)
+                                                        False)
 
         G_losses['L1_cycle'] = self.opt.t_s_ratio * self.L1loss(fake_image_s_cycle, src_image) * self.opt.lambda_rec
         G_losses['GAN_target'] = loss_ad_gen_t
