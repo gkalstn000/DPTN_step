@@ -104,13 +104,13 @@ class FashionDataset(BaseDataset) :
         if self.opt.pos_encoding :
             BP1_pos = self.obtain_bone_pos(P1_name)
             BP1 = BP1 + BP1_pos
-            BP1_max, BP1_min = BP1.view(self.opt.pose_nc, -1).max(-1, keepdims=True)[0], BP1.view(self.opt.pose_nc, -1).min(-1, keepdims=True)[0]
-            BP1 = (BP1 - BP1_min.unsqueeze(1)) / (BP1_max - BP1_min).unsqueeze(1)
+            # BP1_max, BP1_min = BP1.view(self.opt.pose_nc, -1).max(-1, keepdims=True)[0], BP1.view(self.opt.pose_nc, -1).min(-1, keepdims=True)[0]
+            BP1 = (BP1 + 1) / 3
 
             BP2_pos = self.obtain_bone_pos(P2_name)
             BP2 = BP2 + BP2_pos
-            BP2_max, BP2_min = BP2.view(self.opt.pose_nc, -1).max(-1, keepdims=True)[0], BP2.view(self.opt.pose_nc, -1).min(-1, keepdims=True)[0]
-            BP2 = (BP2 - BP2_min.unsqueeze(1)) / (BP2_max - BP2_min).unsqueeze(1)
+            # BP2_max, BP2_min = BP2.view(self.opt.pose_nc, -1).max(-1, keepdims=True)[0], BP2.view(self.opt.pose_nc, -1).min(-1, keepdims=True)[0]
+            BP2 = (BP2 + 1) / 3
         # Canonical_img
         # PC = self.trans(Canonical_img)
         # BPC = self.obtain_bone(PC_name)

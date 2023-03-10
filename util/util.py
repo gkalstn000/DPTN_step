@@ -268,24 +268,26 @@ def map_to_img(tensor, threshold = 0.5) :
     return tensor_img
 def tensor2label(tensor, tile) :
 
-    tensor[tensor < 0.5] = 0
-    color_list = [[240,248,255], [127,255,212], [69,139,116], [227,207,87], [255,228,196], [205,183,158],
-                  [0,0,255], [138,43,226], [255,64,64], [139,35,35], [255,211,155], [138,54,15],
-                  [95,158,160], [122,197,205], [237,145,33], [102,205,0], [205,91,69], [153,50,204]]
-    limb_color = [[174, 58, 231] for _ in range(19)]
-    if tensor.size(1) != 18 :
-        color_tensor = torch.Tensor(color_list+limb_color)
-    else :
-        color_tensor = torch.Tensor(color_list)
-    color_tensor = color_tensor.unsqueeze(0)
-    color_tensor = color_tensor.unsqueeze(2)
-    color_tensor = color_tensor.unsqueeze(3)
+    # tensor[tensor < 0.5] = 0
+    # color_list = [[240,248,255], [127,255,212], [69,139,116], [227,207,87], [255,228,196], [205,183,158],
+    #               [0,0,255], [138,43,226], [255,64,64], [139,35,35], [255,211,155], [138,54,15],
+    #               [95,158,160], [122,197,205], [237,145,33], [102,205,0], [205,91,69], [153,50,204]]
+    # limb_color = [[174, 58, 231] for _ in range(19)]
+    # if tensor.size(1) != 18 :
+    #     color_tensor = torch.Tensor(color_list+limb_color)
+    # else :
+    #     color_tensor = torch.Tensor(color_list)
+    # color_tensor = color_tensor.unsqueeze(0)
+    # color_tensor = color_tensor.unsqueeze(2)
+    # color_tensor = color_tensor.unsqueeze(3)
 
     tensor = tensor.unsqueeze(4)
-    tensor = (tensor * color_tensor)
+    # tensor = (tensor * color_tensor)
     # tensor = tensor.sum(1)
     tensor, _ = tensor.max(1)
-    return tensor2im(torch.permute(tensor, (0, 3, 1, 2)).to(torch.uint8), tile=tile)
+    return tensor2im(torch.permute(tensor, (0, 3, 1, 2)), normalize=False, tile=tile)
+    # return tensor2im(tensor.to(torch.uint8), tile=tile)
+
 
 
 # Converts a Tensor into a Numpy array
@@ -320,8 +322,8 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True, tile=False):
     else:
         image_numpy = np.transpose(image_numpy, (1, 2, 0)) * 255.0
     image_numpy = np.clip(image_numpy, 0, 255)
-    if image_numpy.shape[2] == 1:
-        image_numpy = image_numpy[:, :, 0]
+    # if image_numpy.shape[2] == 1:
+    #     image_numpy = image_numpy[:, :, 0]
     return image_numpy.astype(imtype)
 
 def tile_images(imgs, picturesPerRow=20):
@@ -352,8 +354,8 @@ def print_PILimg(img) :
 def positional_encoding(pos, d_model):
     div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
     encoding = torch.zeros(d_model)
-    encoding[0::2] = torch.sin(pos * div_term)
-    encoding[1::2] = torch.cos(pos * div_term)
+    encoding[0::2] = torch.cos(pos * div_term)
+    encoding[1::2] = torch.sin(pos * div_term)
     encoding = encoding
     return encoding
 

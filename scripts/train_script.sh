@@ -54,3 +54,5 @@ python train.py --id DPTN_higher_default_attn_pos --tf_log --gpu_ids 1 --type_En
 python train.py --id base --tf_log --gpu_ids 0 --type_En_c attn --type_Dc default --pose_nc 18 --batchSize 24 --num_workers 15
 # 1-1. base_cycle
 python train.py --id base_cycle --tf_log --gpu_ids 1 --type_En_c attn --type_Dc default --pose_nc 18 --batchSize 16 --num_workers 15 --continue_train
+# 2. base_cycle_pos
+python train.py --id base_cycle_pos --tf_log --gpu_ids 2 --type_En_c attn --type_Dc default --pose_nc 18 --batchSize 16 --num_workers 15 --pos_encoding
