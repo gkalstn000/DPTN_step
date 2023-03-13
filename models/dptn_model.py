@@ -122,7 +122,7 @@ class DPTNModel(nn.Module) :
         loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, src_image, use_d=False)
 
         with torch.no_grad() :
-            F_t_t = self.netG.En_c(tgt_map, tgt_map, tgt_image)
+            F_t_t, _ = self.netG.En_c(src_map, tgt_map, tgt_image, False)
         self.netD.train()
 
         fake_image_s_cycle, _, _ = self.generate_fake(fake_image_t, tgt_map,

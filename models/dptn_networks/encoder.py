@@ -99,22 +99,33 @@ class AttnEncoder(BaseNetwork):
         norm_layer = modules.get_norm_layer(norm_type=opt.norm)
         nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
 
-        self.image_encoder = nn.ModuleList()
-        self.bone_encoder = nn.ModuleList()
+        self.query_encoder = nn.ModuleList()
+        self.key_encoder = nn.ModuleList()
+        self.value_encoder = nn.ModuleList()
 
-        in_channel_image = opt.image_nc
-        in_channel_bone = opt.pose_nc
+        in_channel_query = opt.pose_nc
+        in_channel_key = opt.pose_nc + opt.image_nc
+        in_channel_value = opt.image_nc
         out_channel = opt.ngf
         for i in range(self.layers):
-            self.image_encoder.append(modules.EncoderBlock(in_channel_image, out_channel, norm_layer,
+            self.query_encoder.append(modules.EncoderBlock(in_channel_query, out_channel, norm_layer,
                                          nonlinearity, opt.use_spect_g, opt.use_coord))
-            self.bone_encoder.append(modules.EncoderBlock(in_channel_bone, out_channel, norm_layer,
+            self.key_encoder.append(modules.EncoderBlock(in_channel_key, out_channel, norm_layer,
                                          nonlinearity, opt.use_spect_g, opt.use_coord))
+            self.value_encoder.append(modules.EncoderBlock(in_channel_value, out_channel, norm_layer,
+                                                         nonlinearity, opt.use_spect_g, opt.use_coord))
             self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
-            in_channel_image = out_channel
-            in_channel_bone = out_channel
+
+            in_channel_query = out_channel
+            in_channel_key = out_channel
+            in_channel_value = out_channel
             out_channel = opt.ngf * self.mult
         self.mult //= 2
+
+        self.query_encoder = nn.Sequential(*self.query_encoder)
+        self.key_encoder = nn.Sequential(*self.key_encoder)
+        self.value_encoder = nn.Sequential(*self.value_encoder)
+
         self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead, opt.ngf * self.mult)
 
         # ResBlocks
@@ -124,26 +135,30 @@ class AttnEncoder(BaseNetwork):
             setattr(self, 'mblock' + str(i), block)
 
 
-    def forward(self, Q, K, V):
+    def forward(self, target_bone, source_bone, source_image, train_mode = True):
         '''
         :param Query: Query Bone
         :param Key: Source Bone
         :param Value: Source Image
         :return:
         '''
-        for layer in self.bone_encoder :
-            Q = layer(Q)
-            K = layer(K)
-        for layer in self.image_encoder :
-            V = layer(V)
+        F_S_S_query = self.query_encoder(source_bone)
+        key = self.key_encoder(torch.cat([source_bone, source_image], 1))
+        value = self.value_encoder(source_image)
+        F_S_S, _ = self.Attn(F_S_S_query, key, value)
 
-        x, _ = self.Attn(Q, K, V)
+        F_S_T = None
+        if train_mode:
+            F_S_T_query = self.query_encoder(target_bone)
+            F_S_T, _ = self.Attn(F_S_T_query, key, value)
 
         # Source-to-source Resblocks
         for i in range(self.opt.num_blocks):
             model = getattr(self, 'mblock' + str(i))
-            x = model(x)
-        return x
+            F_S_S = model(F_S_S)
+            if train_mode:
+                F_S_T = model(F_S_S)
+        return F_S_S, F_S_T
 
 class DefaultEncoder(BaseNetwork):
     def __init__(self, opt):
