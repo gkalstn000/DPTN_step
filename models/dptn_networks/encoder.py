@@ -157,7 +157,7 @@ class AttnEncoder(BaseNetwork):
             model = getattr(self, 'mblock' + str(i))
             F_S_S = model(F_S_S)
             if train_mode:
-                F_S_T = model(F_S_S)
+                F_S_T = model(F_S_T)
         return F_S_S, F_S_T
 
 class DefaultEncoder(BaseNetwork):
