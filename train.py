@@ -56,7 +56,6 @@ for epoch in iter_counter.training_epochs():
             fake_target, fake_source = trainer.get_latest_generated()
             visuals = OrderedDict([('src_image', data_i['src_image']),
                                    ('synthesized_source_image', fake_source),
-                                   ('canonical_image', data_i['canonical_image']),
                                    ('tgt_map', data_i['tgt_map']),
                                    ('real_image', data_i['tgt_image']),
                                    ('synthesized_target_image', fake_target),
@@ -75,7 +74,6 @@ for epoch in iter_counter.training_epochs():
         # with torch.no_grad() :
         #     _, fake_target, fake_source = trainer.model(data_i, mode='generator')
         visuals = OrderedDict([('src_image_val', data_i['src_image']),
-                               ('canonical_image_val', data_i['canonical_image']),
                                ('tgt_map_val', data_i['tgt_map']),
                                ('real_image_val', data_i['tgt_image']),
                                ('synthesized_target_image_val', fake_target),
