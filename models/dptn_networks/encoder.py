@@ -142,9 +142,10 @@ class AttnEncoder(BaseNetwork):
         :param Value: Source Image
         :return:
         '''
-        F_S_S_query = self.query_encoder(source_bone)
         key = self.key_encoder(torch.cat([source_bone, source_image], 1))
         value = self.value_encoder(source_image)
+
+        F_S_S_query = self.query_encoder(source_bone)
         F_S_S, _ = self.Attn(F_S_S_query, key, value)
 
         F_S_T = None

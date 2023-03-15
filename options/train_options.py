@@ -32,7 +32,7 @@ class TrainOptions(BaseOptions):
         if opt.no_TTUR:
             parser.set_defaults(beta1=0.5, beta2=0.999)
         parser.add_argument('--D_steps_per_G', type=int, default=1, help='number of discriminator iterations per generator iterations.')
-        parser.add_argument('--gan_mode', type=str, default='lsgan', choices=['wgan-gp', 'hinge', 'lsgan'])
+        parser.add_argument('--gan_mode', type=str, default='lsgan', choices=['wgangp', 'hinge', 'lsgan'])
 
         # for discriminators
         parser.add_argument('--ndf', type=int, default=64, help='# of discrim filters in first conv layer')
@@ -46,6 +46,7 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--lambda_rec', type=float, default=2.5, help='weight for image reconstruction loss')
         parser.add_argument('--lambda_style', type=float, default=250, help='weight for the VGG19 style loss')
         parser.add_argument('--lambda_content', type=float, default=0.25, help='weight for the VGG19 content loss')
+        parser.add_argument('--lambda_cycle', type=float, default=1.5, help='weight for the VGG19 content loss')
         parser.add_argument('--lambda_g', type=float, default=2.0, help='weight for generation loss')
         parser.add_argument('--t_s_ratio', type=float, default=0.5, help='loss ratio between dual tasks')
 
