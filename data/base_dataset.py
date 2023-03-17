@@ -122,3 +122,10 @@ def __flip(img, flip):
     if flip:
         return img.transpose(Image.FLIP_LEFT_RIGHT)
     return img
+
+
+def print_gray(path, moduler) :
+    img_gray = Image.open(path).convert('L')
+    img_array = np.array(img_gray)
+    img_clip = img_array // moduler * moduler
+    util.print_PILimg(Image.fromarray(img_clip))
