@@ -58,4 +58,4 @@ python train.py --id base_cycle --tf_log --gpu_ids 1 --type_En_c attn --type_Dc 
 python train.py --id base_cycle_pos --tf_log --gpu_ids 2 --type_En_c attn --type_Dc default --pose_nc 18 --batchSize 22 --num_workers 15 --pos_encoding --continue_train
 
 #3. base_cycle_pos_ptn
-python train.py --id base_cycle_pos_ptm --tf_log --gpu_ids 2 --type_En_c attn --type_Dc default --pose_nc 18 --batchSize 15 --num_workers 15 --pos_encoding
+nohup python train.py --id base_cycle_pos_ptm --tf_log --gpu_ids 2 --type_En_c attn --type_Dc default --pose_nc 18 --batchSize 15 --num_workers 15 --pos_encoding --continue_train > base_cycle_pos_ptm.out &
