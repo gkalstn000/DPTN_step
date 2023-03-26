@@ -55,11 +55,11 @@ class FashionDataset(BaseDataset) :
 
     def get_paths(self, opt):
         root = opt.dataroot
-        pairLst = os.path.join(root, f'fasion-pairs-{self.phase}.csv')
+        pairLst = os.path.join(root, f'fashion-pairs-{self.phase}.csv')
         name_pairs = self.init_categories(pairLst)
 
         image_dir = os.path.join(root, f'{self.phase}_higher')
-        bonesLst = os.path.join(root, f'fasion-annotation-{self.phase}.csv')
+        bonesLst = os.path.join(root, f'fashion-annotation-{self.phase}.csv')
         canonical_dir = os.path.join(root, f'{self.phase}_lower_fix_canonical')
         return image_dir, canonical_dir, bonesLst, name_pairs
 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="6d6f9c56-31ea-4170-88ab-d1037b185f7e" name="dualattn">
+        <fileTransfer rootFolder="/home/minsu" accessType="SFTP" host="166.104.232.121" port="7003" sshConfigId="89185359-321b-428e-9d80-893833dac568" sshConfig="minsu@166.104.232.121:7003 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

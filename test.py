@@ -27,7 +27,8 @@ if not opt.simple_test:
                         (opt.id, opt.phase, opt.which_epoch))
 
 trans = T.ToPILImage()
-util.mkdirs(opt.results_dir)
+result_path = os.path.join(opt.results_dir, opt.id)
+util.mkdirs(result_path)
 # test
 for i, data_i in enumerate(tqdm(dataloader)):
     fake_target, fake_source = model(data_i, mode='inference')
@@ -35,14 +36,13 @@ for i, data_i in enumerate(tqdm(dataloader)):
     img_path = data_i['path']
     if opt.simple_test:
         fake_target = (fake_target + 1) / 2
-        generated_image = trans(fake_target[0].cpu())
-        generated_image.save(os.path.join(opt.results_dir, img_path[0]))
+        for k in range(fake_target.shape[0]) :
+            generated_image = trans(fake_target[k].cpu())
+            generated_image.save(os.path.join(result_path, img_path[k]))
         continue
     for b in range(fake_target.shape[0]):
         # print('process image... %s' % img_path[b])
         visuals = OrderedDict([('src_image', data_i['src_image'].cpu()),
-                                   ('canonical_image', data_i['canonical_image'].cpu()),
-                                   ('tgt_map', data_i['tgt_map'].cpu()),
                                    ('real_image', data_i['tgt_image'].cpu()),
                                    ('synthesized_target_image', fake_target.cpu()),
                                    ])

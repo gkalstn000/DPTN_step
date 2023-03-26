@@ -1,40 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="minsu@166.104.246.71:7003 password" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" confirmBeforeDeletion="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="minsu@166.104.232.121:7003 password (3)" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" confirmBeforeDeletion="false">
     <option name="confirmBeforeDeletion" value="false" />
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="minsu@166.104.246.71:7003 password">
+      <paths name="dualattn">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/dualattn" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath path="/dualattn/attention_map" />
+            <excludedPath path="/dualattn/datasets" />
+            <excludedPath path="/dualattn/checkpoints" />
+            <excludedPath path="/dualattn/attention_map" />
+            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
+            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
+            <excludedPath local="true" path="$PROJECT_DIR$/results" />
+            <excludedPath path="/dualattn/results" />
+            <excludedPath path="/dualattn/old_results" />
+            <excludedPath local="true" path="$PROJECT_DIR$/old_results" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="minsu@166.104.232.121:7003 password (3)">
         <serverdata>
           <mappings>
             <mapping deploy="/home/minsu/dualattn" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
+            <excludedPath path="/home/minsu/dualattn/attention_map" />
             <excludedPath path="/home/minsu/dualattn/checkpoints" />
             <excludedPath path="/home/minsu/dualattn/datasets" />
             <excludedPath path="/home/minsu/dualattn/results" />
-            <excludedPath path="/home/minsu/dualattn/attention_map" />
-            <excludedPath local="true" path="$PROJECT_DIR$/attention_map" />
-            <excludedPath local="true" path="$PROJECT_DIR$/results" />
-            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
-            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
             <excludedPath path="/home/minsu/dualattn/old_results" />
-            <excludedPath local="true" path="$PROJECT_DIR$/old_results" />
-          </excludedPaths>
-        </serverdata>
-      </paths>
-      <paths name="ubuntu@211.253.164.238:16022 password (7)">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/ubuntu/dualattn" local="$PROJECT_DIR$" />
-          </mappings>
-          <excludedPaths>
-            <excludedPath path="/home/ubuntu/dualattn/datasets" />
-            <excludedPath path="/home/ubuntu/dualattn/checkpoints" />
-            <excludedPath path="/home/ubuntu/dualattn/results" />
-            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
             <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
+            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
             <excludedPath local="true" path="$PROJECT_DIR$/results" />
+            <excludedPath local="true" path="$PROJECT_DIR$/old_results" />
           </excludedPaths>
         </serverdata>
       </paths>

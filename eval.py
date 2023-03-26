@@ -72,7 +72,7 @@ if __name__ == "__main__":
     # m1, s1 = fid.compute_statistics_of_path(args.fid_real_path, False)
 
     for (num_keypoint, gt_list), (num_keypoint, distorated_list) in zip(gt_dict.items(), distorated_dict.items()) :
-        # if num_keypoint < 19: continue
+        if num_keypoint < 19: continue
         dataloader = MetricDataset(args, gt_list, distorated_list)
         dataloader1 = make_dataloader(dataloader, args.batchsize)
 
