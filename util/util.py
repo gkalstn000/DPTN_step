@@ -269,23 +269,21 @@ def map_to_img(tensor, threshold = 0.5) :
 def tensor2label(tensor, tile) :
 
     # tensor[tensor < 0.5] = 0
-    # color_list = [[240,248,255], [127,255,212], [69,139,116], [227,207,87], [255,228,196], [205,183,158],
-    #               [0,0,255], [138,43,226], [255,64,64], [139,35,35], [255,211,155], [138,54,15],
-    #               [95,158,160], [122,197,205], [237,145,33], [102,205,0], [205,91,69], [153,50,204]]
-    # limb_color = [[174, 58, 231] for _ in range(19)]
-    # if tensor.size(1) != 18 :
-    #     color_tensor = torch.Tensor(color_list+limb_color)
-    # else :
-    #     color_tensor = torch.Tensor(color_list)
-    # color_tensor = color_tensor.unsqueeze(0)
-    # color_tensor = color_tensor.unsqueeze(2)
-    # color_tensor = color_tensor.unsqueeze(3)
+    color_list = [[240,248,255], [127,255,212], [69,139,116], [227,207,87], [255,228,196], [205,183,158],
+                  [0,0,255], [138,43,226], [255,64,64], [139,35,35], [255,211,155], [138,54,15],
+                  [95,158,160], [122,197,205], [237,145,33], [102,205,0], [205,91,69], [153,50,204]]
+    limb_color = [[174, 58, 231] for _ in range(19)]
+    if tensor.size(1) != 18 :
+        color_tensor = torch.Tensor(color_list+limb_color)
+    else :
+        color_tensor = torch.Tensor(color_list)
+    color_tensor = color_tensor[None, :, None, None, :]
 
     tensor = tensor.unsqueeze(4)
-    # tensor = (tensor * color_tensor)
+    tensor = (tensor * color_tensor)
     # tensor = tensor.sum(1)
     tensor, _ = tensor.max(1)
-    return tensor2im(torch.permute(tensor, (0, 3, 1, 2)), normalize=False, tile=tile)
+    return tensor2im(torch.permute(tensor / 255, (0, 3, 1, 2)) , normalize=False, tile=tile)
     # return tensor2im(tensor.to(torch.uint8), tile=tile)
 
 
@@ -304,7 +302,7 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True, tile=False):
         images_np = []
         for b in range(image_tensor.size(0)):
             one_image = image_tensor[b]
-            one_image_np = tensor2im(one_image)
+            one_image_np = tensor2im(one_image, normalize=normalize)
             images_np.append(one_image_np.reshape(1, *one_image_np.shape))
         images_np = np.concatenate(images_np, axis=0)
         if tile:

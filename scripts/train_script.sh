@@ -59,3 +59,7 @@ python train.py --id base_cycle_pos --tf_log --gpu_ids 2 --type_En_c attn --type
 
 #3. base_cycle_pos_ptn
 nohup python train.py --id base_cycle_pos_ptm --tf_log --gpu_ids 2 --type_En_c attn --type_Dc default --pose_nc 18 --batchSize 15 --num_workers 15 --pos_encoding --continue_train > base_cycle_pos_ptm.out &
+
+
+
+nohup python train.py --id base_cycle_ptm_spade --tf_log --gpu_ids 0 --type_En_c attn --type_Dc spade --pose_nc 18 --batchSize 14 --num_workers 15 --gan_mode wgangp > base_cycle_ptm_spade.out &

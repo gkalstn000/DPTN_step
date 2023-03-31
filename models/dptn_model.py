@@ -114,29 +114,33 @@ class DPTNModel(nn.Module) :
         self.netD.eval()
         self.netG.train()
         G_losses = {}
+
         fake_image_t, fake_image_s, F_s_t = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
                                                                   can_image, can_map,
                                                         self.opt.isTrain)
-        loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
-        loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, src_image, use_d=False)
-
-        with torch.no_grad() :
-            F_t_t, _ = self.netG.En_c(src_map, tgt_map, tgt_image, False)
-        self.netD.train()
 
         fake_image_s_cycle, _, _ = self.generate_fake(fake_image_t, tgt_map,
                                                                   src_map,
                                                                   can_image, can_map,
                                                         False)
 
+        loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
+        loss_app_gen_s, loss_ad_gen_s, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, src_image, use_d=True)
+
+        with torch.no_grad() :
+            F_t_t, _ = self.netG.En_c(src_map, tgt_map, tgt_image, False)
+        self.netD.train()
+
+
+
         G_losses['L1_cycle'] = self.opt.t_s_ratio * self.L1loss(fake_image_s_cycle, src_image) * self.opt.lambda_rec
         # G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
-        G_losses['GAN_target'] = loss_ad_gen_t
-        G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
+        G_losses['GAN_target'] = loss_ad_gen_t + loss_ad_gen_s
+        # G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
         G_losses['L1_source'] = (1-self.opt.t_s_ratio) * loss_app_gen_s
         G_losses['VGG_source'] = (1-self.opt.t_s_ratio) * (loss_style_gen_s + loss_content_gen_s)
-        G_losses['F_s_t_loss'] = self.L2loss(F_s_t, F_t_t) * self.opt.lambda_feat
+        G_losses['F_s_t_loss'] = self.L1loss(F_s_t, F_t_t) * self.opt.lambda_feat
 
 
         return G_losses, fake_image_t, fake_image_s

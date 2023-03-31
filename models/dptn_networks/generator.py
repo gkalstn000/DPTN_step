@@ -66,9 +66,10 @@ class DPTNGenerator(BaseNetwork):
         F_s_t, first_attn_weights, last_attn_weights = self.PTM(F_s_s, F_s_t, F_s)
         # Source-to-source Decoder (only for training)
         out_image_s = None
-        texture_information = [source_bone, source_image] # [target_bone, source_bone, source_image]
+        texture_information = [source_bone] # [target_bone, source_bone, source_image]
         if is_train:
             out_image_s = self.De(F_s_s, texture_information)
         # Source-to-target Decoder
+        texture_information = [target_bone]
         out_image_t = self.De(F_s_t, texture_information)
         return out_image_t, out_image_s, F_s_t
