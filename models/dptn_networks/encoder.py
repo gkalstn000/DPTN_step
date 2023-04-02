@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from models.dptn_networks import modules
 from models.dptn_networks.base_network import BaseNetwork
 from models.spade_networks.architecture import SPADEResnetBlock
+from models.dptn_networks import encoder
 
 class SpadeAttnEncoder(BaseNetwork) :
     def __init__(self, opt):
@@ -99,32 +100,21 @@ class AttnEncoder(BaseNetwork):
         norm_layer = modules.get_norm_layer(norm_type=opt.norm)
         nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
 
-        self.query_encoder = nn.ModuleList()
-        self.key_encoder = nn.ModuleList()
-        self.value_encoder = nn.ModuleList()
+        self.En_s = encoder.SourceEncoder(opt)
+        self.bone_encoder = nn.ModuleList()
 
-        in_channel_query = opt.pose_nc
-        in_channel_key = opt.pose_nc + opt.image_nc
-        in_channel_value = opt.image_nc
+        in_channel = opt.pose_nc
         out_channel = opt.ngf
         for i in range(self.layers):
-            self.query_encoder.append(modules.EncoderBlock(in_channel_query, out_channel, norm_layer,
+            self.bone_encoder.append(modules.EncoderBlock(in_channel, out_channel, norm_layer,
                                          nonlinearity, opt.use_spect_g, opt.use_coord))
-            self.key_encoder.append(modules.EncoderBlock(in_channel_key, out_channel, norm_layer,
-                                         nonlinearity, opt.use_spect_g, opt.use_coord))
-            self.value_encoder.append(modules.EncoderBlock(in_channel_value, out_channel, norm_layer,
-                                                         nonlinearity, opt.use_spect_g, opt.use_coord))
             self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
 
-            in_channel_query = out_channel
-            in_channel_key = out_channel
-            in_channel_value = out_channel
+            in_channel = out_channel
             out_channel = opt.ngf * self.mult
         self.mult //= 2
 
-        self.query_encoder = nn.Sequential(*self.query_encoder)
-        self.key_encoder = nn.Sequential(*self.key_encoder)
-        self.value_encoder = nn.Sequential(*self.value_encoder)
+        self.bone_encoder = nn.Sequential(*self.bone_encoder)
 
         self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead, opt.ngf * self.mult)
 
@@ -142,16 +132,16 @@ class AttnEncoder(BaseNetwork):
         :param Value: Source Image
         :return:
         '''
-        key = self.key_encoder(torch.cat([source_bone, source_image], 1))
-        value = self.value_encoder(source_image)
+        mu, var = self.En_s(source_image)
+        texture = self.reparameterize(mu, var)
 
-        F_S_S_query = self.query_encoder(source_bone)
-        F_S_S, _ = self.Attn(F_S_S_query, key, value)
+        src_bone_feature = self.bone_encoder(source_bone)
+        F_S_S, _ = self.Attn(src_bone_feature, texture, texture)
 
         F_S_T = None
         if train_mode:
-            F_S_T_query = self.query_encoder(target_bone)
-            F_S_T, _ = self.Attn(F_S_T_query, key, value)
+            tgt_bone_feature = self.bone_encoder(target_bone)
+            F_S_T, _ = self.Attn(tgt_bone_feature, texture, texture)
 
         # Source-to-source Resblocks
         for i in range(self.opt.num_blocks):
@@ -159,7 +149,11 @@ class AttnEncoder(BaseNetwork):
             F_S_S = model(F_S_S)
             if train_mode:
                 F_S_T = model(F_S_T)
-        return F_S_S, F_S_T
+        return F_S_S, F_S_T, (texture, mu, var)
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return eps.mul(std) + mu
 
 class DefaultEncoder(BaseNetwork):
     def __init__(self, opt):
@@ -230,9 +224,12 @@ class SourceEncoder(nn.Module):
                                          nonlinearity, opt.use_spect_g, opt.use_coord)
             setattr(self, 'encoder' + str(i), block)
 
+        self.mu = nn.Conv2d(opt.ngf * mult, opt.ngf * mult, 3, stride=1, padding=1)
+        self.var = nn.Conv2d(opt.ngf * mult, opt.ngf * mult, 3, stride=1, padding=1)
+
     def forward(self, x):
         out = self.block0(x)
         for i in range(self.encoder_layer - 1):
             model = getattr(self, 'encoder' + str(i))
             out = model(out)
-        return out
+        return self.mu(out), self.var(out)

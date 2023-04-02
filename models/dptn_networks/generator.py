@@ -58,12 +58,13 @@ class DPTNGenerator(BaseNetwork):
     def forward(self, source_image, source_bone, target_bone,
                 canonical_image, canonical_bone, is_train=True):
         # Encode source-to-source / target-to-source
-        F_s_s, F_s_t = self.En_c(target_bone, source_bone, source_image)
+
+        F_s_s, F_s_t, (z, mu, var) = self.En_c(target_bone, source_bone, source_image)
 
         # Source Image Encoding
-        F_s = self.En_s(source_image)
+
         # Pose Transformer Module for Dual-task Correlation
-        F_s_t, first_attn_weights, last_attn_weights = self.PTM(F_s_s, F_s_t, F_s)
+        # F_s_t, first_attn_weights, last_attn_weights = self.PTM(F_s_s, F_s_t, z)
         # Source-to-source Decoder (only for training)
         out_image_s = None
         texture_information = [source_bone] # [target_bone, source_bone, source_image]
@@ -72,4 +73,5 @@ class DPTNGenerator(BaseNetwork):
         # Source-to-target Decoder
         texture_information = [target_bone]
         out_image_t = self.De(F_s_t, texture_information)
-        return out_image_t, out_image_s, F_s_t
+        return out_image_t, out_image_s, (F_s_t, mu, var)
+

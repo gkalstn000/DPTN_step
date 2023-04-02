@@ -26,6 +26,7 @@ class DPTNModel(nn.Module) :
             self.L1loss = torch.nn.L1Loss()
             self.Vggloss = loss.VGGLoss().cuda()
             self.L2loss = torch.nn.MSELoss()
+            self.KLDLoss = loss.KLDLoss()
 
 
     def forward(self, data, mode):
@@ -44,7 +45,7 @@ class DPTNModel(nn.Module) :
         elif mode == 'inference' :
             self.netG.eval()
             with torch.no_grad():
-                fake_image_t, fake_image_s, F_s_t = self.generate_fake(src_image, src_map,
+                fake_image_t, fake_image_s, (F_s_t, mu, var) = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
                                                                   can_image, can_map,
                                                                 False)
@@ -115,32 +116,34 @@ class DPTNModel(nn.Module) :
         self.netG.train()
         G_losses = {}
 
-        fake_image_t, fake_image_s, F_s_t = self.generate_fake(src_image, src_map,
+        fake_image_t, fake_image_s, (F_s_t, mu, var) = self.generate_fake(src_image, src_map,
                                                                   tgt_map,
                                                                   can_image, can_map,
                                                         self.opt.isTrain)
 
-        fake_image_s_cycle, _, _ = self.generate_fake(fake_image_t, tgt_map,
-                                                                  src_map,
-                                                                  can_image, can_map,
-                                                        False)
+        # fake_image_s_cycle, _, _ = self.generate_fake(fake_image_t, tgt_map,
+        #                                                           src_map,
+        #                                                           can_image, can_map,
+        #                                                 False)
 
         loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
         loss_app_gen_s, loss_ad_gen_s, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, src_image, use_d=True)
 
-        with torch.no_grad() :
-            F_t_t, _ = self.netG.En_c(src_map, tgt_map, tgt_image, False)
+        # with torch.no_grad() :
+        #     F_t_t, _, _ = self.netG.En_c(src_map, tgt_map, tgt_image, False)
         self.netD.train()
 
 
 
-        G_losses['L1_cycle'] = self.opt.t_s_ratio * self.L1loss(fake_image_s_cycle, src_image) * self.opt.lambda_rec
+        # G_losses['L1_cycle'] = self.opt.t_s_ratio * self.L1loss(fake_image_s_cycle, src_image) * self.opt.lambda_rec
         # G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
         G_losses['GAN_target'] = loss_ad_gen_t + loss_ad_gen_s
-        # G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
+        G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
         G_losses['L1_source'] = (1-self.opt.t_s_ratio) * loss_app_gen_s
+        G_losses['L1_target'] = (1 - self.opt.t_s_ratio) * loss_app_gen_t
         G_losses['VGG_source'] = (1-self.opt.t_s_ratio) * (loss_style_gen_s + loss_content_gen_s)
-        G_losses['F_s_t_loss'] = self.L1loss(F_s_t, F_t_t) * self.opt.lambda_feat
+        G_losses['KLD_loss'] = self.KLDLoss(mu, var) * self.opt.lambda_kld
+        # G_losses['F_s_t_loss'] = self.L1loss(F_s_t, F_t_t) * self.opt.lambda_feat
 
 
         return G_losses, fake_image_t, fake_image_s
@@ -187,10 +190,10 @@ class DPTNModel(nn.Module) :
                       can_image, can_map,
                       is_train=True):
 
-        fake_image_t, fake_image_s, F_s_t = self.netG(src_image, src_map, tgt_map,
+        fake_image_t, fake_image_s, (F_s_t, mu, var) = self.netG(src_image, src_map, tgt_map,
                                                       can_image, can_map,
                                                       is_train)
 
-        return fake_image_t, fake_image_s, F_s_t
+        return fake_image_t, fake_image_s, (F_s_t, mu, var)
     def use_gpu(self):
         return len(self.opt.gpu_ids) > 0
