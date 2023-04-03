@@ -49,9 +49,9 @@ class DPTNGenerator(BaseNetwork):
         self.En_c = define_En_c(opt)
         opt.mult = self.En_c.mult
         # Pose Transformer Module (PTM)
-        # self.PTM = PTM.PoseTransformerModule(opt=opt)
+        self.PTM = PTM.PoseTransformerModule(opt=opt)
         # SourceEncoder En_s
-        # self.En_s = encoder.SourceEncoder(opt)
+        self.En_s = encoder.SourceEncoder(opt)
         # OutputDecoder De
         self.De = define_De(opt)
 
