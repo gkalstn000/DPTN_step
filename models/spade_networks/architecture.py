@@ -19,7 +19,13 @@ from models.spade_networks.normalization import SPADE, SPADEAttn
 # class-conditional GAN architecture using residual block.
 # The code was inspired from https://github.com/LMescheder/GAN_stability.
 class SPADEResnetBlock(nn.Module):
-    def __init__(self, fin, fout, opt, type):
+    def __init__(self, fin, fout, opt, norm_nc):
+        '''
+        :param fin: input dim of main feature map
+        :param fout: output dim of main feature map
+        :param opt: options
+        :param norm_nc: norm input dim
+        '''
         super().__init__()
         # Attributes
         self.learned_shortcut = (fin != fout)
@@ -37,27 +43,12 @@ class SPADEResnetBlock(nn.Module):
         if self.learned_shortcut:
             self.conv_s = spectral_norm(self.conv_s)
 
-        # define normalization layers
-        if type == 'encoder' :
-            if opt.type_En_c.lower() == 'spade' :
-                cond_norm = SPADE
-            elif opt.type_En_c.lower() == 'spadeattn' :
-                cond_norm = SPADEAttn
-            else :
-                raise Exception(f'{opt.type_En_c} is unrecognized cond norm type')
-        else :
-            if opt.type_Dc.lower() == 'spade' :
-                cond_norm = SPADE
-            elif opt.type_Dc.lower() == 'spadeattn' :
-                cond_norm = SPADEAttn
-            else :
-                raise Exception(f'{opt.type_En_c} is unrecognized cond norm type')
+        cond_norm = SPADE
 
-        input_nc = opt.pose_nc # image channel + map channer * 2
-        self.norm_0 = cond_norm(opt.norm, fin, input_nc)
-        self.norm_1 = cond_norm(opt.norm, fmiddle, input_nc)
+        self.norm_0 = cond_norm(opt.norm, fin, norm_nc)
+        self.norm_1 = cond_norm(opt.norm, fmiddle, norm_nc)
         if self.learned_shortcut:
-            self.norm_s = cond_norm(opt.norm, fin, input_nc)
+            self.norm_s = cond_norm(opt.norm, fin, norm_nc)
 
     # note the resnet block with SPADE also takes in |seg|,
     # the semantic segmentation map as input

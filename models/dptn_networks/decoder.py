@@ -16,12 +16,12 @@ class SpadeDecoder(BaseNetwork) :
 
         self.sw, self.sh = self.compute_latent_vector_size(opt)
 
-        input_nc = 2 * opt.pose_nc + opt.image_nc
+        norm_nc = opt.pose_nc
 
         for i in range(self.layers):
             mult_prev = mult
             mult = min(2 ** (self.layers - i - 2), opt.img_f // opt.ngf) if i != self.layers - 1 else 1
-            down = SPADEResnetBlock(nf * mult_prev, nf * mult, opt, 'decoder')
+            down = SPADEResnetBlock(nf * mult_prev, nf * mult, opt, norm_nc)
             setattr(self, 'decoder' + str(i), down)
 
         self.conv_img = nn.Conv2d(nf, 3, 3, padding=1)

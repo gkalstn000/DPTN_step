@@ -136,11 +136,10 @@ class DPTNModel(nn.Module) :
 
 
         # G_losses['L1_cycle'] = self.opt.t_s_ratio * self.L1loss(fake_image_s_cycle, src_image) * self.opt.lambda_rec
-        # G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
         G_losses['GAN_target'] = loss_ad_gen_t + loss_ad_gen_s
         G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
         G_losses['L1_source'] = (1-self.opt.t_s_ratio) * loss_app_gen_s
-        G_losses['L1_target'] = (1 - self.opt.t_s_ratio) * loss_app_gen_t
+        G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
         G_losses['VGG_source'] = (1-self.opt.t_s_ratio) * (loss_style_gen_s + loss_content_gen_s)
         G_losses['KLD_loss'] = self.KLDLoss(mu, var) * self.opt.lambda_kld
         # G_losses['F_s_t_loss'] = self.L1loss(F_s_t, F_t_t) * self.opt.lambda_feat
@@ -176,11 +175,12 @@ class DPTNModel(nn.Module) :
             fake_image_s = fake_image_s.detach()
             fake_image_s.requires_grad_()
         self.netG.train()
-        D_real_loss, D_fake_loss, gradient_penalty = self.backward_D_basic(tgt_image, fake_image_t)
-        D_losses['Real_loss'] = D_real_loss * 0.5
-        D_losses['Fake_loss'] = D_fake_loss * 0.5
+        D_real_loss_s, D_fake_loss_s, gradient_penalty_s = self.backward_D_basic(src_image, fake_image_s)
+        D_real_loss_t, D_fake_loss_t, gradient_penalty_t = self.backward_D_basic(tgt_image, fake_image_t)
+        D_losses['Real_loss'] = (D_real_loss_s + D_real_loss_t) * 0.5
+        D_losses['Fake_loss'] = (D_fake_loss_s + D_fake_loss_t) * 0.5
         if self.opt.gan_mode == 'wgangp':
-            D_losses['WGAN_penalty'] = gradient_penalty
+            D_losses['WGAN_penalty'] = (gradient_penalty_s + gradient_penalty_t)
 
         return D_losses
 

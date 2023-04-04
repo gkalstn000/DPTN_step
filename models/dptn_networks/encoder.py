@@ -59,15 +59,15 @@ class SpadeEncoder(BaseNetwork) :
 
         self.sw, self.sh = self.compute_latent_vector_size(opt)
 
-        input_nc = 2 * opt.pose_nc + opt.image_nc
-
-        self.head_0 = SPADEResnetBlock(input_nc, nf, opt, 'encoder')
+        input_nc = opt.image_nc
+        norm_nc = opt.pose_nc
+        self.head_0 = SPADEResnetBlock(input_nc, nf, opt, norm_nc)
 
         self.mult = 1
         for i in range(self.layers - 1) :
             mult_prev = self.mult
             self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
-            block = SPADEResnetBlock(opt.ngf * mult_prev, opt.ngf * self.mult, opt, 'encoder')
+            block = SPADEResnetBlock(opt.ngf * mult_prev, opt.ngf * self.mult, opt, norm_nc)
             setattr(self, 'down' + str(i), block)
 
         # ResBlocks
@@ -77,20 +77,22 @@ class SpadeEncoder(BaseNetwork) :
             setattr(self, 'mblock' + str(i), block)
 
         self.down = nn.MaxPool2d(2, stride=2)
-    def forward(self, x, texture_information):
-        texture_information = torch.cat(texture_information, 1)
 
-        x = self.head_0(x, texture_information)
+        self.mu = nn.Conv2d(opt.ngf * self.mult, opt.ngf * self.mult, 3, stride=1, padding=1)
+        self.var = nn.Conv2d(opt.ngf * self.mult, opt.ngf * self.mult, 3, stride=1, padding=1)
+    def forward(self, texture, bone):
+
+        x = self.head_0(texture, bone)
         x = self.down(x)
         for i in range(self.layers - 1):
             model = getattr(self, 'down' + str(i))
-            x = model(x, texture_information)
+            x = model(x, bone)
             x = self.down(x)
 
         for i in range(self.opt.num_blocks):
             model = getattr(self, 'mblock' + str(i))
             x = model(x)
-        return x
+        return self.mu(x), self.var(x)
 
 class AttnEncoder(BaseNetwork):
     def __init__(self, opt):
@@ -100,22 +102,11 @@ class AttnEncoder(BaseNetwork):
         norm_layer = modules.get_norm_layer(norm_type=opt.norm)
         nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
 
-        self.En_s = encoder.SourceEncoder(opt)
-        self.bone_encoder = nn.ModuleList()
+        self.texture_encoder = SpadeEncoder(opt)
 
-        in_channel = opt.pose_nc
-        out_channel = opt.ngf
-        for i in range(self.layers):
-            self.bone_encoder.append(modules.EncoderBlock(in_channel, out_channel, norm_layer,
-                                         nonlinearity, opt.use_spect_g, opt.use_coord))
-            self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
+        self.bone_encoder = BoneEncoder(opt)
 
-            in_channel = out_channel
-            out_channel = opt.ngf * self.mult
-        self.mult //= 2
-
-        self.bone_encoder = nn.Sequential(*self.bone_encoder)
-
+        self.mult = self.bone_encoder.mult
         self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead, opt.ngf * self.mult)
 
         # ResBlocks
@@ -132,14 +123,15 @@ class AttnEncoder(BaseNetwork):
         :param Value: Source Image
         :return:
         '''
-        mu, var = self.En_s(source_image)
-        texture = self.reparameterize(mu, var)
+        mu, var = self.texture_encoder(source_image, source_bone)
 
+        texture = self.reparameterize(mu, var)
         src_bone_feature = self.bone_encoder(source_bone)
         F_S_S, _ = self.Attn(src_bone_feature, texture, texture)
 
         F_S_T = None
         if train_mode:
+            texture = self.reparameterize(mu, var)
             tgt_bone_feature = self.bone_encoder(target_bone)
             F_S_T, _ = self.Attn(tgt_bone_feature, texture, texture)
 
@@ -155,6 +147,32 @@ class AttnEncoder(BaseNetwork):
         eps = torch.randn_like(std)
         return eps.mul(std) + mu
 
+
+class BoneEncoder(BaseNetwork) :
+    def __init__(self, opt):
+        super(BoneEncoder, self).__init__()
+        self.opt = opt
+        self.layers = opt.layers_g
+        norm_layer = modules.get_norm_layer(norm_type=opt.norm)
+        nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
+
+        self.bone_encoder = nn.ModuleList()
+
+
+        in_channel = opt.pose_nc
+        out_channel = opt.ngf
+        for i in range(self.layers):
+            self.bone_encoder.append(modules.EncoderBlock(in_channel, out_channel, norm_layer,
+                                         nonlinearity, opt.use_spect_g, opt.use_coord))
+            self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
+
+            in_channel = out_channel
+            out_channel = opt.ngf * self.mult
+        self.mult //= 2
+
+        self.bone_encoder = nn.Sequential(*self.bone_encoder)
+    def forward(self, x):
+        return self.bone_encoder(x)
 class DefaultEncoder(BaseNetwork):
     def __init__(self, opt):
         super(DefaultEncoder, self).__init__()
