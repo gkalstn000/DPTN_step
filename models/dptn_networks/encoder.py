@@ -100,25 +100,25 @@ class AttnEncoder(BaseNetwork):
         super(AttnEncoder, self).__init__()
         self.opt = opt
         self.layers = opt.layers_g
-        norm_layer = modules.get_norm_layer(norm_type=opt.norm)
-        nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
+        # norm_layer = modules.get_norm_layer(norm_type=opt.norm)
+        # nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
 
         self.texture_encoder = SourceEncoder(opt)
-        self.bone_encoder = BoneEncoder(opt)
+        # self.bone_encoder = BoneEncoder(opt)
 
         self.conv_texture = nn.Conv2d(1, 256, 3, stride=1, padding=1)
 
-        self.mult = self.bone_encoder.mult
-        self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead, opt.ngf * self.mult)
+        self.mult = self.texture_encoder.mult
+        # self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead, opt.ngf * self.mult)
 
         # ResBlocks
-        for i in range(opt.num_blocks):
-            block = modules.ResBlock(opt.ngf * self.mult, opt.ngf * self.mult, norm_layer=norm_layer,
-                                     nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
-            setattr(self, 'mblock' + str(i), block)
+        # for i in range(opt.num_blocks):
+        #     block = modules.ResBlock(opt.ngf * self.mult, opt.ngf * self.mult, norm_layer=norm_layer,
+        #                              nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
+        #     setattr(self, 'mblock' + str(i), block)
 
 
-    def forward(self, target_bone, source_bone, source_image):
+    def forward(self, source_image):
         '''
         :param Query: Query Bone
         :param Key: Source Bone
@@ -129,20 +129,20 @@ class AttnEncoder(BaseNetwork):
         z_texture = self.reparameterize(mu_texture, var_texture)
         z_texture = self.conv_texture(z_texture.view(z_texture.size(0), 1, self.texture_encoder.ch, self.texture_encoder.cw))
 
-        src_bone_feature = self.bone_encoder(source_bone)
-        tgt_bone_feature = self.bone_encoder(target_bone)
+        # src_bone_feature = self.bone_encoder(source_bone)
+        # tgt_bone_feature = self.bone_encoder(target_bone)
 
-        F_S_S, _ = self.Attn(src_bone_feature, z_texture, z_texture)
-        F_S_T, _ = self.Attn(tgt_bone_feature, z_texture, z_texture)
-
-        # Source-to-source Resblocks
-        for i in range(self.opt.num_blocks):
-            model = getattr(self, 'mblock' + str(i))
-            F_S_S = model(F_S_S)
-            F_S_T = model(F_S_T)
+        # F_S_S, _ = self.Attn(src_bone_feature, z_texture, z_texture)
+        # F_S_T, _ = self.Attn(tgt_bone_feature, z_texture, z_texture)
+        #
+        # # Source-to-source Resblocks
+        # for i in range(self.opt.num_blocks):
+        #     model = getattr(self, 'mblock' + str(i))
+        #     F_S_S = model(F_S_S)
+        #     F_S_T = model(F_S_T)
 
         z_dict = {'texture': [mu_texture, var_texture]}
-        return F_S_S, F_S_T, z_dict
+        return z_texture, z_dict
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
@@ -226,6 +226,8 @@ class SourceEncoder(nn.Module):
         self.cw = w // 2**(mult-1)
         self.mu = nn.Linear(opt.ngf * mult * self.ch * self.cw, self.ch*self.cw)
         self.var = nn.Linear(opt.ngf * mult * self.ch * self.cw, self.ch*self.cw)
+
+        self.mult = mult
 # (ndf * 8 * s0 * s0, 256)
     def forward(self, x):
         out = self.block0(x)

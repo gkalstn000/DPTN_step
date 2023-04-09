@@ -70,3 +70,6 @@ nohup python train.py --id z_cycle_ptm_spade --tf_log --gpu_ids 2 --type_En_c at
 nohup python train.py --id VAE_spade_full --tf_log --gpu_ids 0 --type_En_c attn --type_Dc spade --pose_nc 18 --batchSize 20 --num_workers 15  --continue_train > VAE_spade_full.out &
 
 nohup python train.py --id VAE_DPTN --tf_log --gpu_ids 0 --type_En_c attn --type_Dc spade --pose_nc 18 --batchSize 15 --num_workers 15  > VAE_DPTN.out &
+
+
+nohup python train.py --id spade --tf_log --gpu_ids 0 --type_En_c attn --type_Dc spade --pose_nc 18 --batchSize 28 --num_workers 15 --dataroot /home/work/msha/datasets/fashion > spade.out &
