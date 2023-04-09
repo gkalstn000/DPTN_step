@@ -341,5 +341,6 @@ class VGG19(torch.nn.Module):
         }
         return out
 class KLDLoss(nn.Module):
-    def forward(self, mu, logvar):
+    def forward(self, parameter):
+        mu, logvar = parameter
         return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())

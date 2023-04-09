@@ -1,26 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="minsu@166.104.232.121:7003 password (3)" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" confirmBeforeDeletion="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="work@localhost:22222 agent" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" confirmBeforeDeletion="false">
     <option name="confirmBeforeDeletion" value="false" />
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="dualattn">
+      <paths name="dslab@166.104.185.112:22 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/dualattn" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/dslab/msha" local="$PROJECT_DIR$" />
           </mappings>
-          <excludedPaths>
-            <excludedPath path="/dualattn/attention_map" />
-            <excludedPath path="/dualattn/datasets" />
-            <excludedPath path="/dualattn/checkpoints" />
-            <excludedPath path="/dualattn/attention_map" />
-            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
-            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
-            <excludedPath local="true" path="$PROJECT_DIR$/results" />
-            <excludedPath path="/dualattn/results" />
-            <excludedPath path="/dualattn/old_results" />
-            <excludedPath local="true" path="$PROJECT_DIR$/old_results" />
-          </excludedPaths>
         </serverdata>
       </paths>
       <paths name="minsu@166.104.232.121:7003 password (3)">
@@ -36,6 +24,20 @@
             <excludedPath path="/home/minsu/dualattn/old_results" />
             <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
             <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
+            <excludedPath local="true" path="$PROJECT_DIR$/results" />
+            <excludedPath local="true" path="$PROJECT_DIR$/old_results" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="work@localhost:22222 agent">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/work/msha/lpg" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/attention_map" />
+            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
+            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
             <excludedPath local="true" path="$PROJECT_DIR$/results" />
             <excludedPath local="true" path="$PROJECT_DIR$/old_results" />
           </excludedPaths>

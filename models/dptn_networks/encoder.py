@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from models.dptn_networks import modules
 from models.dptn_networks.base_network import BaseNetwork
 from models.spade_networks.architecture import SPADEResnetBlock
+import math
 from models.dptn_networks import encoder
 
 class SpadeAttnEncoder(BaseNetwork) :
@@ -102,9 +103,10 @@ class AttnEncoder(BaseNetwork):
         norm_layer = modules.get_norm_layer(norm_type=opt.norm)
         nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
 
-        self.texture_encoder = SpadeEncoder(opt)
-
+        self.texture_encoder = SourceEncoder(opt)
         self.bone_encoder = BoneEncoder(opt)
+
+        self.conv_texture = nn.Conv2d(1, 256, 3, stride=1, padding=1)
 
         self.mult = self.bone_encoder.mult
         self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead, opt.ngf * self.mult)
@@ -116,32 +118,31 @@ class AttnEncoder(BaseNetwork):
             setattr(self, 'mblock' + str(i), block)
 
 
-    def forward(self, target_bone, source_bone, source_image, train_mode = True):
+    def forward(self, target_bone, source_bone, source_image):
         '''
         :param Query: Query Bone
         :param Key: Source Bone
         :param Value: Source Image
         :return:
         '''
-        mu, var = self.texture_encoder(source_image, source_bone)
+        mu_texture, var_texture = self.texture_encoder(source_image)
+        z_texture = self.reparameterize(mu_texture, var_texture)
+        z_texture = self.conv_texture(z_texture.view(z_texture.size(0), 1, self.texture_encoder.ch, self.texture_encoder.cw))
 
-        texture = self.reparameterize(mu, var)
         src_bone_feature = self.bone_encoder(source_bone)
-        F_S_S, _ = self.Attn(src_bone_feature, texture, texture)
+        tgt_bone_feature = self.bone_encoder(target_bone)
 
-        F_S_T = None
-        if train_mode:
-            texture = self.reparameterize(mu, var)
-            tgt_bone_feature = self.bone_encoder(target_bone)
-            F_S_T, _ = self.Attn(tgt_bone_feature, texture, texture)
+        F_S_S, _ = self.Attn(src_bone_feature, z_texture, z_texture)
+        F_S_T, _ = self.Attn(tgt_bone_feature, z_texture, z_texture)
 
         # Source-to-source Resblocks
         for i in range(self.opt.num_blocks):
             model = getattr(self, 'mblock' + str(i))
             F_S_S = model(F_S_S)
-            if train_mode:
-                F_S_T = model(F_S_T)
-        return F_S_S, F_S_T, (texture, mu, var)
+            F_S_T = model(F_S_T)
+
+        z_dict = {'texture': [mu_texture, var_texture]}
+        return F_S_S, F_S_T, z_dict
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
@@ -169,10 +170,73 @@ class BoneEncoder(BaseNetwork) :
             in_channel = out_channel
             out_channel = opt.ngf * self.mult
         self.mult //= 2
-
         self.bone_encoder = nn.Sequential(*self.bone_encoder)
+
+        # if isinstance(opt.load_size, int) :
+        #     h = w = opt.load_size
+        # else :
+        #     h, w = opt.load_size
+        # self.ch = h // 2**(self.mult-1)
+        # self.cw = w // 2**(self.mult-1)
+        # self.mu = nn.Linear(opt.ngf * self.mult * self.ch * self.cw, self.ch*self.cw)
+        # self.var = nn.Linear(opt.ngf * self.mult * self.ch * self.cw, self.ch*self.cw)
     def forward(self, x):
-        return self.bone_encoder(x)
+        x = self.bone_encoder(x)
+        return x
+        # x = x.view(x.size(0), -1)
+        # return self.mu(x), self.var(x)
+
+class SourceEncoder(nn.Module):
+    """
+    Source Image Encoder (En_s)
+    :param image_nc: number of channels in input image
+    :param ngf: base filter channel
+    :param img_f: the largest feature channels
+    :param encoder_layer: encoder layers
+    :param norm: normalization function 'instance, batch, group'
+    :param activation: activation function 'ReLU, SELU, LeakyReLU, PReLU'
+    :param use_spect: use spectual normalization
+    :param use_coord: use coordConv operation
+    """
+
+    def __init__(self, opt):
+        super(SourceEncoder, self).__init__()
+        self.opt = opt
+        self.encoder_layer = opt.layers_g
+
+        norm_layer = modules.get_norm_layer(norm_type=opt.norm)
+        nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
+        input_nc = opt.image_nc
+
+        self.block0 = modules.EncoderBlockOptimized(input_nc, opt.ngf, norm_layer,
+                                                    nonlinearity, opt.use_spect_g, opt.use_coord)
+        mult = 1
+        for i in range(opt.layers_g - 1):
+            mult_prev = mult
+            mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
+            block = modules.EncoderBlock(opt.ngf * mult_prev, opt.ngf * mult, norm_layer,
+                                         nonlinearity, opt.use_spect_g, opt.use_coord)
+            setattr(self, 'encoder' + str(i), block)
+
+        if isinstance(opt.load_size, int) :
+            h = w = opt.load_size
+        else :
+            h, w = opt.load_size
+        self.ch = h // 2**(mult-1)
+        self.cw = w // 2**(mult-1)
+        self.mu = nn.Linear(opt.ngf * mult * self.ch * self.cw, self.ch*self.cw)
+        self.var = nn.Linear(opt.ngf * mult * self.ch * self.cw, self.ch*self.cw)
+# (ndf * 8 * s0 * s0, 256)
+    def forward(self, x):
+        out = self.block0(x)
+        for i in range(self.encoder_layer - 1):
+            model = getattr(self, 'encoder' + str(i))
+            out = model(out)
+        out = out.view(x.size(0), -1)
+        return self.mu(out), self.var(out)
+
+
+
 class DefaultEncoder(BaseNetwork):
     def __init__(self, opt):
         super(DefaultEncoder, self).__init__()
@@ -210,44 +274,3 @@ class DefaultEncoder(BaseNetwork):
             model = getattr(self, 'mblock' + str(i))
             x = model(x)
         return x
-class SourceEncoder(nn.Module):
-    """
-    Source Image Encoder (En_s)
-    :param image_nc: number of channels in input image
-    :param ngf: base filter channel
-    :param img_f: the largest feature channels
-    :param encoder_layer: encoder layers
-    :param norm: normalization function 'instance, batch, group'
-    :param activation: activation function 'ReLU, SELU, LeakyReLU, PReLU'
-    :param use_spect: use spectual normalization
-    :param use_coord: use coordConv operation
-    """
-
-    def __init__(self, opt):
-        super(SourceEncoder, self).__init__()
-        self.opt = opt
-        self.encoder_layer = opt.layers_g
-
-        norm_layer = modules.get_norm_layer(norm_type=opt.norm)
-        nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
-        input_nc = opt.image_nc
-
-        self.block0 = modules.EncoderBlockOptimized(input_nc, opt.ngf, norm_layer,
-                                                    nonlinearity, opt.use_spect_g, opt.use_coord)
-        mult = 1
-        for i in range(opt.layers_g - 1):
-            mult_prev = mult
-            mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
-            block = modules.EncoderBlock(opt.ngf * mult_prev, opt.ngf * mult, norm_layer,
-                                         nonlinearity, opt.use_spect_g, opt.use_coord)
-            setattr(self, 'encoder' + str(i), block)
-
-        self.mu = nn.Conv2d(opt.ngf * mult, opt.ngf * mult, 3, stride=1, padding=1)
-        self.var = nn.Conv2d(opt.ngf * mult, opt.ngf * mult, 3, stride=1, padding=1)
-
-    def forward(self, x):
-        out = self.block0(x)
-        for i in range(self.encoder_layer - 1):
-            model = getattr(self, 'encoder' + str(i))
-            out = model(out)
-        return self.mu(out), self.var(out)

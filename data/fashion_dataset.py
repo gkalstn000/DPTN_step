@@ -122,8 +122,6 @@ class FashionDataset(BaseDataset) :
                       'src_map': BP1,
                       'tgt_image' : P2,
                       'tgt_map' : BP2,
-                      'canonical_image' : P2,
-                      'canonical_map' : BP2,
                       'path' : PC_name}
 
         # num_worker optimizing

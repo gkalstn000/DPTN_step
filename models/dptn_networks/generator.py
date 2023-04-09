@@ -55,16 +55,13 @@ class DPTNGenerator(BaseNetwork):
         # OutputDecoder De
         self.De = define_De(opt)
 
-    def forward(self, source_image, source_bone, target_bone,
-                canonical_image, canonical_bone, is_train=True):
-        F_s_s, F_s_t, (z, mu, var) = self.En_c(target_bone, source_bone, source_image)
+    def forward(self, source_image, source_bone, target_bone, is_train=True):
+        F_s_s, F_s_t, z_dict = self.En_c(target_bone, source_bone, source_image)
 
-        out_image_s = None
         texture_information = [source_bone] # [target_bone, source_bone, source_image]
-        if is_train:
-            out_image_s = self.De(F_s_s, texture_information)
-        # Source-to-target Decoder
+        out_image_s = self.De(F_s_s, texture_information)
+
         texture_information = [target_bone]
         out_image_t = self.De(F_s_t, texture_information)
-        return out_image_t, out_image_s, (F_s_t, mu, var)
+        return out_image_t, out_image_s, (F_s_t, z_dict)
 
