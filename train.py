@@ -77,7 +77,7 @@ for epoch in iter_counter.training_epochs():
                                ('tgt_map_val', data_i['tgt_map']),
                                ('3real_image_val', data_i['tgt_image']),
                                ('3synthesized_target_image_val', fake_target),
-                               ('3synthesized_source_image_val'), fake_source
+                               ('3synthesized_source_image_val', fake_source),
                                ])
         visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)
         break
