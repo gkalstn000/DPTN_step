@@ -25,42 +25,17 @@ class BaseDataset(data.Dataset):
 
     def initialize(self, opt):
         pass
-    def obtain_bone_pos(self, name):
-        y, x = self.annotation_file.loc[name]
-        coord = util.make_coord_array(y, x)
 
-        relative_pos_matrix = []
-        for h, w in coord :
-            if (h <= -1 or w <= -1) or (not (0<= h < self.opt.old_size[0] and 0<=w<self.opt.old_size[1])) :
-                relative_pos_matrix.append(torch.zeros(1, self.opt.load_size, self.opt.load_size))
-                continue
-            h = int(h / self.opt.old_size[0] * self.opt.load_size)
-            w = int(w / self.opt.old_size[1] * self.opt.load_size)
-
-            h_index = self.opt.load_size - h
-            w_index = self.opt.load_size - w
-            matrix = self.Positional_matrix[:, h_index: h_index + self.opt.load_size, w_index: w_index + self.opt.load_size]
-            assert matrix.shape == (1, self.opt.load_size, self.opt.load_size), print(f'({h_index}, {w_index}) / ({h, w})')
-            relative_pos_matrix.append(matrix)
-        relative_pos_matrix = torch.concatenate(relative_pos_matrix)
-        return relative_pos_matrix
     def obtain_bone(self, name):
-        if '_2_' in name :
-            y, x = self.annotation_file_canonical.loc[name]
-        else :
-            y, x = self.annotation_file.loc[name]
+        y, x = self.annotation_file.loc[name]
         coord = util.make_coord_array(y, x)
         return self.obtain_bone_with_coord(coord)
     def obtain_bone_with_coord(self, coord):
         # Keypoint map
         keypoint = util.cords_to_map(coord, self.opt)
-        keypoint = np.transpose(keypoint, (2, 0, 1))
         keypoint = torch.Tensor(keypoint)
-        if self.opt.pose_nc == 18 :
-            return keypoint
         # Limb map
         limb = util.limbs_to_map(coord, self.opt)
-        limb = np.transpose(limb, (2, 0, 1))
         limb = torch.Tensor(limb)
 
         return torch.cat([keypoint, limb])

@@ -16,10 +16,7 @@ class FashionDataset(BaseDataset) :
 
     @staticmethod
     def modify_commandline_options(parser, is_train) :
-        if is_train:
-            parser.set_defaults(load_size=256)
-        else:
-            parser.set_defaults(load_size=256)
+        parser.set_defaults(load_size=(256, 256))
         parser.set_defaults(old_size=(256, 176))
         parser.set_defaults(image_nc=3)
         parser.set_defaults(display_winsize=256)
@@ -29,7 +26,7 @@ class FashionDataset(BaseDataset) :
     def initialize(self, opt):
         self.opt = opt
         self.phase = opt.phase
-        self.image_dir, self.canonical_dir, self.bone_file, self.name_pairs = self.get_paths(opt)
+        self.image_dir, self.bone_file, self.name_pairs = self.get_paths(opt)
         size = len(self.name_pairs)
         self.dataset_size = size
 
@@ -41,17 +38,12 @@ class FashionDataset(BaseDataset) :
 
         # transform_list.append(transforms.Resize(size=self.load_size))
         self.annotation_file = pd.read_csv(self.bone_file, sep=':').set_index('name')
-        self.annotation_file_canonical = pd.read_csv(self.bone_file.replace(opt.phase, opt.phase+'-canonical'), sep=':').set_index('name')
 
         transform_list=[]
         # transform_list.append(transforms.Resize(size=self.load_size))
         transform_list.append(transforms.ToTensor())
         transform_list.append(transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5)))
         self.trans = transforms.Compose(transform_list)
-        self.cum_time = 0
-        self.count = 0
-
-        self.Positional_matrix = util.positional_matrix(opt.load_size, 1)
 
     def get_paths(self, opt):
         root = opt.dataroot
@@ -60,8 +52,7 @@ class FashionDataset(BaseDataset) :
 
         image_dir = os.path.join(root, f'{self.phase}_higher')
         bonesLst = os.path.join(root, f'fashion-annotation-{self.phase}.csv')
-        canonical_dir = os.path.join(root, f'{self.phase}_lower_fix_canonical')
-        return image_dir, canonical_dir, bonesLst, name_pairs
+        return image_dir, bonesLst, name_pairs
 
     def init_categories(self, pairLst):
         pairs_file_train = pd.read_csv(pairLst)
@@ -75,48 +66,25 @@ class FashionDataset(BaseDataset) :
         return pairs
 
     def __getitem__(self, index):
-        start = time.time()
         P1_name, P2_name = self.name_pairs[index]
         PC_name = f'{P1_name.replace(".jpg", "")}_2_{P2_name.replace(".jpg", "")}_vis.jpg'
 
         P1_path = os.path.join(self.image_dir, P1_name) # person 1
         P2_path = os.path.join(self.image_dir, P2_name) # person 2
-        # Canonical_path = os.path.join(self.canonical_dir, PC_name)
 
         P1_img = Image.open(P1_path).convert('RGB')
         P2_img = Image.open(P2_path).convert('RGB')
-        # Canonical_img = Image.open(Canonical_path).convert('RGB')
 
         P1_img = F.resize(P1_img, self.load_size)
         P2_img = F.resize(P2_img, self.load_size)
-        # Canonical_img = F.resize(Canonical_img, self.load_size)
 
-        # T_ST, T_ST_inv = self.calculate_transformation_matrix(P1_name, P2_name)
         # P1 preprocessing
         P1 = self.trans(P1_img)
         BP1 = self.obtain_bone(P1_name)
-        # BP1 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P1_name.replace('jpg', 'pt')))[:self.opt.pose_nc]
+
         # P2 preprocessing
         P2 = self.trans(P2_img)
         BP2 = self.obtain_bone(P2_name)
-        # BP2 = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', P2_name.replace('jpg', 'pt')))[:self.opt.pose_nc]
-
-        if self.opt.pos_encoding :
-            BP1_pos = self.obtain_bone_pos(P1_name)
-            BP1 = BP1 + BP1_pos
-            # BP1_max, BP1_min = BP1.view(self.opt.pose_nc, -1).max(-1, keepdims=True)[0], BP1.view(self.opt.pose_nc, -1).min(-1, keepdims=True)[0]
-            BP1 = (BP1 + 1) / 3
-
-            BP2_pos = self.obtain_bone_pos(P2_name)
-            BP2 = BP2 + BP2_pos
-            # BP2_max, BP2_min = BP2.view(self.opt.pose_nc, -1).max(-1, keepdims=True)[0], BP2.view(self.opt.pose_nc, -1).min(-1, keepdims=True)[0]
-            BP2 = (BP2 + 1) / 3
-        # Canonical_img
-        # PC = self.trans(Canonical_img)
-        # BPC = self.obtain_bone(PC_name)
-        # BPC = torch.load(os.path.join(self.opt.dataroot, 'canonical_map.pt'))[:self.opt.pose_nc]
-        # BPC = torch.load(os.path.join(self.opt.dataroot, f'{self.phase}_map', self.annotation_file_canonical.loc[PC_name].item()))[:self.opt.pose_nc]
-
 
         input_dict = {'src_image' : P1,
                       'src_map': BP1,
@@ -124,37 +92,14 @@ class FashionDataset(BaseDataset) :
                       'tgt_map' : BP2,
                       'path' : PC_name}
 
-        # num_worker optimizing
-        # end = time.time()
-        # self.cum_time += end - start
-        # self.count += 1
-        # if self.count == self.opt.batchSize :
-        #     print(f'{self.cum_time}')
-        #     self.cum_time = 0
-        #     self.count = 0
-        # ====================
+
         return input_dict
 
 
     def postprocess(self, input_dict):
         return input_dict
 
-    def resize_bone(self, bone):
-        bone_resized = torch.nn.functional.interpolate(bone[None, :, :, 40:-40], (256, 256))
-        return bone_resized.squeeze()
-
     def __len__(self):
         return self.dataset_size
 
-    def check_bone_img_matching(self, image, bone, save_path = './tmp/img+bone.jpg'):
-        import torchvision.transforms as T
-        # image : (C, H, W) Tensor
-        # bone : (C, H, W) Tensor
-        bone_max, _ = bone.max(axis=0, keepdims=True)
-        bone_max[bone_max < 0.5] = 0
-        Image_Bone = torch.maximum(image, bone_max)
-
-        transform = T.ToPILImage()
-        img = transform(Image_Bone)
-        img.save(save_path)
 

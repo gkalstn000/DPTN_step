@@ -47,22 +47,6 @@ class MarketDataset(BaseDataset) :
     def postprocess(self, input_dict):
         return input_dict
 
-    def resize_bone(self, bone):
-        bone_resized = torch.nn.functional.interpolate(bone[None, :, :, 40:-40], (256, 256))
-        return bone_resized.squeeze()
-
     def __len__(self):
         return self.dataset_size
-
-    def check_bone_img_matching(self, image, bone, save_path = './tmp/img+bone.jpg'):
-        import torchvision.transforms as T
-        # image : (C, H, W) Tensor
-        # bone : (C, H, W) Tensor
-        bone_max, _ = bone.max(axis=0, keepdims=True)
-        bone_max[bone_max < 0.5] = 0
-        Image_Bone = torch.maximum(image, bone_max)
-
-        transform = T.ToPILImage()
-        img = transform(Image_Bone)
-        img.save(save_path)
 

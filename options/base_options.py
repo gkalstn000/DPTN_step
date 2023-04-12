@@ -58,7 +58,6 @@ class BaseOptions():
         parser.add_argument('--num_CABs', type=int, default=2, help="number of CABs in PTM")
         parser.add_argument('--num_TTBs', type=int, default=2, help="number of CABs in PTM")
         parser.add_argument('--num_workers', type=int, default=15, help='number of batchloader workers')
-        parser.add_argument('--pos_encoding', action='store_true', help="pos_encoding")
         self.initialized = True
         return parser
 

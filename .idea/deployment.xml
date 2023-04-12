@@ -4,20 +4,6 @@
     <option name="confirmBeforeDeletion" value="false" />
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="minsu@166.104.232.121:7003 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-          <excludedPaths>
-            <excludedPath path="/home/minsu/lpg/checkpoints" />
-            <excludedPath local="true" path="$PROJECT_DIR$/checkpoints" />
-            <excludedPath local="true" path="$PROJECT_DIR$/datasets" />
-            <excludedPath local="true" path="$PROJECT_DIR$/results" />
-            <excludedPath local="true" path="$PROJECT_DIR$/old_results" />
-          </excludedPaths>
-        </serverdata>
-      </paths>
       <paths name="minsu@166.104.232.121:7003 password (2)">
         <serverdata>
           <mappings>
@@ -30,7 +16,7 @@
           </excludedPaths>
         </serverdata>
       </paths>
-      <paths name="work@localhost:22222 agent">
+      <paths name="work@127.0.0.1:22222 agent">
         <serverdata>
           <mappings>
             <mapping deploy="/home/work/msha/lpg" local="$PROJECT_DIR$" />

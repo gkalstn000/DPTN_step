@@ -13,9 +13,7 @@ import json
 import cv2
 import math
 
-LIMB_SEQ = [[1,2], [1,5], [2,3], [3,4], [5,6], [6,7], [1,8], [8,9],
-           [9,10], [1,11], [11,12], [12,13], [1,0], [0,14], [14,16],
-           [0,15], [15,17], [0, 16], [0, 17]]
+
 def get_concat_h(imgs):
     width, height = imgs[0].size
     dst = Image.new('RGB', (width * len(imgs), height))
@@ -92,7 +90,8 @@ def point_to_map(point, size=[256, 256], sigma=6) :
 
     return Image.fromarray((result * 255).astype(np.uint8))
 
-
+def is_valid_point(point, old_size) :
+    return (0 <= point[0] <= old_size[0]) and (0 <= point[1] <= old_size[1])
 def cords_to_map(cords, opt, sigma=6):
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
@@ -100,23 +99,21 @@ def cords_to_map(cords, opt, sigma=6):
     :param sigma: scale of heatmap, large sigma makes bigger heatmap
     :return: keypoint(joint) heatmaps/ type: np.array/ shape: (B, H, W, 18)
     '''
-    if isinstance(opt.load_size, int):
-        img_size = (opt.load_size, opt.load_size)
-    else :
-        img_size = opt.load_size
+    img_size = opt.load_size
     old_size = opt.old_size
+    xx, yy = np.meshgrid(np.arange(img_size[1]*2 -1), np.arange(img_size[0]*2 -1))
+    heatmap = np.exp(-((yy - (img_size[0] - 1)) ** 2 + (xx - (img_size[1] - 1)) ** 2) / (2 * sigma ** 2))
+
     cords = cords.astype(float)
-    result = np.zeros(img_size + cords.shape[0:1], dtype='float32')
+    result = []
     for i, point in enumerate(cords):
-        if point[0] <= -1 or point[1] <= -1:continue
-        if not (0 <= point[0] < 256 and 0 <= point[1] < 176): continue
-        point[0] = point[0]/old_size[0] * img_size[0]
-        point[1] = point[1]/old_size[1] * img_size[1]
-        point_0 = int(point[0])
-        point_1 = int(point[1])
-        xx, yy = np.meshgrid(np.arange(img_size[1]), np.arange(img_size[0]))
-        result[..., i] = np.exp(-((yy - point_0) ** 2 + (xx - point_1) ** 2) / (2 * sigma ** 2))
-    return result
+        if not is_valid_point(point, old_size) :
+            result.append(np.zeros(img_size))
+            continue
+        h_, w_ = (img_size - point / old_size * img_size).astype(np.int) - 1
+        result.append(heatmap[h_:h_+img_size[0], w_:w_+img_size[1]])
+
+    return np.stack(result)
 
 def limbs_to_map(cords, opt, sigma=3) :
     '''
@@ -125,62 +122,42 @@ def limbs_to_map(cords, opt, sigma=3) :
     :param sigma: scale of heatmap, large sigma makes bigger heatmap
     :return: limb line heatmaps/ type: np.array/ shape: (B, H, W, 19)
     '''
-    if isinstance(opt.load_size, int):
-        img_size = (opt.load_size, opt.load_size)
-    else:
-        img_size = opt.load_size
+    LIMB_SEQ = [[0, 16], [0,14], [0, 15], [0, 17], [16, 17], [0, 1], # Face lines
+                [2, 3], [3, 4], [5, 6], [6, 7], [8, 9], [9, 10], [11, 12], [12, 13], # Limb lines
+                [1, 2], [2, 8], [8, 11], [11, 5], [5, 1], [2, 11], [1, 8], [1, 11], [5, 8]]
+
+    img_size = opt.load_size
     old_size = opt.old_size
+    heatmap_column = np.exp(-(img_size[0]-1 - np.arange(img_size[0]*2 - 1))**2 / (2 * sigma ** 2))
+    heatmap_column = heatmap_column.reshape((heatmap_column.shape[0], 1))
+    heatmap_line = np.tile(heatmap_column, (1, img_size[0]))
+    pad = np.zeros((img_size[0]*2-1, img_size[0] - 1))
+    heatmap_line = np.concatenate([pad, heatmap_line], axis = 1)
+
     cords = cords.astype(float)
-    result = np.zeros(list(img_size) + [len(LIMB_SEQ)], dtype='float32')
+    result = []
     for i, (src, tgt) in enumerate(LIMB_SEQ) :
+        heatmap = np.zeros(img_size)
         src_point = cords[src]
         tgt_point = cords[tgt]
-        if src_point[0] == -1 or src_point[1] == -1 or tgt_point[0] == -1 or tgt_point[1] == -1:
+        if not (is_valid_point(src_point, old_size) and is_valid_point(tgt_point, old_size)):
+            result.append(heatmap)
             continue
-        trajectories = Bresenham_line(src_point, tgt_point)
-        tmp_tensor = np.zeros(list(img_size) + [len(trajectories)], dtype='float32')
-        for j, point in enumerate(trajectories) :
-            point[0] = point[0] / old_size[0] * img_size[0]
-            point[1] = point[1] / old_size[1] * img_size[1]
-            point_0 = int(point[0])
-            point_1 = int(point[1])
-            xx, yy = np.meshgrid(np.arange(img_size[1]), np.arange(img_size[0]))
-            tmp_tensor[..., j] = np.exp(-((yy - point_0) ** 2 + (xx - point_1) ** 2) / (2 * sigma ** 2))
-        result[..., i] = tmp_tensor.max(-1)
-    return result
+        h1, w1 = (src_point / old_size * img_size).astype(np.int)
+        h2, w2 = (tgt_point / old_size * img_size).astype(np.int)
 
-def Bresenham_line(p0, p1):
-    "Bresenham's line algorithm"
-    x0, y0 = p0
-    x1, y1 = p1
-    points_in_line = []
-    dx = abs(x1 - x0)
-    dy = abs(y1 - y0)
-    x, y = x0, y0
-    sx = -1 if x0 > x1 else 1
-    sy = -1 if y0 > y1 else 1
-    if dx > dy:
-        err = dx / 2.0
-        while x != x1:
-            points_in_line.append([x, y])
-            err -= dy
-            if err < 0:
-                y += sy
-                err += dx
-            x += sx
-    else:
-        err = dy / 2.0
-        while y != y1:
-            points_in_line.append([x, y])
-            err -= dx
-            if err < 0:
-                x += sx
-                err += dy
-            y += sy
-    points_in_line.append([x, y])
-    return points_in_line
-# ============================ for heatmap ============================
-# =====================================================================
+        # rotate
+        center = (img_size[1] - 1, img_size[0] - 1)
+        distance = np.sqrt((h2-h1)**2 + (w2-w1)**2)
+        angle = -np.degrees(np.arctan2(h2-h1, w2-w1))
+        rot = cv2.getRotationMatrix2D(center, angle, distance / img_size[1])
+        rotated = cv2.warpAffine(heatmap_line, rot, (0, 0))
+
+        h_, w_ = (img_size - src_point / old_size * img_size).astype(np.int) - 1
+        result.append(rotated[h_:h_+img_size[0], w_:w_+img_size[1]])
+
+    return np.stack(result)
+
 
 def mkdirs(paths):
     if isinstance(paths, list) and not isinstance(paths, str):
