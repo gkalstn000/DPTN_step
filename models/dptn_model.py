@@ -22,8 +22,7 @@ class DPTNModel(nn.Module) :
 
         # set loss functions
         if opt.isTrain:
-            self.GANloss = loss.GANLoss(opt.gan_mode,
-                                        tensor=self.FloatTensor, opt=self.opt).cuda()
+            self.GANloss = loss.GANLoss(opt.gan_mode, tensor=self.FloatTensor, opt=self.opt).cuda()
             self.L1loss = torch.nn.L1Loss()
             self.Vggloss = loss.VGGLoss().cuda()
             self.L2loss = torch.nn.MSELoss()
@@ -34,19 +33,15 @@ class DPTNModel(nn.Module) :
         src_image, src_map, tgt_image, tgt_map = self.preprocess_input(data)
         if mode == 'generator':
 
-            g_loss, fake_t = self.compute_generator_loss(src_image, src_map,
-                                                            tgt_image, tgt_map)
+            g_loss, fake_t = self.compute_generator_loss(src_image, src_map, tgt_image, tgt_map)
             return g_loss, fake_t
         elif mode == 'discriminator':
-            d_loss = self.compute_discriminator_loss(src_image, src_map,
-                                                     tgt_image, tgt_map)
+            d_loss = self.compute_discriminator_loss(src_image, src_map, tgt_image, tgt_map)
             return d_loss
         elif mode == 'inference' :
             self.netG.eval()
             with torch.no_grad():
-                fake_image_t, z_dict = self.generate_fake(src_image, src_map,
-                                                                  tgt_map,
-                                                                False)
+                fake_image_t, z_dict = self.generate_fake(src_image, src_map, tgt_map)
             return fake_image_t
     def create_optimizers(self, opt):
         G_params = list(self.netG.parameters())
@@ -85,7 +80,7 @@ class DPTNModel(nn.Module) :
 
         return data['src_image'], data['src_map'], data['tgt_image'], data['tgt_map']
 
-    def backward_G_basic(self, fake_image, target_image, use_d):
+    def backward_G_basic(self, fake_image, target_image):
         # Calculate reconstruction loss
         loss_app_gen = self.L1loss(fake_image, target_image)
         loss_app_gen = loss_app_gen * self.opt.lambda_rec
@@ -103,11 +98,11 @@ class DPTNModel(nn.Module) :
         self.netG.train()
         G_losses = {}
 
-        fake_image_t, z_dict = self.generate_fake(src_image, src_map, tgt_map, self.opt.isTrain)
+        fake_image_t, z_dict = self.generate_fake(src_image, src_map, tgt_map)
 
         pred_fake, pred_real = self.backward_D_basic(tgt_map, fake_image_t, tgt_image)
 
-        loss_app_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
+        loss_app_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image)
 
         self.netD.train()
 
@@ -115,6 +110,7 @@ class DPTNModel(nn.Module) :
         G_losses['GAN'] = self.GANloss(pred_fake, True, for_discriminator=False)
         G_losses['VGG_target'] =  self.opt.t_s_ratio * (loss_style_gen_t + loss_content_gen_t)
         G_losses['KLD_texture_loss'] = self.KLDLoss(z_dict['texture']) * self.opt.lambda_kld
+        G_losses['L1_loss'] = loss_app_gen_t * self.opt.lambda_rec
 
         if not self.opt.no_ganFeat_loss:
             num_D = len(pred_fake)
@@ -155,13 +151,9 @@ class DPTNModel(nn.Module) :
 
         return D_losses
 
-    def generate_fake(self,
-                      src_image, src_map,
-                      tgt_map,
-                      is_train=True):
+    def generate_fake(self, src_image, src_map, tgt_map):
 
-        fake_image_t, z_dict = self.netG(src_image, src_map, tgt_map,
-                                                      is_train)
+        fake_image_t, z_dict = self.netG(src_image, src_map, tgt_map)
 
         return fake_image_t, z_dict
     def use_gpu(self):

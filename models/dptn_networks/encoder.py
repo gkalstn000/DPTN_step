@@ -4,50 +4,10 @@ import torch.nn.functional as F
 from models.dptn_networks import modules
 from models.dptn_networks.base_network import BaseNetwork
 from models.spade_networks.architecture import SPADEResnetBlock
+from models.spade_networks.normalization import get_nonspade_norm_layer
 import math
 from models.dptn_networks import encoder
-
-class SpadeAttnEncoder(BaseNetwork) :
-    def __init__(self, opt):
-        super().__init__()
-        self.opt = opt
-        self.layers = opt.layers_g
-        nf = opt.ngf
-        nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
-        norm_layer = modules.get_norm_layer(norm_type=opt.norm)
-
-        self.sw, self.sh = self.compute_latent_vector_size(opt)
-
-        input_nc = 2 * opt.pose_nc + opt.image_nc
-
-        self.head_0 = SPADEResnetBlock(input_nc, nf, opt, 'encoder')
-
-        self.mult = 1
-        for i in range(self.layers - 1) :
-            mult_prev = self.mult
-            self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
-            block = SPADEResnetBlock(opt.ngf * mult_prev, opt.ngf * self.mult, opt, 'encoder')
-            setattr(self, 'down' + str(i), block)
-
-        # ResBlocks
-        for i in range(opt.num_blocks):
-            block = modules.ResBlock(opt.ngf * self.mult, opt.ngf * self.mult, norm_layer=norm_layer,
-                                     nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
-            setattr(self, 'mblock' + str(i), block)
-
-        self.down = nn.MaxPool2d(2, stride=2)
-    def forward(self, x, texture_information):
-        x = self.head_0(x, texture_information)
-        x = self.down(x)
-        for i in range(self.layers - 1):
-            model = getattr(self, 'down' + str(i))
-            x = model(x, texture_information)
-            x = self.down(x)
-
-        for i in range(self.opt.num_blocks):
-            model = getattr(self, 'mblock' + str(i))
-            x = model(x)
-        return x
+import numpy as np
 
 class SpadeEncoder(BaseNetwork) :
     def __init__(self, opt):
@@ -99,50 +59,45 @@ class ZEncoder(BaseNetwork):
     def __init__(self, opt):
         super(ZEncoder, self).__init__()
         self.opt = opt
-        self.layers = opt.layers_g
-        # norm_layer = modules.get_norm_layer(norm_type=opt.norm)
-        # nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
 
-        self.texture_encoder = SourceEncoder(opt)
-        # self.bone_encoder = BoneEncoder(opt)
+        kw = 3
+        pw = int(np.ceil((kw - 1.0) / 2))
+        ndf = opt.ngf
+        input_nc = opt.image_nc + opt.pose_nc
+        norm_layer = get_nonspade_norm_layer(opt, opt.norm_E)
 
-        self.conv_texture = nn.Conv2d(1, 256, 3, stride=1, padding=1)
+        self.layer1 = norm_layer(nn.Conv2d(input_nc, ndf, kw, stride=2, padding=pw))
+        self.layer2 = norm_layer(nn.Conv2d(ndf * 1, ndf * 2, kw, stride=2, padding=pw))
+        self.layer3 = norm_layer(nn.Conv2d(ndf * 2, ndf * 4, kw, stride=2, padding=pw))
+        self.layer4 = norm_layer(nn.Conv2d(ndf * 4, ndf * 8, kw, stride=2, padding=pw))
+        self.layer5 = norm_layer(nn.Conv2d(ndf * 8, ndf * 8, kw, stride=2, padding=pw))
+        self.layer6 = norm_layer(nn.Conv2d(ndf * 8, ndf * 8, kw, stride=2, padding=pw))
 
-        self.mult = self.texture_encoder.mult
-        # self.Attn = modules.CrossAttnModule(opt.ngf * self.mult, opt.nhead, opt.ngf * self.mult)
+        self.actvn = nn.LeakyReLU(0.2, False)
 
-        # ResBlocks
-        # for i in range(opt.num_blocks):
-        #     block = modules.ResBlock(opt.ngf * self.mult, opt.ngf * self.mult, norm_layer=norm_layer,
-        #                              nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
-        #     setattr(self, 'mblock' + str(i), block)
+        self.so = s0 = 4
+        self.fc_mu = nn.Linear(ndf * 8 * s0 * s0, 256)
+        self.fc_var = nn.Linear(ndf * 8 * s0 * s0, 256)
+    def forward(self, x):
+        if x.size(2) != 256 or x.size(3) != 256:
+            x = F.interpolate(x, size=(256, 256), mode='bilinear')
 
+        x = self.layer1(x)              # 256x256 -> 128x128
+        x = self.layer2(self.actvn(x))  # 128x128 -> 64x64
+        x = self.layer3(self.actvn(x))  # 64x64 -> 32x32
+        x = self.layer4(self.actvn(x))  # 32x32 -> 16x16
+        x = self.layer5(self.actvn(x))  # 16x16 -> 8x8
+        x = self.layer6(self.actvn(x))  # 8x8 -> 4x4
+        x = self.actvn(x)
 
-    def forward(self, source_image):
-        '''
-        :param Query: Query Bone
-        :param Key: Source Bone
-        :param Value: Source Image
-        :return:
-        '''
-        mu_texture, var_texture = self.texture_encoder(source_image)
-        z_texture = self.reparameterize(mu_texture, var_texture)
-        z_texture = self.conv_texture(z_texture.view(z_texture.size(0), 1, self.texture_encoder.ch, self.texture_encoder.cw))
+        x = x.view(x.size(0), -1)
+        mu = self.fc_mu(x)
+        logvar = self.fc_var(x)
 
-        # src_bone_feature = self.bone_encoder(source_bone)
-        # tgt_bone_feature = self.bone_encoder(target_bone)
+        z = self.reparameterize(mu, logvar)
+        z_dict = {'texture': [mu, logvar]}
 
-        # F_S_S, _ = self.Attn(src_bone_feature, z_texture, z_texture)
-        # F_S_T, _ = self.Attn(tgt_bone_feature, z_texture, z_texture)
-        #
-        # # Source-to-source Resblocks
-        # for i in range(self.opt.num_blocks):
-        #     model = getattr(self, 'mblock' + str(i))
-        #     F_S_S = model(F_S_S)
-        #     F_S_T = model(F_S_T)
-
-        z_dict = {'texture': [mu_texture, var_texture]}
-        return z_texture, z_dict
+        return z, z_dict
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)

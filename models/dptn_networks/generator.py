@@ -7,6 +7,9 @@ import torch.nn as nn
 
 from models.dptn_networks import define_En_c, define_De
 from models.dptn_networks.base_network import BaseNetwork
+from models.spade_networks.architecture import SPADEResnetBlock
+import torch.nn.functional as F
+
 from models.dptn_networks import encoder
 from models.dptn_networks import decoder
 from models.dptn_networks import PTM
@@ -33,31 +36,30 @@ class DPTNGenerator(BaseNetwork):
     @staticmethod
     def modify_commandline_options(parser, is_train):
         parser.add_argument('--activation', type=str, default='LeakyReLU', help='type of activation function')
-        parser.add_argument('--type_En_c', type=str, default='default', help='selects En_c type to use for generator (default | spade | spadeattn)')
-        parser.add_argument('--type_Dc', type=str, default='default', help='selects Dc type to use for generator (default | spade | spadeattn)')
+        parser.add_argument('--type_En_c', type=str, default='default', help='selects En_c type to use for generator (z | dptn)')
+        parser.add_argument('--type_Dc', type=str, default='default', help='selects Dc type to use for generator (default | spade)')
+        parser.add_argument('--z_dim', type=int, default=256, help="dimension of the latent z vector")
+        parser.add_argument('--num_upsampling_layers',
+                            choices=('normal', 'more', 'most'), default='normal',
+                            help="If 'more', adds upsampling layer between the two middle resnet blocks. If 'most', also add one more upsampling + resnet layer at the end of the generator")
 
-        parser.set_defaults(use_spect_g=True)
-        parser.set_defaults(use_coord=False)
-        parser.set_defaults(norm='instance')
+
         parser.set_defaults(img_f=512)
         return parser
     def __init__(self, opt):
         super(DPTNGenerator, self).__init__()
         self.opt = opt
-        # Encoder En_c
-        # self.En_c = encoder.DefaultEncoder(opt)
+        nf = opt.ngf
         self.z_encoder = define_En_c(opt)
-        opt.mult = self.z_encoder.mult
-        # Pose Transformer Module (PTM)
-        # self.PTM = PTM.PoseTransformerModule(opt=opt)
-        # SourceEncoder En_s
-        # self.En_s = encoder.SourceEncoder(opt)
-        # OutputDecoder De
-        self.De = define_De(opt)
 
-    def forward(self, source_image, source_bone, target_bone, is_train=True):
-        z, z_dict = self.z_encoder(source_image)
-        texture_information = [target_bone]
-        out_image_t = self.De(z, texture_information)
-        return out_image_t, z_dict
+        self.decoder = define_De(opt)
+    def forward(self, source_image, source_bone, target_bone):
+        encoder_input = torch.cat([source_image, source_bone], 1)
+        z, z_dict = self.z_encoder(encoder_input)
+
+        external_information = [target_bone]
+        x = self.decoder(z, external_information)
+
+        return x, z_dict
+
 

@@ -7,6 +7,8 @@ nohup python train.py --id VAE_spade_full --tf_log --gpu_ids 0 --type_En_c attn 
 
 nohup python train.py --id VAE_DPTN --tf_log --gpu_ids 0 --type_En_c attn --type_Dc spade --pose_nc 18 --batchSize 15 --num_workers 15  > VAE_DPTN.out &
 
+
+# Red
 nohup python train.py --id spade --tf_log --gpu_ids 0 --type_En_c attn --type_Dc spade --pose_nc 41 --batchSize 28 --num_workers 5 --dataroot /datasets/msha/fashion > spade.out &
 
 # In NIPA
