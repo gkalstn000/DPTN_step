@@ -19,12 +19,12 @@ class Trainer() :
 
     def run_generator_one_step(self, data):
         self.optimizer_G.zero_grad()
-        g_losses, fake_t, fake_s = self.model(data, mode='generator')
+        g_losses, fake_t = self.model(data, mode='generator')
         g_loss = sum(g_losses.values()).mean()
         g_loss.backward()
         self.optimizer_G.step()
         self.g_losses = g_losses
-        self.generated = (fake_t, fake_s)
+        self.generated = fake_t
 
     def run_discriminator_one_step(self, data):
         self.optimizer_D.zero_grad()

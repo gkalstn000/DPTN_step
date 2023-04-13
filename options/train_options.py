@@ -23,7 +23,7 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--niter', type=int, default=150, help='# of iter at starting learning rate. This is NOT the total #epochs. Totla #epochs is niter + niter_decay')
         parser.add_argument('--niter_decay', type=int, default=50, help='# of iter to linearly decay learning rate to zero')
         parser.add_argument('--optimizer', type=str, default='adam')
-        parser.add_argument('--beta1', type=float, default=0.5, help='momentum term of adam')
+        parser.add_argument('--beta1', type=float, default=0.0, help='momentum term of adam')
         parser.add_argument('--beta2', type=float, default=0.9, help='momentum term of adam')
         parser.add_argument('--lr', type=float, default=0.0004, help='initial learning rate for adam')
         parser.add_argument('--no_TTUR', action='store_true', help='Use TTUR training scheme')
@@ -32,13 +32,14 @@ class TrainOptions(BaseOptions):
         if opt.no_TTUR:
             parser.set_defaults(beta1=0.5, beta2=0.999)
         parser.add_argument('--D_steps_per_G', type=int, default=1, help='number of discriminator iterations per generator iterations.')
-        parser.add_argument('--gan_mode', type=str, default='lsgan', choices=['wgangp', 'hinge', 'lsgan'])
+        parser.add_argument('--gan_mode', type=str, default='hinge', help='(ls|original|hinge)')
 
         # for discriminators
         parser.add_argument('--ndf', type=int, default=64, help='# of discrim filters in first conv layer')
-        parser.add_argument('--netD', type=str, default='res', help='(n_layers|multiscale|image)')
+        parser.add_argument('--netD', type=str, default='multiscale', help='(n_layers|multiscale|image)')
         parser.add_argument('--dis_layers', type=int, default=4, help='number of layers in D')
         parser.add_argument('--use_spect_d', action='store_false', help='use spectual normalization in generator')
+        parser.add_argument('--no_ganFeat_loss', action='store_true', help='if specified, do *not* use discriminator feature matching loss')
 
         # for loss weights
         parser.add_argument('--lambda_feat', type=float, default=10.0, help='weight for feature matching loss')

@@ -91,7 +91,7 @@ def point_to_map(point, size=[256, 256], sigma=6) :
     return Image.fromarray((result * 255).astype(np.uint8))
 
 def is_valid_point(point, old_size) :
-    return (0 <= point[0] <= old_size[0]) and (0 <= point[1] <= old_size[1])
+    return (0 <= point[0] < old_size[0]) and (0 <= point[1] < old_size[1])
 def cords_to_map(cords, opt, sigma=6):
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
@@ -101,7 +101,7 @@ def cords_to_map(cords, opt, sigma=6):
     '''
     img_size = opt.load_size
     old_size = opt.old_size
-    xx, yy = np.meshgrid(np.arange(img_size[1]*2 -1), np.arange(img_size[0]*2 -1))
+    xx, yy = np.meshgrid(np.arange(img_size[1]*2), np.arange(img_size[0]*2))
     heatmap = np.exp(-((yy - (img_size[0] - 1)) ** 2 + (xx - (img_size[1] - 1)) ** 2) / (2 * sigma ** 2))
 
     cords = cords.astype(float)
@@ -110,8 +110,9 @@ def cords_to_map(cords, opt, sigma=6):
         if not is_valid_point(point, old_size) :
             result.append(np.zeros(img_size))
             continue
-        h_, w_ = (img_size - point / old_size * img_size).astype(np.int) - 1
+        h_, w_ = img_size - (point / old_size * img_size + 1).astype(np.int)
         result.append(heatmap[h_:h_+img_size[0], w_:w_+img_size[1]])
+        assert heatmap[h_:h_+img_size[0], w_:w_+img_size[1]].shape == img_size, f'point: {point}'
 
     return np.stack(result)
 
@@ -153,8 +154,9 @@ def limbs_to_map(cords, opt, sigma=3) :
         rot = cv2.getRotationMatrix2D(center, angle, distance / img_size[1])
         rotated = cv2.warpAffine(heatmap_line, rot, (0, 0))
 
-        h_, w_ = (img_size - src_point / old_size * img_size).astype(np.int) - 1
+        h_, w_ = img_size - (src_point / old_size * img_size + 1).astype(np.int)
         result.append(rotated[h_:h_+img_size[0], w_:w_+img_size[1]])
+        assert rotated[h_:h_+img_size[0], w_:w_+img_size[1]].shape == img_size, f'src: {src_point}, tgt: {tgt_point}'
 
     return np.stack(result)
 
@@ -249,7 +251,7 @@ def tensor2label(tensor, tile) :
     color_list = [[240,248,255], [127,255,212], [69,139,116], [227,207,87], [255,228,196], [205,183,158],
                   [0,0,255], [138,43,226], [255,64,64], [139,35,35], [255,211,155], [138,54,15],
                   [95,158,160], [122,197,205], [237,145,33], [102,205,0], [205,91,69], [153,50,204]]
-    limb_color = [[174, 58, 231] for _ in range(19)]
+    limb_color = [[174, 58, 231] for _ in range(23)]
     if tensor.size(1) != 18 :
         color_tensor = torch.Tensor(color_list+limb_color)
     else :

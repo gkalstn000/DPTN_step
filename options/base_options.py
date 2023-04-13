@@ -22,6 +22,7 @@ class BaseOptions():
         parser.add_argument('--id', type=str, default='dptn', help='name of the experiment. It decides where to store samples and models')
         parser.add_argument('--model', type=str, default='dptn',help='name of the model.')
         parser.add_argument('--norm', type=str, default='instance', help='instance normalization or batch normalization')
+        parser.add_argument('--norm_D', type=str, default='spectralinstance', help='instance normalization or batch normalization')
         parser.add_argument('--gpu_ids', type=str, default='1,2,3', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         parser.add_argument('--phase', type=str, default='train', help='train, val, test, etc')

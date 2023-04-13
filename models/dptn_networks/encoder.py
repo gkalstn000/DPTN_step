@@ -95,9 +95,9 @@ class SpadeEncoder(BaseNetwork) :
             x = model(x)
         return self.mu(x), self.var(x)
 
-class AttnEncoder(BaseNetwork):
+class ZEncoder(BaseNetwork):
     def __init__(self, opt):
-        super(AttnEncoder, self).__init__()
+        super(ZEncoder, self).__init__()
         self.opt = opt
         self.layers = opt.layers_g
         # norm_layer = modules.get_norm_layer(norm_type=opt.norm)
@@ -148,43 +148,6 @@ class AttnEncoder(BaseNetwork):
         eps = torch.randn_like(std)
         return eps.mul(std) + mu
 
-
-class BoneEncoder(BaseNetwork) :
-    def __init__(self, opt):
-        super(BoneEncoder, self).__init__()
-        self.opt = opt
-        self.layers = opt.layers_g
-        norm_layer = modules.get_norm_layer(norm_type=opt.norm)
-        nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
-
-        self.bone_encoder = nn.ModuleList()
-
-
-        in_channel = opt.pose_nc
-        out_channel = opt.ngf
-        for i in range(self.layers):
-            self.bone_encoder.append(modules.EncoderBlock(in_channel, out_channel, norm_layer,
-                                         nonlinearity, opt.use_spect_g, opt.use_coord))
-            self.mult = min(2 ** (i + 1), opt.img_f // opt.ngf)
-
-            in_channel = out_channel
-            out_channel = opt.ngf * self.mult
-        self.mult //= 2
-        self.bone_encoder = nn.Sequential(*self.bone_encoder)
-
-        # if isinstance(opt.load_size, int) :
-        #     h = w = opt.load_size
-        # else :
-        #     h, w = opt.load_size
-        # self.ch = h // 2**(self.mult-1)
-        # self.cw = w // 2**(self.mult-1)
-        # self.mu = nn.Linear(opt.ngf * self.mult * self.ch * self.cw, self.ch*self.cw)
-        # self.var = nn.Linear(opt.ngf * self.mult * self.ch * self.cw, self.ch*self.cw)
-    def forward(self, x):
-        x = self.bone_encoder(x)
-        return x
-        # x = x.view(x.size(0), -1)
-        # return self.mu(x), self.var(x)
 
 class SourceEncoder(nn.Module):
     """

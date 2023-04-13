@@ -46,8 +46,8 @@ class DPTNGenerator(BaseNetwork):
         self.opt = opt
         # Encoder En_c
         # self.En_c = encoder.DefaultEncoder(opt)
-        self.En_c = define_En_c(opt)
-        opt.mult = self.En_c.mult
+        self.z_encoder = define_En_c(opt)
+        opt.mult = self.z_encoder.mult
         # Pose Transformer Module (PTM)
         # self.PTM = PTM.PoseTransformerModule(opt=opt)
         # SourceEncoder En_s
@@ -56,12 +56,8 @@ class DPTNGenerator(BaseNetwork):
         self.De = define_De(opt)
 
     def forward(self, source_image, source_bone, target_bone, is_train=True):
-        z, z_dict = self.En_c(source_image)
-
-        texture_information = [source_bone] # [target_bone, source_bone, source_image]
-        out_image_s = self.De(z, texture_information)
-
+        z, z_dict = self.z_encoder(source_image)
         texture_information = [target_bone]
         out_image_t = self.De(z, texture_information)
-        return out_image_t, out_image_s, z_dict
+        return out_image_t, z_dict
 
