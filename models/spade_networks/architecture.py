@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import torch.nn.utils.spectral_norm as spectral_norm
-from models.spade_networks.normalization import SPADE, SPADEAttn
+from models.spade_networks.normalization import SPADE
 
 
 # ResNet block that uses SPADE.
@@ -44,11 +44,11 @@ class SPADEResnetBlock(nn.Module):
             self.conv_s = spectral_norm(self.conv_s)
 
         cond_norm = SPADE
-
-        self.norm_0 = cond_norm(opt.norm, fin, norm_nc)
-        self.norm_1 = cond_norm(opt.norm, fmiddle, norm_nc)
+        spade_config_str = opt.norm_G.replace('spectral', '')
+        self.norm_0 = cond_norm(spade_config_str, fin, norm_nc)
+        self.norm_1 = cond_norm(spade_config_str, fmiddle, norm_nc)
         if self.learned_shortcut:
-            self.norm_s = cond_norm(opt.norm, fin, norm_nc)
+            self.norm_s = cond_norm(spade_config_str, fin, norm_nc)
 
     # note the resnet block with SPADE also takes in |seg|,
     # the semantic segmentation map as input
