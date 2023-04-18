@@ -72,24 +72,29 @@ class FashionDataset(BaseDataset) :
         P1_path = os.path.join(self.image_dir, P1_name) # person 1
         P2_path = os.path.join(self.image_dir, P2_name) # person 2
 
-        P1_img = Image.open(P1_path).convert('RGB')
-        P2_img = Image.open(P2_path).convert('RGB')
+        if self.phase == 'train' :
+            P1_img = Image.open(P1_path).convert('RGB')
+            P1_img = F.resize(P1_img, self.load_size)
+            texture = self.trans(P1_img)
 
-        P1_img = F.resize(P1_img, self.load_size)
-        P2_img = F.resize(P2_img, self.load_size)
+            bone = self.obtain_bone(P1_name)
 
-        # P1 preprocessing
-        P1 = self.trans(P1_img)
-        BP1 = self.obtain_bone(P1_name)
+            ground_truth = texture
 
-        # P2 preprocessing
-        P2 = self.trans(P2_img)
-        BP2 = self.obtain_bone(P2_name)
+        else :
+            P1_img = Image.open(P1_path).convert('RGB')
+            P1_img = F.resize(P1_img, self.load_size)
+            texture = self.trans(P1_img)
 
-        input_dict = {'src_image' : P1,
-                      'src_map': BP1,
-                      'tgt_image' : P2,
-                      'tgt_map' : BP2,
+            bone = self.obtain_bone(P2_name)
+
+            P2_img = Image.open(P2_path).convert('RGB')
+            P2_img = F.resize(P2_img, self.load_size)
+            ground_truth = self.trans(P2_img)
+
+        input_dict = {'texture' : texture,
+                      'bone': bone,
+                      'ground_truth': ground_truth,
                       'path' : PC_name}
 
 

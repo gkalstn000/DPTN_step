@@ -6,6 +6,7 @@ import torch
 import numpy as np
 from PIL import Image
 from torchvision.utils import make_grid
+import torch.nn.functional as F
 import torchvision.transforms as transforms
 from torchvision.transforms.functional import to_pil_image
 import os
@@ -260,6 +261,11 @@ def tensor2label(tensor, tile) :
 
     tensor = tensor.unsqueeze(4)
     tensor = (tensor * color_tensor)
+
+    edge = torch.zeros(256-4, 256-4)
+    edge = F.pad(edge, pad=(2, 2, 2, 2), mode='constant', value=255)
+    edge = torch.stack([edge] * 3, dim=2).repeat((10, 1, 1, 1, 1))
+    tensor = torch.cat([tensor, edge], dim = 1)
     # tensor = tensor.sum(1)
     tensor, _ = tensor.max(1)
     return tensor2im(torch.permute(tensor / 255, (0, 3, 1, 2)) , normalize=False, tile=tile)

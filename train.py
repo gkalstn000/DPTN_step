@@ -53,11 +53,10 @@ for epoch in iter_counter.training_epochs():
             visualizer.plot_current_errors(losses, iter_counter.total_steps_so_far)
 
         if iter_counter.needs_displaying():
-            fake_target = trainer.get_latest_generated()
-            visuals = OrderedDict([('1src_image', data_i['src_image']),
-                                   ('2tgt_map', data_i['tgt_map']),
-                                   ('2real_image', data_i['tgt_image']),
-                                   ('2synthesized_target_image', fake_target),
+            fake_image = trainer.get_latest_generated()
+            visuals = OrderedDict([('train_1texture', data_i['texture']),
+                                   ('train_3bone', data_i['bone']),
+                                   ('train_2fake_image', fake_image),
                                    ])
             visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)
 
@@ -72,10 +71,10 @@ for epoch in iter_counter.training_epochs():
         fake_target = trainer.model(data_i, mode='inference')
         # with torch.no_grad() :
         #     _, fake_target, fake_source = trainer.model(data_i, mode='generator')
-        visuals = OrderedDict([('3src_image_val', data_i['src_image']),
-                               ('3tgt_map_val', data_i['tgt_map']),
-                               ('3real_image_val', data_i['tgt_image']),
-                               ('4synthesized_target_image_val', fake_target),
+        visuals = OrderedDict([('valid_1texture', data_i['texture']),
+                               ('valid_4bone', data_i['bone']),
+                               ('valid_2ground_truth', data_i['ground_truth']),
+                               ('valid_3fake_image', fake_target),
                                ])
         visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)
         break

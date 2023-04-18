@@ -15,15 +15,14 @@ class SpadeDecoder(BaseNetwork) :
 
         self.sw, self.sh = self.compute_latent_vector_size(opt)
 
-        self.fc = nn.Linear(opt.z_dim, 16 * nf * self.sw * self.sh)
+        self.fc = nn.Linear(opt.z_dim, 4 * nf * self.sw * self.sh)
 
-        self.head_0 = SPADEResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
-        self.G_middle_0 = SPADEResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
-        self.G_middle_1 = SPADEResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
+        self.head_0 = SPADEResnetBlock(4 * nf, 4 * nf, opt, norm_nc)
+        self.G_middle_0 = SPADEResnetBlock(4 * nf, 4 * nf, opt, norm_nc)
 
-        self.up_0 = SPADEResnetBlock(16 * nf, 8 * nf, opt, norm_nc)
-        self.up_1 = SPADEResnetBlock(8 * nf, 4 * nf, opt, norm_nc)
-        self.up_2 = SPADEResnetBlock(4 * nf, 2 * nf, opt, norm_nc)
+        self.up_0 = SPADEResnetBlock(4 * nf, 2 * nf, opt, norm_nc)
+        self.up_1 = SPADEResnetBlock(2 * nf, 2 * nf, opt, norm_nc)
+        self.up_2 = SPADEResnetBlock(2 * nf, 2 * nf, opt, norm_nc)
         self.up_3 = SPADEResnetBlock(2 * nf, 1 * nf, opt, norm_nc)
 
         final_nc = nf
@@ -41,14 +40,12 @@ class SpadeDecoder(BaseNetwork) :
         texture_information = torch.cat(texture_information, 1)
 
         x = self.fc(z)
-        x = x.view(-1, 16 * self.opt.ngf, self.sh, self.sw)
+        x = x.view(-1, 4 * self.opt.ngf, self.sh, self.sw)
 
         x = self.head_0(x, texture_information)
 
         x = self.up(x)
         x = self.G_middle_0(x, texture_information)
-
-        x = self.G_middle_1(x, texture_information)
 
         x = self.up(x)
         x = self.up_0(x, texture_information)

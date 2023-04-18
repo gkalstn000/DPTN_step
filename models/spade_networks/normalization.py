@@ -55,11 +55,11 @@ class SPADE(nn.Module):
         texture_information = F.interpolate(texture_information, size=x.size()[2:], mode='nearest')
 
         actv = self.mlp_shared(texture_information)
-        gamma = self.mlp_gamma(actv)
-        beta = self.mlp_beta(actv)
+        gamma = self.mlp_gamma(actv) * 0.5
+        beta = self.mlp_beta(actv) * 0.5
 
         # apply scale and bias
-        out = normalized * (1 + gamma) + beta
+        out = normalized * gamma + beta
 
         return out
 def get_nonspade_norm_layer(opt, norm_type='instance'):
