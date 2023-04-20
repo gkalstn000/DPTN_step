@@ -68,16 +68,16 @@ class ZEncoder(BaseNetwork):
 
         self.layer1 = norm_layer(nn.Conv2d(input_nc, ndf, kw, stride=2, padding=pw))
         self.layer2 = norm_layer(nn.Conv2d(ndf * 1, ndf * 2, kw, stride=2, padding=pw))
-        self.layer3 = norm_layer(nn.Conv2d(ndf * 2, ndf * 3, kw, stride=2, padding=pw))
-        self.layer4 = norm_layer(nn.Conv2d(ndf * 3, ndf * 3, kw, stride=2, padding=pw))
-        self.layer5 = norm_layer(nn.Conv2d(ndf * 3, ndf * 3, kw, stride=2, padding=pw))
-        self.layer6 = norm_layer(nn.Conv2d(ndf * 3, ndf * 3, kw, stride=2, padding=pw))
+        self.layer3 = norm_layer(nn.Conv2d(ndf * 2, ndf * 4, kw, stride=2, padding=pw))
+        self.layer4 = norm_layer(nn.Conv2d(ndf * 4, ndf * 8, kw, stride=2, padding=pw))
+        self.layer5 = norm_layer(nn.Conv2d(ndf * 8, ndf * 8, kw, stride=2, padding=pw))
+        self.layer6 = norm_layer(nn.Conv2d(ndf * 8, ndf * 8, kw, stride=2, padding=pw))
 
         self.actvn = nn.LeakyReLU(0.2, False)
 
         self.so = s0 = 4
-        self.fc_mu = nn.Linear(ndf * 3 * s0 * s0, 256)
-        self.fc_var = nn.Linear(ndf * 3 * s0 * s0, 256)
+        self.fc_mu = nn.Linear(ndf * 8 * s0 * s0, self.opt.z_dim)
+        self.fc_var = nn.Linear(ndf * 8 * s0 * s0, self.opt.z_dim)
     def forward(self, x):
         if x.size(2) != 256 or x.size(3) != 256:
             x = F.interpolate(x, size=(256, 256), mode='bilinear')

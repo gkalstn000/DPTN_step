@@ -264,7 +264,7 @@ def tensor2label(tensor, tile) :
 
     edge = torch.zeros(256-4, 256-4)
     edge = F.pad(edge, pad=(2, 2, 2, 2), mode='constant', value=255)
-    edge = torch.stack([edge] * 3, dim=2).repeat((10, 1, 1, 1, 1))
+    edge = torch.stack([edge] * 3, dim=2).repeat((tensor.size(0), 1, 1, 1, 1))
     tensor = torch.cat([tensor, edge], dim = 1)
     # tensor = tensor.sum(1)
     tensor, _ = tensor.max(1)
@@ -292,7 +292,7 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True, tile=False):
         images_np = np.concatenate(images_np, axis=0)
         if tile:
             images_tensor = torch.tensor(images_np.transpose((0, 3, 1, 2)))
-            images_grid = make_grid(images_tensor, nrow=images_np.shape[0] // 2 + 1)
+            images_grid = make_grid(images_tensor, nrow= 6)
             return torch.permute(images_grid, (1, 2, 0)).numpy()
         else:
             return images_np[0].transpose((2, 0, 1))
