@@ -49,15 +49,13 @@ class DPTNGenerator(BaseNetwork):
     def __init__(self, opt):
         super(DPTNGenerator, self).__init__()
         self.opt = opt
-        nf = opt.ngf
         self.z_encoder = define_En_c(opt)
-
         self.decoder = define_De(opt)
-    def forward(self, source_image, source_bone, target_bone):
-        encoder_input = torch.cat([source_image, source_bone], 1)
+    def forward(self, texture, bone):
+        encoder_input = torch.cat([texture], 1)
         z, z_dict = self.z_encoder(encoder_input)
 
-        external_information = [target_bone]
+        external_information = [bone]
         x = self.decoder(z, external_information)
 
         return x, z_dict
