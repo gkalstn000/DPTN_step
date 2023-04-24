@@ -24,7 +24,7 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--niter_decay', type=int, default=50, help='# of iter to linearly decay learning rate to zero')
         parser.add_argument('--optimizer', type=str, default='adam')
         parser.add_argument('--beta1', type=float, default=0.0, help='momentum term of adam')
-        parser.add_argument('--beta2', type=float, default=0.9, help='momentum term of adam')
+        parser.add_argument('--beta2', type=float, default=0.999, help='momentum term of adam')
         parser.add_argument('--lr', type=float, default=0.0004, help='initial learning rate for adam')
         parser.add_argument('--no_TTUR', action='store_true', help='Use TTUR training scheme')
         # the default values for beta1 and beta2 differ by TTUR option
@@ -45,12 +45,7 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--lambda_feat', type=float, default=10.0, help='weight for feature matching loss')
         parser.add_argument('--lambda_vgg', type=float, default=10.0, help='weight for vgg loss')
         parser.add_argument('--lambda_rec', type=float, default=2.5, help='weight for image reconstruction loss')
-        parser.add_argument('--lambda_style', type=float, default=250, help='weight for the VGG19 style loss')
-        parser.add_argument('--lambda_content', type=float, default=0.25, help='weight for the VGG19 content loss')
-        parser.add_argument('--lambda_cycle', type=float, default=1.5, help='weight for the VGG19 content loss')
-        parser.add_argument('--lambda_g', type=float, default=1.0, help='weight for generation loss')
         parser.add_argument('--lambda_kld', type=float, default=0.05)
-        parser.add_argument('--t_s_ratio', type=float, default=0.5, help='loss ratio between dual tasks')
 
         self.isTrain = True
         return parser

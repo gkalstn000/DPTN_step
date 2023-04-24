@@ -36,7 +36,7 @@ class BaseOptions():
         parser.add_argument('--crop_size', type=int, default=256, help='Crop to the width of crop_size (after initially scaling the images to load_size.)')
         # for setting inputs
         # parser.add_argument('--dataroot', type=str, default='./datasets/fashion/')
-        parser.add_argument('--dataroot', type=str, default='/home/red/external/msha/datasets/fashion')
+        parser.add_argument('--dataroot', type=str, default='/datasets/msha/fashion')
         parser.add_argument('--dataset_mode', type=str, default='fashion')
         parser.add_argument('--max_dataset_size', type=int, default=sys.maxsize, help='Maximum number of samples allowed per dataset. If the dataset directory contains more than max_dataset_size, only a subset is loaded.')
         parser.add_argument('--load_from_opt_file', action='store_true', help='load the options from checkpoints and use that as default')
