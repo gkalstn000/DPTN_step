@@ -69,8 +69,12 @@ for epoch in iter_counter.training_epochs():
 
     for i, data_i in tqdm(enumerate(dataloader_val), desc='Validation images generating') :
         fake_target = trainer.model(data_i, mode='inference')
-        # with torch.no_grad() :
-        #     _, fake_target, fake_source = trainer.model(data_i, mode='generator')
+        valid_losses = {}
+        valid_losses['valid_l1'] = trainer.model.L1loss(fake_target, data_i['tgt_img'])
+        valid_losses['valid_l2'] = trainer.model.L2loss(fake_target, data_i['tgt_img'])
+        visualizer.print_current_errors(epoch, iter_counter.epoch_iter,
+                                        valid_losses, iter_counter.time_per_iter)
+        visualizer.plot_current_errors(valid_losses, iter_counter.total_steps_so_far)
         visuals = OrderedDict([('valid_1texture', data_i['texture']),
                                ('valid_4bone', data_i['bone']),
                                ('valid_2ground_truth', data_i['ground_truth']),

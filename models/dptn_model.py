@@ -80,12 +80,13 @@ class DPTNModel(nn.Module) :
         return data['texture'], data['bone'], data['ground_truth']
 
     def compute_generator_loss(self, texture, bone):
+        self.netG.train()
+        self.netD.train()
         G_losses = {}
 
         fake_image, z_dict = self.generate_fake(texture, bone)
         pred_fake, pred_real = self.discriminate(bone, fake_image, texture)
 
-        # G_losses['L1_cycle'] = self.opt.t_s_ratio * self.L1loss(fake_image_s_cycle, src_image) * self.opt.lambda_rec
         G_losses['GAN'] = self.GANloss(pred_fake, True, for_discriminator=False)
         G_losses['VGG_loss'] =  self.Vggloss(fake_image, texture) * self.opt.lambda_vgg
         G_losses['KLD_loss'] = self.KLDLoss(z_dict['texture']) * self.opt.lambda_kld
@@ -115,6 +116,8 @@ class DPTNModel(nn.Module) :
 
         return pred_fake, pred_real
     def compute_discriminator_loss(self, texture, bone):
+        self.netG.train()
+        self.netD.train()
         D_losses = {}
         with torch.no_grad():
             fake_image_t, _ = self.generate_fake(texture, bone)

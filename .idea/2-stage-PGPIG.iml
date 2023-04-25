@@ -5,10 +5,10 @@
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/datasets/fashion" />
       <excludeFolder url="file://$MODULE_DIR$/attention_map" />
-      <excludeFolder url="file://$MODULE_DIR$/results" />
       <excludeFolder url="file://$MODULE_DIR$/datasets" />
-      <excludeFolder url="file://$MODULE_DIR$/old_results" />
+      <excludeFolder url="file://$MODULE_DIR$/results" />
       <excludeFolder url="file://$MODULE_DIR$/checkpoints" />
+      <excludeFolder url="file://$MODULE_DIR$/old_results" />
     </content>
     <orderEntry type="jdk" jdkName="Remote Python 3.7.0 (sftp://work@127.0.0.1:22222/home/work/.conda/envs/lpg/bin/python3.7)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
