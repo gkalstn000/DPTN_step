@@ -46,15 +46,17 @@ class SPADE(nn.Module):
         self.mlp_gamma = nn.Conv2d(nhidden, norm_nc, kernel_size=3, padding=1)
         self.mlp_beta = nn.Conv2d(nhidden, norm_nc, kernel_size=3, padding=1)
 
-    def forward(self, x, texture_information):
+
+
+    def forward(self, x, pose_information):
 
         # Part 1. generate parameter-free normalized activations
         normalized = self.param_free_norm(x)
 
         # Part 2. produce scaling and bias conditioned on semantic map
-        texture_information = F.interpolate(texture_information, size=x.size()[2:], mode='nearest')
+        pose_information = F.interpolate(pose_information, size=x.size()[2:], mode='nearest')
 
-        actv = self.mlp_shared(texture_information)
+        actv = self.mlp_shared(pose_information)
         gamma = self.mlp_gamma(actv) * 0.5
         beta = self.mlp_beta(actv) * 0.5
 
@@ -62,6 +64,35 @@ class SPADE(nn.Module):
         out = normalized * gamma + beta
 
         return out
+
+class AdaIN(nn.Module) :
+    def __init__(self, norm_type, norm_nc, z_dim):
+        super().__init__()
+        if norm_type == 'instance':
+            self.param_free_norm = nn.InstanceNorm2d(norm_nc, affine=False)
+        elif norm_type == 'batch':
+            self.param_free_norm = nn.BatchNorm2d(norm_nc, affine=False)
+        else:
+            raise ValueError('%s is not a recognized param-free norm type in SPADE'
+                             % param_free_norm_type)
+
+        self.mlp_gamma = nn.Linear(z_dim, norm_nc)
+        self.mlp_beta = nn.Linear(z_dim, norm_nc)
+
+    def forward(self, x, texture_information):
+        normalized = self.param_free_norm(x)
+
+        gamma = self.mlp_gamma(texture_information)
+        beta = self.mlp_beta(texture_information)
+
+        out = normalized * gamma[:, :, None, None] + beta[:, :, None, None]
+
+        return out
+
+
+
+
+
 def get_nonspade_norm_layer(opt, norm_type='instance'):
     # helper function to get # output channels of the previous layer
     def get_out_channel(layer):
