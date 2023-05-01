@@ -95,9 +95,10 @@ class ZEncoder(BaseNetwork):
         logvar = self.fc_var(x)
 
         z = self.reparameterize(mu, logvar)
-        z_dict = {'texture': [mu, logvar]}
+        z_dict = {'texture': [mu, logvar],
+                  'noise' : z}
 
-        return z, z_dict
+        return z_dict
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)

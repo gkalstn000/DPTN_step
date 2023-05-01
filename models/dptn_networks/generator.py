@@ -53,10 +53,10 @@ class DPTNGenerator(BaseNetwork):
         self.decoder = define_De(opt)
     def forward(self, texture, bone):
         encoder_input = torch.cat([texture], 1)
-        z, z_dict = self.z_encoder(encoder_input)
+        z_dict = self.z_encoder(encoder_input)
 
         external_information = [bone]
-        x = self.decoder(z, external_information)
+        x = self.decoder(z_dict['noise'], external_information)
 
         return x, z_dict
 

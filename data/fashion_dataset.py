@@ -79,7 +79,9 @@ class FashionDataset(BaseDataset) :
 
             bone = self.obtain_bone(P1_name)
 
-            ground_truth = texture
+            P2_img = Image.open(P2_path).convert('RGB')
+            P2_img = F.resize(P2_img, self.load_size)
+            ground_truth = self.trans(P2_img)
 
         else :
             P1_img = Image.open(P1_path).convert('RGB')
