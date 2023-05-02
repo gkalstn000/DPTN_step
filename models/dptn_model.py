@@ -104,9 +104,9 @@ class DPTNModel(nn.Module) :
                     GAN_Feat_loss += unweighted_loss * self.opt.lambda_feat / num_D
             G_losses['GAN_Feat'] = GAN_Feat_loss
 
-        with torch.no_grad() :
-            z_dict_tgt = self.netG.z_encoder(texture2)
-        G_losses['z_distance'] = self.L2loss(z_dict['noise'], z_dict_tgt['noise']) * 0.1
+        # with torch.no_grad() :
+        #     z_dict_tgt = self.netG.z_encoder(texture2)
+        # G_losses['z_distance'] = self.L2loss(z_dict['noise'], z_dict_tgt['noise']) * 0.1
 
 
         return G_losses, fake_image

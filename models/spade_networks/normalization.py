@@ -8,6 +8,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.utils.spectral_norm as spectral_norm
+from models.spade_networks.sync_batchnorm import SynchronizedBatchNorm2d
+
 import math
 
 
@@ -32,6 +34,9 @@ class SPADE(nn.Module):
             self.param_free_norm = nn.InstanceNorm2d(norm_nc, affine=False)
         elif norm_type == 'batch':
             self.param_free_norm = nn.BatchNorm2d(norm_nc, affine=False)
+        elif param_free_norm_type == 'syncbatch':
+            self.param_free_norm = SynchronizedBatchNorm2d(norm_nc, affine=False)
+
         else:
             raise ValueError('%s is not a recognized param-free norm type in SPADE'
                              % param_free_norm_type)
@@ -72,6 +77,8 @@ class AdaIN(nn.Module) :
             self.param_free_norm = nn.InstanceNorm2d(norm_nc, affine=False)
         elif norm_type == 'batch':
             self.param_free_norm = nn.BatchNorm2d(norm_nc, affine=False)
+        elif param_free_norm_type == 'syncbatch':
+            self.param_free_norm = SynchronizedBatchNorm2d(norm_nc, affine=False)
         else:
             raise ValueError('%s is not a recognized param-free norm type in SPADE'
                              % param_free_norm_type)
@@ -120,6 +127,8 @@ def get_nonspade_norm_layer(opt, norm_type='instance'):
             norm_layer = nn.BatchNorm2d(get_out_channel(layer), affine=True)
         elif subnorm_type == 'instance':
             norm_layer = nn.InstanceNorm2d(get_out_channel(layer), affine=False)
+        elif subnorm_type == 'syncbatch':
+            norm_layer = SynchronizedBatchNorm2d(get_out_channel(layer), affine=True)
         else:
             raise ValueError('normalization layer %s is not recognized' % subnorm_type)
 

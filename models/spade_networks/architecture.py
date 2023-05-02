@@ -44,7 +44,7 @@ class SPADEResnetBlock(nn.Module):
             self.conv_s = spectral_norm(self.conv_s)
 
         cond_norm = SPADE
-        spade_config_str = opt.norm_G.replace('spectral', '')
+        spade_config_str = opt.norm_D.replace('spectral', '')
         self.norm_0 = cond_norm(spade_config_str, fin, norm_nc)
         self.norm_1 = cond_norm(spade_config_str, fmiddle, norm_nc)
         if self.learned_shortcut:
@@ -98,7 +98,7 @@ class SPAINResnetBlock(nn.Module):
         if self.learned_shortcut:
             self.conv_s = spectral_norm(self.conv_s)
 
-        config_str = opt.norm_G.replace('spectral', '')
+        config_str = opt.norm_D.replace('spectral', '')
         self.spade_norm_0 = SPADE(config_str, fin, norm_nc)
         self.spade_norm_1 = SPADE(config_str, fmiddle, norm_nc)
         if self.learned_shortcut:

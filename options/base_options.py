@@ -21,9 +21,9 @@ class BaseOptions():
         # experiment specifics
         parser.add_argument('--id', type=str, default='dptn', help='name of the experiment. It decides where to store samples and models')
         parser.add_argument('--model', type=str, default='dptn',help='name of the model.')
-        parser.add_argument('--norm_E', type=str, default='spectralinstance', help='instance normalization or batch normalization')
-        parser.add_argument('--norm_G', type=str, default='spectralinstance', help='instance normalization or batch normalization')
-        parser.add_argument('--norm_D', type=str, default='spectralinstance', help='instance normalization or batch normalization')
+        parser.add_argument('--norm_E', type=str, default='spectralinstance', help='[spectralinstance|spectralbatch|spectralsyncbatch]')
+        parser.add_argument('--norm_G', type=str, default='spectralinstance', help='[spectralinstance|spectralbatch|spectralsyncbatch]')
+        parser.add_argument('--norm_D', type=str, default='spectralinstance', help='[spectralinstance|spectralbatch|spectralsyncbatch]')
         parser.add_argument('--gpu_ids', type=str, default='1,2,3', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         parser.add_argument('--phase', type=str, default='train', help='train, val, test, etc')
@@ -31,7 +31,7 @@ class BaseOptions():
         # input/output sizes
         parser.add_argument('--batchSize', type=int, default=69, help='input batch size')
         parser.add_argument('--image_nc', type=int, default=3, help='# of input image channels.')
-        parser.add_argument('--pose_nc', type=int, default=37, help='# of input pose channels. keypoint channel + limb channel')
+        parser.add_argument('--pose_nc', type=int, default=41, help='# of input pose channels. keypoint channel + limb channel')
         parser.add_argument('--output_nc', type=int, default=3, help='# of output image channels')
         parser.add_argument('--crop_size', type=int, default=256, help='Crop to the width of crop_size (after initially scaling the images to load_size.)')
         # for setting inputs

@@ -1,5 +1,7 @@
 import models
 import torch
+from models.spade_networks.sync_batchnorm import DataParallelWithCallback
+
 
 
 class Trainer() :
@@ -7,8 +9,7 @@ class Trainer() :
         super(Trainer, self).__init__()
         self.opt = opt
         self.model = models.create_model(opt)
-        self.model = torch.nn.DataParallel(self.model, device_ids = opt.gpu_ids)
-        # self.model = self.model.cuda()
+        self.model = DataParallelWithCallback(self.model, device_ids = opt.gpu_ids)
         self.generated = None
 
         if opt.isTrain :
