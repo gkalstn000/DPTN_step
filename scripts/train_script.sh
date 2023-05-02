@@ -24,6 +24,6 @@ nohup python train.py --id spade_origin --tf_log --gpu_ids 1 --type_En_c z --typ
 nohup python train.py --id spade_origin_pair --tf_log --gpu_ids 0 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 20 --num_workers 15 --dataroot /home/work/msha/datasets/fashion > spade_origin_pair.out &
 
 
-nohup python train.py --id spade_256 --tf_log --gpu_ids 0 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 20 --num_workers 7 --z_dim 256 --dataroot /home/work/msha/datasets/fashion > spade_256.out &
-nohup python train.py --id spade_512 --tf_log --gpu_ids 1 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 20 --num_workers 7 --z_dim 512 --dataroot /home/work/msha/datasets/fashion > spade_512.out &
-nohup python train.py --id spade_256_zloss --tf_log --gpu_ids 1 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 20 --num_workers 7 --z_dim 256 --dataroot /home/work/msha/datasets/fashion > spade_256_zloss.out &
+nohup python train.py --id spade_256 --tf_log --gpu_ids 0 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 20 --num_workers 7 --z_dim 256 --dataroot /home/work/msha/datasets/fashion --continue_train > spade_256.out &
+nohup python train.py --id spade_512 --tf_log --gpu_ids 1 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 20 --num_workers 7 --z_dim 512 --dataroot /home/work/msha/datasets/fashion --continue_train > spade_512.out &
+nohup python train.py --id spade_256_zloss --tf_log --gpu_ids 1 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 20 --num_workers 7 --z_dim 256 --dataroot /home/work/msha/datasets/fashion --continue_train> spade_256_zloss.out &

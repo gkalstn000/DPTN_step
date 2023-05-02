@@ -106,7 +106,7 @@ class DPTNModel(nn.Module) :
 
         with torch.no_grad() :
             z_dict_tgt = self.netG.z_encoder(texture2)
-        G_losses['z_distance'] = self.L2loss(z_dict_tgt['texture'][0], z_dict['texture'][0]) * 0.05
+        G_losses['z_distance'] = self.L2loss(z_dict['noise'], z_dict_tgt['noise']) * 0.1
 
 
         return G_losses, fake_image
