@@ -34,7 +34,7 @@ class SPADE(nn.Module):
             self.param_free_norm = nn.InstanceNorm2d(norm_nc, affine=False)
         elif norm_type == 'batch':
             self.param_free_norm = nn.BatchNorm2d(norm_nc, affine=False)
-        elif param_free_norm_type == 'syncbatch':
+        elif norm_type == 'syncbatch':
             self.param_free_norm = SynchronizedBatchNorm2d(norm_nc, affine=False)
 
         else:
@@ -77,7 +77,7 @@ class AdaIN(nn.Module) :
             self.param_free_norm = nn.InstanceNorm2d(norm_nc, affine=False)
         elif norm_type == 'batch':
             self.param_free_norm = nn.BatchNorm2d(norm_nc, affine=False)
-        elif param_free_norm_type == 'syncbatch':
+        elif norm_type == 'syncbatch':
             self.param_free_norm = SynchronizedBatchNorm2d(norm_nc, affine=False)
         else:
             raise ValueError('%s is not a recognized param-free norm type in SPADE'
