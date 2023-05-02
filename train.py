@@ -70,8 +70,8 @@ for epoch in iter_counter.training_epochs():
     for i, data_i in tqdm(enumerate(dataloader_val), desc='Validation images generating') :
         fake_target = trainer.model(data_i, mode='inference')
         valid_losses = {}
-        valid_losses['valid_L1'] = trainer.model.module.L1loss(fake_target, data_i['ground_truth'].cuda())
-        valid_losses['valid_L2'] = trainer.model.module.L2loss(fake_target, data_i['ground_truth'].cuda())
+        valid_losses['valid_L1'] = trainer.model.module.L1loss(fake_target, data_i['ground_truth'].cuda()) * opt.lambda_rec
+        valid_losses['valid_L2'] = trainer.model.module.L2loss(fake_target, data_i['ground_truth'].cuda()) * opt.lambda_rec
         visualizer.print_current_errors(epoch, iter_counter.epoch_iter,
                                         valid_losses, iter_counter.time_per_iter)
         visualizer.plot_current_errors(valid_losses, iter_counter.total_steps_so_far)
