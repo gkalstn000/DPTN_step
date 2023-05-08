@@ -44,7 +44,7 @@ class SPADEResnetBlock(nn.Module):
             self.conv_s = spectral_norm(self.conv_s)
 
         cond_norm = SPADE
-        spade_config_str = opt.norm_D.replace('spectral', '')
+        spade_config_str = opt.norm_G.replace('spectral', '')
         self.norm_0 = cond_norm(spade_config_str, fin, norm_nc)
         self.norm_1 = cond_norm(spade_config_str, fmiddle, norm_nc)
         if self.learned_shortcut:
@@ -98,7 +98,7 @@ class SPAINResnetBlock(nn.Module):
         if self.learned_shortcut:
             self.conv_s = spectral_norm(self.conv_s)
 
-        config_str = opt.norm_D.replace('spectral', '')
+        config_str = opt.norm_G.replace('spectral', '')
         self.spade_norm_0 = SPADE(config_str, fin, norm_nc)
         self.spade_norm_1 = SPADE(config_str, fmiddle, norm_nc)
         if self.learned_shortcut:
@@ -116,8 +116,11 @@ class SPAINResnetBlock(nn.Module):
 
         dx = self.actvn(self.spade_norm_0(x, pose_information))
         dx = self.conv_0(self.actvn(self.adain_norm_0(dx, texture_information)))
+        dx = dx + torch.randn_like(dx, device=dx.device)
+
         dx = self.actvn(self.spade_norm_1(dx, pose_information))
         dx = self.conv_1(self.actvn(self.adain_norm_1(dx, texture_information)))
+        dx = dx + torch.randn_like(dx, device=dx.device)
 
         out = x_s + dx
 

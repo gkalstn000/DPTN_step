@@ -5,7 +5,7 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 
 import torch.nn as nn
 from torch.nn import init
-
+import torch
 
 class BaseNetwork(nn.Module):
     def __init__(self):
@@ -63,3 +63,8 @@ class BaseNetwork(nn.Module):
         # sh = round(sw / opt.aspect_ratio)
         sh = sw
         return sw, sh
+
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return eps.mul(std) + mu

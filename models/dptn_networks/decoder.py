@@ -37,8 +37,9 @@ class SpadeDecoder(BaseNetwork) :
         self.up = nn.Upsample(scale_factor=2)
 
 
-    def forward(self, z, pose_information):
-        pose_information = torch.cat(pose_information, 1)
+    def forward(self, texture_param, pose_information):
+        mu, var = texture_param
+        z = self.reparameterize(mu, var)
 
         x = self.fc(z)
         x = x.view(-1, 16 * self.opt.ngf, self.sh, self.sw)
@@ -88,9 +89,7 @@ class SPAINDecoder(BaseNetwork) :
 
         self.sw, self.sh = self.compute_latent_vector_size(opt)
 
-        self.fc = nn.Linear(opt.z_dim, 16 * nf * self.sw * self.sh)
-
-        self.head_0 = SPAINResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
+        self.head_0 = SPAINResnetBlock(16 * 1, 16 * nf, opt, norm_nc)
         self.G_middle_0 = SPAINResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
         self.G_middle_1 = SPAINResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
 
@@ -110,26 +109,25 @@ class SPAINDecoder(BaseNetwork) :
         self.up = nn.Upsample(scale_factor=2)
 
 
-    def forward(self, z, pose_information):
-        pose_information = torch.cat(pose_information, 1)
+    def forward(self, texture_param, pose_information):
+        mu, var = texture_param
 
-        x = self.fc(z)
-        x = x.view(-1, 16 * self.opt.ngf, self.sh, self.sw)
+        noise = torch.randn((pose_information.size(0), 16, self.sw, self.sh), device = pose_information.device)
 
-        x = self.head_0(x, pose_information, z)
-
-        x = self.up(x)
-        x = self.G_middle_0(x, pose_information, z)
-        x = self.G_middle_1(x, pose_information, z)
+        x = self.head_0(noise, pose_information, self.reparameterize(mu, var))
 
         x = self.up(x)
-        x = self.up_0(x, pose_information, z)
+        x = self.G_middle_0(x, pose_information, self.reparameterize(mu, var))
+        x = self.G_middle_1(x, pose_information, self.reparameterize(mu, var))
+
         x = self.up(x)
-        x = self.up_1(x, pose_information, z)
+        x = self.up_0(x, pose_information, self.reparameterize(mu, var))
         x = self.up(x)
-        x = self.up_2(x, pose_information, z)
+        x = self.up_1(x, pose_information, self.reparameterize(mu, var))
         x = self.up(x)
-        x = self.up_3(x, pose_information, z)
+        x = self.up_2(x, pose_information, self.reparameterize(mu, var))
+        x = self.up(x)
+        x = self.up_3(x, pose_information, self.reparameterize(mu, var))
 
         x = self.conv_img(F.leaky_relu(x, 2e-1))
         x = F.tanh(x)

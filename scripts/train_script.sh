@@ -14,7 +14,7 @@ nohup python train.py --id spade_128 --tf_log --gpu_ids 1 --type_En_c z --type_D
 nohup python train.py --id spade_192 --tf_log --gpu_ids 0 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 16 --num_workers 8 --z_dim 192 --continue_train > spade_192.out &
 nohup python train.py --id spain_256 --tf_log --gpu_ids 2 --type_En_c z --type_Dc spain --pose_nc 41 --batchSize 12 --num_workers 5  --z_dim 256 --continue_train > spain_256.out &
 
-
+nohup python train.py --id spain_128_IN --tf_log --gpu_ids 2 --type_En_c z --type_Dc spain --pose_nc 41 --batchSize 12 --num_workers 4 --z_dim 128 > spain_128_IN.out &
 
 
 
@@ -29,3 +29,8 @@ nohup python train.py --id spade_512 --tf_log --gpu_ids 1 --type_En_c z --type_D
 nohup python train.py --id spade_256_zloss --tf_log --gpu_ids 1 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 20 --num_workers 7 --z_dim 256 --dataroot /home/work/msha/datasets/fashion --continue_train> spade_256_zloss.out &
 
 nohup python train.py --id spade_256_syncbatch --tf_log --gpu_ids 0,1 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 40 --num_workers 15 --z_dim 256 --dataroot /home/work/msha/datasets/fashion --norm_E spectralsyncbatch --norm_D spectralsyncbatch --norm_G spectralsyncbatch --continue_train > spade_256_syncbatch.out &
+
+
+
+# SPADE command
+nohup python train.py --name fashion --dataset_mode fashion --use_vae --tf_log --no_html --batchSize 14 --gpu_ids 1 > fashion.out &

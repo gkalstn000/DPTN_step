@@ -89,7 +89,7 @@ class DPTNModel(nn.Module) :
 
         G_losses['GAN'] = self.GANloss(pred_fake, True, for_discriminator=False)
         G_losses['VGG_loss'] =  self.Vggloss(fake_image, texture) * self.opt.lambda_vgg
-        G_losses['KLD_loss'] = self.KLDLoss(z_dict['texture']) * self.opt.lambda_kld
+        G_losses['KLD_loss'] = self.KLDLoss(z_dict['texture_param']) * self.opt.lambda_kld
         G_losses['L1_loss'] = self.L1loss(fake_image, texture) * self.opt.lambda_rec
 
         if not self.opt.no_ganFeat_loss:
