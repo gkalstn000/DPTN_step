@@ -19,12 +19,12 @@ class BaseOptions():
 
     def initialize(self, parser):
         # experiment specifics
-        parser.add_argument('--id', type=str, default='dptn', help='name of the experiment. It decides where to store samples and models')
+        parser.add_argument('--id', type=str, default='spain', help='name of the experiment. It decides where to store samples and models')
         parser.add_argument('--model', type=str, default='dptn',help='name of the model.')
         parser.add_argument('--norm_E', type=str, default='spectralinstance', help='[spectralinstance|spectralbatch|spectralsyncbatch]')
         parser.add_argument('--norm_G', type=str, default='spectralinstance', help='[spectralinstance|spectralbatch|spectralsyncbatch]')
         parser.add_argument('--norm_D', type=str, default='spectralinstance', help='[spectralinstance|spectralbatch|spectralsyncbatch]')
-        parser.add_argument('--gpu_ids', type=str, default='1,2,3', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
+        parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         parser.add_argument('--phase', type=str, default='train', help='train, val, test, etc')
 
@@ -47,16 +47,13 @@ class BaseOptions():
         parser.add_argument('--display_winsize', type=int, default=400, help='display window size')
 
         # for generator
-        parser.add_argument('--netG', type=str, default='dptn', help='selects model to use for netG (dptn | dualattn)')
+        parser.add_argument('--netG', type=str, default='spain', help='selects model to use for netG (spade | spain)')
         parser.add_argument('--ngf', type=int, default=64, help='# of gen filters in first conv layer')
         parser.add_argument('--init_type', type=str, default='xavier', help='network initialization [normal|xavier|kaiming|orthogonal]')
         parser.add_argument('--init_variance', type=float, default=0.02, help='variance of the initialization distribution')
         parser.add_argument('--use_spect_g', action='store_false', help='use spectual normalization in generator')
         parser.add_argument('--use_coord', action='store_true', help='use coordconv')
         parser.add_argument('--affine', action='store_true', help="affine in PTM")
-        parser.add_argument('--nhead', type=int, default=2, help="number of heads in PTM")
-        parser.add_argument('--num_CABs', type=int, default=2, help="number of CABs in PTM")
-        parser.add_argument('--num_TTBs', type=int, default=2, help="number of CABs in PTM")
         parser.add_argument('--num_workers', type=int, default=15, help='number of batchloader workers')
         self.initialized = True
         return parser

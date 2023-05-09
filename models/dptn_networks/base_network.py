@@ -64,7 +64,3 @@ class BaseNetwork(nn.Module):
         sh = sw
         return sw, sh
 
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5 * logvar)
-        eps = torch.randn_like(std)
-        return eps.mul(std) + mu

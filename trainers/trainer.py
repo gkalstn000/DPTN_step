@@ -10,8 +10,8 @@ class Trainer() :
         self.opt = opt
         self.model = models.create_model(opt)
         self.model = DataParallelWithCallback(self.model, device_ids = opt.gpu_ids)
-        self.generated = None
 
+        self.generated = None
         if opt.isTrain :
             self.optimizer_G, self.optimizer_D = \
                 self.model.module.create_optimizers(opt)

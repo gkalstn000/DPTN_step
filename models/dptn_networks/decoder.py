@@ -6,7 +6,7 @@ from models.spade_networks.architecture import SPADEResnetBlock, SPAINResnetBloc
 
 import torch.nn.functional as F
 
-class SpadeDecoder(BaseNetwork) :
+class SpadeGenerator(BaseNetwork) :
     def __init__(self, opt):
         super().__init__()
         self.opt = opt
@@ -80,7 +80,7 @@ class SpadeDecoder(BaseNetwork) :
 
         return sw, sh
 
-class SPAINDecoder(BaseNetwork) :
+class SPAINGenerator(BaseNetwork) :
     def __init__(self, opt):
         super().__init__()
         self.opt = opt

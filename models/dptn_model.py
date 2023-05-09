@@ -18,7 +18,7 @@ class DPTNModel(nn.Module) :
         self.ByteTensor = torch.cuda.ByteTensor if self.use_gpu() \
             else torch.ByteTensor
 
-        self.netG, self.netD = self.initialize_networks(opt)
+        self.netG, self.netE, self.netD = self.initialize_networks(opt)
 
         # set loss functions
         if opt.isTrain:
@@ -32,7 +32,6 @@ class DPTNModel(nn.Module) :
     def forward(self, data, mode):
         texture, bone, ground_truth = self.preprocess_input(data)
         if mode == 'generator':
-
             g_loss, fake_t = self.compute_generator_loss(texture, bone, ground_truth)
             return g_loss, fake_t
         elif mode == 'discriminator':
@@ -41,15 +40,15 @@ class DPTNModel(nn.Module) :
         elif mode == 'inference' :
             self.netG.eval()
             with torch.no_grad():
-                fake_image_t, z_dict = self.generate_fake(texture, bone)
+                fake_image_t, _ = self.generate_fake(texture, bone)
             return fake_image_t
     def create_optimizers(self, opt):
-        G_params = list(self.netG.parameters())
+        G_params = list(self.netG.parameters()) + list(self.netE.parameters())
         D_params = list(self.netD.parameters())
 
         beta1, beta2 = opt.beta1, opt.beta2
         if opt.no_TTUR:
-            G_lr, D_lr = opt.lr / 4, opt.lr
+            G_lr, D_lr = opt.lr, opt.lr
         else:
             G_lr, D_lr = opt.lr / 2, opt.lr * 2
 
@@ -61,16 +60,20 @@ class DPTNModel(nn.Module) :
     def save(self, epoch):
         util.save_network(self.netG, 'G', epoch, self.opt)
         util.save_network(self.netD, 'D', epoch, self.opt)
-
+        util.save_network(self.netE, 'E', epoch, self.opt)
 
     def initialize_networks(self, opt):
         netG = networks.define_G(opt)
+        netE = networks.define_E(opt)
         netD = networks.define_D(opt) if opt.isTrain else None
+
         if not opt.isTrain or opt.continue_train:
             netG = util.load_network(netG, 'G', opt.which_epoch, opt)
+            netE = util.load_network(netE, 'E', opt.which_epoch, opt)
             if opt.isTrain:
                 netD = util.load_network(netD, 'D', opt.which_epoch, opt)
-        return netG, netD
+
+        return netG, netE, netD
     def preprocess_input(self, data):
         if self.use_gpu():
             data['texture'] = data['texture'].float().cuda()
@@ -84,12 +87,12 @@ class DPTNModel(nn.Module) :
         self.netD.train()
         G_losses = {}
 
-        fake_image, z_dict = self.generate_fake(texture, bone)
+        fake_image, kld_loss = self.generate_fake(texture, bone)
         pred_fake, pred_real = self.discriminate(bone, fake_image, texture)
 
         G_losses['GAN'] = self.GANloss(pred_fake, True, for_discriminator=False)
         G_losses['VGG_loss'] =  self.Vggloss(fake_image, texture) * self.opt.lambda_vgg
-        G_losses['KLD_loss'] = self.KLDLoss(z_dict['texture_param']) * self.opt.lambda_kld
+        G_losses['KLD_loss'] = kld_loss
         G_losses['L1_loss'] = self.L1loss(fake_image, texture) * self.opt.lambda_rec
 
         if not self.opt.no_ganFeat_loss:
@@ -136,10 +139,12 @@ class DPTNModel(nn.Module) :
         return D_losses
 
     def generate_fake(self, texture, bone):
+        mu, logvar = self.netE(texture)
+        fake_image_t = self.netG([mu, logvar], bone)
 
-        fake_image_t, z_dict = self.netG(texture, bone)
+        kld_loss = self.KLDLoss(mu, logvar) * self.opt.lambda_kld
 
-        return fake_image_t, z_dict
+        return fake_image_t, kld_loss
     def use_gpu(self):
         return len(self.opt.gpu_ids) > 0
 

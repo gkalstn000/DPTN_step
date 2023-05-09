@@ -10,9 +10,9 @@ from models.dptn_networks import encoder
 import numpy as np
 
 
-class ZEncoder(BaseNetwork):
+class NoiseEncoder(BaseNetwork):
     def __init__(self, opt):
-        super(ZEncoder, self).__init__()
+        super(NoiseEncoder, self).__init__()
         self.opt = opt
 
         kw = 3
@@ -53,9 +53,7 @@ class ZEncoder(BaseNetwork):
         mu = self.fc_mu(x)
         logvar = self.fc_var(x)
 
-        z_dict = {'texture_param': [mu, logvar]}
-
-        return z_dict
+        return mu, logvar
 
 class FC_layer(nn.Module) :
     def __init__(self, opt, init_dim):

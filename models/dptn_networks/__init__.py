@@ -12,7 +12,8 @@ def modify_commandline_options(parser, is_train):
     if is_train:
         netD_cls = find_network_using_name(opt.netD, 'discriminator')
         parser = netD_cls.modify_commandline_options(parser, is_train)
-
+    netE_cls = find_network_using_name('noise', 'encoder')
+    parser = netE_cls.modify_commandline_options(parser, is_train)
     return parser
 
 def find_class_in_module(target_cls_name, module):
@@ -59,10 +60,7 @@ def define_D(opt):
     netD_cls = find_network_using_name(opt.netD, 'discriminator')
     return create_network(netD_cls, opt)
 
-def define_En_c(opt) :
-    netEn_c_cls = find_network_using_name(opt.type_En_c, 'encoder')
+def define_E(opt) :
+    netEn_c_cls = find_network_using_name('noise', 'encoder')
     return create_network(netEn_c_cls, opt)
 
-def define_De(opt) :
-    netDe_cls = find_network_using_name(opt.type_Dc, 'decoder')
-    return create_network(netDe_cls, opt)

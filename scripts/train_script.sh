@@ -30,6 +30,7 @@ nohup python train.py --id spade_256_zloss --tf_log --gpu_ids 1 --type_En_c z --
 
 nohup python train.py --id spade_256_syncbatch --tf_log --gpu_ids 0,1 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 40 --num_workers 15 --z_dim 256 --dataroot /home/work/msha/datasets/fashion --norm_E spectralsyncbatch --norm_D spectralsyncbatch --norm_G spectralsyncbatch --continue_train > spade_256_syncbatch.out &
 
+nohup python train.py --id spain_256 --tf_log --gpu_ids 0,1 --netG spain --pose_nc 41 --batchSize 34 --num_workers 16 --z_dim 256 --dataroot /home/work/msha/datasets/fashion > spain_256.out &
 
 
 # SPADE command
