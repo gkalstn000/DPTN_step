@@ -82,31 +82,31 @@ class FC_layer(nn.Module) :
         self.layer4 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(p=0.5))
 
         self.layer5 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(p=0.5))
 
         self.layer6 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(p=0.5))
 
         self.layer7 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(p=0.5))
 
         self.layer8 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(p=0.5),
             nn.Linear(self.opt.z_dim, self.opt.z_dim))
 
