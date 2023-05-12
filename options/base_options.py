@@ -38,9 +38,11 @@ class BaseOptions():
         # parser.add_argument('--dataroot', type=str, default='./datasets/fashion/')
         parser.add_argument('--dataroot', type=str, default='/datasets/msha/fashion')
         parser.add_argument('--dataset_mode', type=str, default='fashion')
+        parser.add_argument('--no_flip', action='store_true', help='if specified, do not flip the images for data argumentation')
         parser.add_argument('--max_dataset_size', type=int, default=sys.maxsize, help='Maximum number of samples allowed per dataset. If the dataset directory contains more than max_dataset_size, only a subset is loaded.')
         parser.add_argument('--load_from_opt_file', action='store_true', help='load the options from checkpoints and use that as default')
-        parser.add_argument('--nThreads', default=2, type=int, help='# threads for loading data')
+        parser.add_argument('--preprocess_mode', type=str, default='scale_width_and_crop', help='scaling and cropping of images at load time.', choices=("resize_and_crop", "crop", "scale_width", "scale_width_and_crop", "scale_shortside", "fixed", "none"))
+        parser.add_argument('--num_workers', type=int, default=15, help='number of batchloader workers')
         parser.add_argument('--img_f', type=int, default=512, help="the largest feature channels")
 
         # for displays
@@ -54,7 +56,6 @@ class BaseOptions():
         parser.add_argument('--use_spect_g', action='store_false', help='use spectual normalization in generator')
         parser.add_argument('--use_coord', action='store_true', help='use coordconv')
         parser.add_argument('--affine', action='store_true', help="affine in PTM")
-        parser.add_argument('--num_workers', type=int, default=15, help='number of batchloader workers')
         self.initialized = True
         return parser
 

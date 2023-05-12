@@ -16,7 +16,7 @@ def reparameterize(mu, logvar):
     return eps.mul(std) + mu
 
 opt = TestOptions().parse()
-mode = 'train'
+mode = 'test'
 opt.phase = mode
 dataloader_val = data.create_dataloader(opt, valid = True)
 opt.phase = 'test'
@@ -30,17 +30,27 @@ with open(os.path.join(opt.dataroot, f'{mode}.lst'), 'r') as f:
             test_images.append(lines)
 
 
-n_samples = 100
+pose_lists = ['fashionWOMENSkirtsid0000351306_1front.jpg',
+              'fashionWOMENSkirtsid0000688501_1front.jpg',
+              'fashionWOMENSkirtsid0000155815_2side.jpg',
+              'fashionWOMENGraphic_Teesid0000118101_3back.jpg',
+              'fashionWOMENSkirtsid0000229601_7additional.jpg',
+              'fashionWOMENSkirtsid0000321302_7additional.jpg']
+
+
+
+
+bone_lists = [dataloader_val.dataset.obtain_bone(pose)[None, :, :, :] for pose in pose_lists]
+
 trans = T.ToPILImage()
-save_root = 'custom/spain_interpolation_train'
+save_root = 'custom/spain_bone_train'
 util.util.mkdirs(save_root)
 
-index_pairs = np.unique(np.random.randint(0, len(test_images), size=(n_samples, 2)), axis=0)
-name_pairs = [[test_images[from_], test_images[to_]] for from_, to_ in index_pairs]
-dataloader_val.dataset.name_pairs = name_pairs
 
 model = models.create_model(opt)
 model.eval()
+
+n_samples = 500
 for i, data_i in enumerate(tqdm(dataloader_val)) :
     if i == n_samples - 1 : break
     texture, bone, ground_truth = model.preprocess_input(data_i)
@@ -48,20 +58,23 @@ for i, data_i in enumerate(tqdm(dataloader_val)) :
     generator = model.netG
 
     with torch.no_grad() :
-        mu_src, var_src = encoder(texture)
-        mu_tgt, var_tgt = encoder(ground_truth)
+        mu, var = encoder(texture)
 
-        z_src = reparameterize(mu_src, var_src)
-        z_tgt = reparameterize(mu_tgt, var_tgt)
-
-        z_interpolations = [alpha * mu_src + (1 - alpha) * mu_tgt for alpha in alphas]
         output = []
-        for z in z_interpolations :
-            output.append(generator(bone, z))
-    output = [texture] + output + [ground_truth]
-    interpolation_result = torch.cat(output, -1)
-    interpolation_result = (interpolation_result + 1) / 2
-    for k in range(interpolation_result.size(0)) :
+        for target_bone in [bone] + bone_lists :
+            output.append(generator([mu, var], target_bone.cuda()))
+
+    img_grid = [texture] + output
+    img_grid = torch.cat(img_grid, -1)
+    img_grid = (img_grid + 1) / 2
+
+    bone_grid = [torch.zeros_like(bone), bone.cpu()] + bone_lists
+    bone_grid = torch.cat([b.cpu() for b in bone_grid], -1)
+    bone_grid, _ = bone_grid.max(1, keepdims=True)
+    bone_grid = bone_grid.repeat(1, 3, 1,1)
+
+    results = torch.cat([bone_grid.cpu(), img_grid.cpu()], -2)
+    for k in range(results.size(0)) :
         img_path = data_i['path'][k]
-        generated_image = trans(interpolation_result[k].cpu())
+        generated_image = trans(results[k].cpu())
         generated_image.save(os.path.join(save_root, img_path))

@@ -24,29 +24,23 @@ class NoiseEncoder(BaseNetwork):
         self.layer1 = norm_layer(nn.Conv2d(input_nc, ndf, kw, stride=2, padding=pw))
         self.layer2 = norm_layer(nn.Conv2d(ndf * 1, ndf * 2, kw, stride=2, padding=pw))
         self.layer3 = norm_layer(nn.Conv2d(ndf * 2, ndf * 4, kw, stride=2, padding=pw))
-        self.layer4 = norm_layer(nn.Conv2d(ndf * 4, ndf * 2, kw, stride=1, padding=pw))
-        self.layer5 = norm_layer(nn.Conv2d(ndf * 2, ndf * 1, kw, stride=1, padding=pw))
-        self.layer6 = norm_layer(nn.Conv2d(ndf * 1, ndf // 2, kw, stride=1, padding=pw))
-        self.layer7 = norm_layer(nn.Conv2d(ndf // 2, ndf // 4, kw, stride=1, padding=pw))
-        self.layer8 = norm_layer(nn.Conv2d(ndf // 4, 3, kw, stride=1, padding=pw))
+        self.layer4 = norm_layer(nn.Conv2d(ndf * 4, ndf * 4, kw, stride=2, padding=pw))
+        self.layer5 = norm_layer(nn.Conv2d(ndf * 4, ndf * 4, kw, stride=2, padding=pw))
+        self.layer6 = norm_layer(nn.Conv2d(ndf * 4, ndf * 4, kw, stride=2, padding=pw))
 
         self.actvn = nn.LeakyReLU(0.2, False)
 
         self.so = s0 = 4
-        self.fc_mu = FC_layer(opt, 3)
-        self.fc_var = FC_layer(opt, 3)
+        self.fc_mu = FC_layer(opt, ndf * 4)
+        self.fc_var = FC_layer(opt, ndf * 4)
     def forward(self, x):
-        if x.size(2) != 256 or x.size(3) != 256:
-            x = F.interpolate(x, size=(256, 256), mode='bilinear')
 
         x = self.layer1(x)              # 256x256 -> 128x128
         x = self.layer2(self.actvn(x))  # 128x128 -> 64x64
         x = self.layer3(self.actvn(x))  # 64x64 -> 32x32
-        x = self.layer4(self.actvn(x))  # 64x64 -> 32x32
-        x = self.layer5(self.actvn(x))  # 64x64 -> 32x32
-        x = self.layer6(self.actvn(x))  # 64x64 -> 32x32
-        x = self.layer7(self.actvn(x))  # 64x64 -> 32x32
-        x = self.layer8(self.actvn(x))  # 64x64 -> 32x32
+        x = self.layer4(self.actvn(x))  # 32x32 -> 16x16
+        x = self.layer5(self.actvn(x))  # 16x16 -> 8x8
+        x = self.layer6(self.actvn(x))  # 8x8 -> 4x4
         x = self.actvn(x)
 
         x = x.view(x.size(0), -1)
@@ -59,7 +53,7 @@ class FC_layer(nn.Module) :
     def __init__(self, opt, init_dim):
         super(FC_layer, self).__init__()
         self.opt = opt
-        self.so = s0 = 32
+        self.so = s0 = 4
 
         self.layer1 = nn.Sequential(
             nn.Linear(init_dim * s0 * s0, self.opt.z_dim),

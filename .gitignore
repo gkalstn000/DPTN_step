@@ -6,3 +6,6 @@
 /*.out
 /attention_map/
 /eval_results/
+/experiments/
+/custom/spain_interpolation_train/
+/custom/spain_bone_train/

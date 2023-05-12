@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from options.train_options import TrainOptions
 
-from trainers.trainer import Trainer
+from trainers.trainer import Trainer, get_valid_bone_tensors
 from util.iter_counter import IterationCounter
 from util.visualizer import Visualizer
 import torch
@@ -32,6 +32,10 @@ trainer = Trainer(opt)
 iter_counter = IterationCounter(opt, len(dataloader))
 visualizer = Visualizer(opt)
 
+
+
+
+
 for epoch in iter_counter.training_epochs():
     iter_counter.record_epoch_start(epoch)
     for i, data_i in enumerate(tqdm(dataloader), start=iter_counter.epoch_iter):
@@ -54,9 +58,10 @@ for epoch in iter_counter.training_epochs():
 
         if iter_counter.needs_displaying():
             fake_image = trainer.get_latest_generated()
-            visuals = OrderedDict([('train_1texture', data_i['texture']),
-                                   ('train_3bone', data_i['bone']),
-                                   ('train_2fake_image', fake_image),
+            visuals = OrderedDict([('train_1texture', data_i['P1']),
+                                   ('train_2grount_truth', data_i['P2']),
+                                   ('train_3fake_image', fake_image),
+                                   ('train_4bone', data_i['B2']),
                                    ])
             visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)
 
@@ -65,21 +70,24 @@ for epoch in iter_counter.training_epochs():
                   (epoch, iter_counter.total_steps_so_far))
             trainer.save('latest')
             iter_counter.record_current_iter()
-        # break
+        break
 
     for i, data_i in tqdm(enumerate(dataloader_val), desc='Validation images generating') :
-        fake_target = trainer.model(data_i, mode='inference')
+        fake_image = trainer.model(data_i, mode='inference', flag=1)
         valid_losses = {}
-        valid_losses['valid_L1'] = trainer.model.module.L1loss(fake_target, data_i['ground_truth'].cuda()) * opt.lambda_rec
-        valid_losses['valid_L2'] = trainer.model.module.L2loss(fake_target, data_i['ground_truth'].cuda()) * opt.lambda_rec
+        valid_losses['valid_L1'] = trainer.model.module.L1loss(fake_image, data_i['P2'].cuda()) * opt.lambda_rec
         visualizer.print_current_errors(epoch, iter_counter.epoch_iter,
                                         valid_losses, iter_counter.time_per_iter)
         visualizer.plot_current_errors(valid_losses, iter_counter.total_steps_so_far)
-        visuals = OrderedDict([('valid_1texture', data_i['texture']),
-                               ('valid_4bone', data_i['bone']),
-                               ('valid_2ground_truth', data_i['ground_truth']),
-                               ('valid_3fake_image', fake_target),
+
+        bone_test = get_valid_bone_tensors(dataloader_val, trainer.model.module, data_i['P1'][0].cuda(), data_i['B2'][0].cuda())
+        visuals = OrderedDict([('valid_1texture', data_i['P1']),
+                               ('valid_2ground_truth', data_i['P2']),
+                               ('valid_3fake_image', fake_image),
+                               ('valid_4bone', data_i['B2']),
+                               ('valid_b_test', bone_test)
                                ])
+
         visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)
         break
 

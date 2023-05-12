@@ -16,9 +16,11 @@ class FashionDataset(BaseDataset) :
 
     @staticmethod
     def modify_commandline_options(parser, is_train) :
+        parser.set_defaults(preprocess_mode='resize_and_crop')
         parser.set_defaults(load_size=(256, 256))
         parser.set_defaults(old_size=(256, 176))
         parser.set_defaults(image_nc=3)
+        # parser.add_argument(pose_nc=41)
         parser.set_defaults(display_winsize=256)
         parser.set_defaults(crop_size=256)
         return parser
@@ -72,32 +74,24 @@ class FashionDataset(BaseDataset) :
         P1_path = os.path.join(self.image_dir, P1_name) # person 1
         P2_path = os.path.join(self.image_dir, P2_name) # person 2
 
-        if self.phase == 'train' :
-            P1_img = Image.open(P1_path).convert('RGB')
-            P1_img = F.resize(P1_img, self.load_size)
-            texture = self.trans(P1_img)
+        P1_img = Image.open(P1_path).convert('RGB')
+        P2_img = Image.open(P2_path).convert('RGB')
 
-            bone = self.obtain_bone(P1_name)
+        P1_img = F.resize(P1_img, self.load_size)
+        P2_img = F.resize(P2_img, self.load_size)
 
-            P2_img = Image.open(P2_path).convert('RGB')
-            P2_img = F.resize(P2_img, self.load_size)
-            ground_truth = self.trans(P2_img)
+        P1 = self.trans(P1_img)
+        P2 = self.trans(P2_img)
 
-        else :
-            P1_img = Image.open(P1_path).convert('RGB')
-            P1_img = F.resize(P1_img, self.load_size)
-            texture = self.trans(P1_img)
+        B1 = self.obtain_bone(P1_name)
+        B2 = self.obtain_bone(P2_name)
 
-            bone = self.obtain_bone(P2_name)
 
-            P2_img = Image.open(P2_path).convert('RGB')
-            P2_img = F.resize(P2_img, self.load_size)
-            ground_truth = self.trans(P2_img)
-
-        input_dict = {'texture' : texture,
-                      'bone': bone,
-                      'ground_truth': ground_truth,
-                      'path' : PC_name}
+        input_dict = {'P1' : P1,
+                      'B1': B1,
+                      'P2': P2,
+                      'B2': B2,
+                      'path': PC_name}
 
 
         return input_dict
