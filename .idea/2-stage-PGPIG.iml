@@ -13,7 +13,7 @@
       <excludeFolder url="file://$MODULE_DIR$/custom/spain_interpolation_train" />
       <excludeFolder url="file://$MODULE_DIR$/experiments" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 3.7.0 (sftp://minsu@166.104.232.121:7003/home/minsu/.conda/envs/lpg/bin/python3.7)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.7.0 (sftp://work@127.0.0.1:22222/home/work/.conda/envs/lpg/bin/python3.7)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

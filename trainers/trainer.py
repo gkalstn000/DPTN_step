@@ -34,7 +34,7 @@ class Trainer() :
             d_losses = self.model(data, mode='discriminator', flag=i)
             d_loss = sum(d_losses.values()).mean()
             d_loss.backward()
-        self.optimizer_D.step()
+            self.optimizer_D.step()
         self.d_losses = d_losses
 
     def get_latest_losses(self):
