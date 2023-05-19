@@ -17,22 +17,22 @@ class NoiseEncoder(BaseNetwork):
 
         kw = 3
         pw = int(np.ceil((kw - 1.0) / 2))
-        ndf = opt.ngf
+        nf = opt.nef
         input_nc = opt.image_nc
         norm_layer = get_nonspade_norm_layer(opt, opt.norm_E)
 
-        self.layer1 = norm_layer(nn.Conv2d(input_nc, ndf, kw, stride=2, padding=pw))
-        self.layer2 = norm_layer(nn.Conv2d(ndf * 1, ndf * 2, kw, stride=2, padding=pw))
-        self.layer3 = norm_layer(nn.Conv2d(ndf * 2, ndf * 4, kw, stride=2, padding=pw))
-        self.layer4 = norm_layer(nn.Conv2d(ndf * 4, ndf * 4, kw, stride=2, padding=pw))
-        self.layer5 = norm_layer(nn.Conv2d(ndf * 4, ndf * 4, kw, stride=2, padding=pw))
-        self.layer6 = norm_layer(nn.Conv2d(ndf * 4, ndf * 4, kw, stride=2, padding=pw))
+        self.layer1 = norm_layer(nn.Conv2d(input_nc, nf, kw, stride=2, padding=pw))
+        self.layer2 = norm_layer(nn.Conv2d(nf * 1, nf * 2, kw, stride=2, padding=pw))
+        self.layer3 = norm_layer(nn.Conv2d(nf * 2, nf * 4, kw, stride=2, padding=pw))
+        self.layer4 = norm_layer(nn.Conv2d(nf * 4, nf * 4, kw, stride=2, padding=pw))
+        self.layer5 = norm_layer(nn.Conv2d(nf * 4, nf * 4, kw, stride=2, padding=pw))
+        self.layer6 = norm_layer(nn.Conv2d(nf * 4, nf * 4, kw, stride=2, padding=pw))
 
         self.actvn = nn.LeakyReLU(0.2, False)
 
         self.so = s0 = 4
-        self.fc_mu = FC_layer(opt, ndf * 4)
-        self.fc_var = FC_layer(opt, ndf * 4)
+        self.fc_mu = FC_layer(opt, nf * 4)
+        self.fc_var = FC_layer(opt, nf * 4)
     def forward(self, x):
 
         x = self.layer1(x)              # 256x256 -> 128x128
@@ -58,51 +58,59 @@ class FC_layer(nn.Module) :
         self.layer1 = nn.Sequential(
             nn.Linear(init_dim * s0 * s0, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5))
+            # nn.ReLU(),
+            # nn.Dropout(p=0.5)
+        )
 
         self.layer2 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5))
+            # nn.ReLU(),
+            # nn.Dropout(p=0.5)
+        )
 
         self.layer3 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5))
+            # nn.ReLU(),
+            # nn.Dropout(p=0.5)
+        )
 
         self.layer4 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5))
+            # nn.ReLU(),
+            # nn.Dropout(p=0.5)
+        )
 
         self.layer5 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5))
+            # nn.ReLU(),
+            # nn.Dropout(p=0.5)
+        )
 
         self.layer6 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5))
+            # nn.ReLU(),
+            # nn.Dropout(p=0.5)
+        )
 
         self.layer7 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5))
+            # nn.ReLU(),
+            # nn.Dropout(p=0.5)
+        )
 
         self.layer8 = nn.Sequential(
             nn.Linear(self.opt.z_dim, self.opt.z_dim),
             # nn.BatchNorm1d(self.opt.z_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(self.opt.z_dim, self.opt.z_dim))
+            # nn.ReLU(),
+            # nn.Dropout(p=0.5),
+            # nn.Linear(self.opt.z_dim, self.opt.z_dim)
+        )
 
     def forward(self, x):
         x = self.layer1(x)

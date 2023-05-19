@@ -13,7 +13,7 @@ class BaseGenerator(BaseNetwork) :
     @staticmethod
     def modify_commandline_options(parser, is_train):
         parser.add_argument('--activation', type=str, default='LeakyReLU', help='type of activation function')
-        parser.add_argument('--z_dim', type=int, default=128, help="dimension of the latent z vector")
+        parser.add_argument('--z_dim', type=int, default=256, help="dimension of the latent z vector")
         parser.add_argument('--num_upsampling_layers',
                             choices=('normal', 'more', 'most'), default='normal',
                             help="If 'more', adds upsampling layer between the two middle resnet blocks. If 'most', also add one more upsampling + resnet layer at the end of the generator")
@@ -52,20 +52,22 @@ class SpadeGenerator(BaseGenerator) :
         nf = opt.ngf
         norm_nc = opt.pose_nc
 
-        self.sw = self.sh = 32
+        self.sw = self.sh = 8
 
-        self.fc = nn.Linear(opt.z_dim, 3 * nf * self.sw * self.sh)
+        self.fc = nn.Linear(opt.z_dim, 16 * nf * self.sw * self.sh)
 
-        self.head = SPADEResnetBlock(3 * nf, 3 * nf, opt, norm_nc)
-        self.layer_1 = SPADEResnetBlock(3 * nf, 3 * nf, opt, norm_nc)
-        self.layer_2 = SPADEResnetBlock(3 * nf, 3 * nf, opt, norm_nc)
+        self.head_0 = SPADEResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
 
-        self.up_1 = SPADEResnetBlock(3 * nf, 2 * nf, opt, norm_nc)
-        self.up_2 = SPADEResnetBlock(2 * nf, 1 * nf, opt, norm_nc)
-        self.up_3 = SPADEResnetBlock(1 * nf, nf // 2, opt, norm_nc)
+        self.G_middle_0 = SPADEResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
+        self.G_middle_1 = SPADEResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
+
+        self.up_0 = SPADEResnetBlock(16 * nf, 8 * nf, opt, norm_nc)
+        self.up_1 = SPADEResnetBlock(8 * nf, 4 * nf, opt, norm_nc)
+        self.up_2 = SPADEResnetBlock(4 * nf, 2 * nf, opt, norm_nc)
+        self.up_3 = SPADEResnetBlock(2 * nf, 1 * nf, opt, norm_nc)
 
 
-        final_nc = nf // 2
+        final_nc = 1 * nf
         self.conv_img = nn.Conv2d(final_nc, 3, 3, padding=1)
 
         self.up = nn.Upsample(scale_factor=2)
@@ -76,12 +78,16 @@ class SpadeGenerator(BaseGenerator) :
         z = self.reparameterize(mu, var)
 
         x = self.fc(z)
-        x = x.view(-1, 3 * self.opt.ngf, self.sh, self.sw) # 32x32
+        x = x.view(-1, 16 * self.opt.ngf, self.sh, self.sw) # 8x8
 
-        x = self.head(x, pose_information)
-        x = self.layer_1(x, pose_information)
-        x = self.layer_2(x, pose_information)
+        x = self.head_0(x, pose_information)
+        x = self.up(x) # 16x16
 
+        x = self.G_middle_0(x, pose_information)
+        x = self.G_middle_1(x, pose_information)
+
+        x = self.up(x) # 32x32
+        x = self.up_0(x, pose_information)
         x = self.up(x) # 64x64
         x = self.up_1(x, pose_information)
         x = self.up(x) # 128x128
@@ -102,17 +108,19 @@ class SPAINGenerator(BaseGenerator) :
         nf = opt.ngf
         norm_nc = opt.pose_nc
 
-        self.sw = self.sh = 32
+        self.sw = self.sh = 8
 
-        self.head = SPAINResnetBlock(3, 3 * nf, opt, norm_nc)
-        self.layer_1 = SPAINResnetBlock(3 * nf, 3 * nf, opt, norm_nc)
-        self.layer_2 = SPAINResnetBlock(3 * nf, 3 * nf, opt, norm_nc)
+        self.head_0 = SPAINResnetBlock(3, 16 * nf, opt, norm_nc)
 
-        self.up_1 = SPAINResnetBlock(3 * nf, 2 * nf, opt, norm_nc)
-        self.up_2 = SPAINResnetBlock(2 * nf, 1 * nf, opt, norm_nc)
-        self.up_3 = SPAINResnetBlock(1 * nf, nf // 2, opt, norm_nc)
+        self.G_middle_0 = SPAINResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
+        self.G_middle_1 = SPAINResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
 
-        final_nc = nf // 2
+        self.up_0 = SPAINResnetBlock(16 * nf, 8 * nf, opt, norm_nc)
+        self.up_1 = SPAINResnetBlock(8 * nf, 4 * nf, opt, norm_nc)
+        self.up_2 = SPAINResnetBlock(4 * nf, 2 * nf, opt, norm_nc)
+        self.up_3 = SPAINResnetBlock(2 * nf, 1 * nf, opt, norm_nc)
+
+        final_nc = 1 * nf
         self.conv_img = nn.Conv2d(final_nc, 3, 3, padding=1)
 
         self.up = nn.Upsample(scale_factor=2)
@@ -123,10 +131,14 @@ class SPAINGenerator(BaseGenerator) :
 
         noise = torch.randn((pose_information.size(0), 3, self.sw, self.sh), device = pose_information.device)
 
-        x = self.head(noise, pose_information, self.reparameterize(mu, var))
-        x = self.layer_1(x, pose_information, self.reparameterize(mu, var))
-        x = self.layer_2(x, pose_information, self.reparameterize(mu, var))
+        x = self.head_0(noise, pose_information, self.reparameterize(mu, var))
+        x = self.up(x)
 
+        x = self.G_middle_0(x, pose_information, self.reparameterize(mu, var))
+        x = self.G_middle_1(x, pose_information, self.reparameterize(mu, var))
+
+        x = self.up(x)
+        x = self.up_0(x, pose_information, self.reparameterize(mu, var))
         x = self.up(x)
         x = self.up_1(x, pose_information, self.reparameterize(mu, var))
         x = self.up(x)

@@ -32,6 +32,11 @@ nohup python train.py --id spade_256_syncbatch --tf_log --gpu_ids 0,1 --type_En_
 
 nohup python train.py --id spain_filter --tf_log --gpu_ids 0 --netG spain --pose_nc 41 --batchSize 42 --num_workers 15 --dataroot /home/work/msha/datasets/fashion > spain_filter.out &
 
+nohup python train.py --id spade_ngf32 --tf_log --gpu_ids 0 --netG spade --pose_nc 41 --batchSize 25 --num_workers 12 --ngf 32 --dataroot /home/work/msha/datasets/fashion > spade_ngf32.out &
+nohup python train.py --id spade_ngf48 --tf_log --gpu_ids 1 --netG spade --pose_nc 41 --batchSize 23 --num_workers 12 --ngf 48 --dataroot /home/work/msha/datasets/fashion > spade_ngf48.out &
+
+
+
 
 
 
