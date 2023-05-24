@@ -31,14 +31,17 @@ nohup python train.py --id spade_256_zloss --tf_log --gpu_ids 1 --type_En_c z --
 nohup python train.py --id spade_256_syncbatch --tf_log --gpu_ids 0,1 --type_En_c z --type_Dc spade --pose_nc 41 --batchSize 40 --num_workers 15 --z_dim 256 --dataroot /home/work/msha/datasets/fashion --norm_E spectralsyncbatch --norm_D spectralsyncbatch --norm_G spectralsyncbatch --continue_train > spade_256_syncbatch.out &
 
 nohup python train.py --id spain_filter --tf_log --gpu_ids 0 --netG spain --pose_nc 41 --batchSize 42 --num_workers 15 --dataroot /home/work/msha/datasets/fashion > spain_filter.out &
-
-nohup python train.py --id spade_ngf32 --tf_log --gpu_ids 0 --netG spade --pose_nc 41 --batchSize 25 --num_workers 12 --ngf 32 --dataroot /home/work/msha/datasets/fashion > spade_ngf32.out &
-nohup python train.py --id spade_ngf48 --tf_log --gpu_ids 1 --netG spade --pose_nc 41 --batchSize 23 --num_workers 12 --ngf 48 --dataroot /home/work/msha/datasets/fashion > spade_ngf48.out &
-
-
-
-
-
-
 # SPADE command
 nohup python train.py --name fashion --dataset_mode fashion --use_vae --tf_log --no_html --batchSize 14 --gpu_ids 1 > fashion.out &
+
+
+
+# ===========0520=================
+## NIPA
+nohup python train.py --id spade_ngf16 --tf_log --gpu_ids 0 --netG spade --batchSize 30 --num_workers 16 --ngf 16 --dataroot /home/work/msha/datasets/fashion > spade_ngf16.out &
+nohup python train.py --id spade_ngf8 --tf_log --gpu_ids 1 --netG spade --batchSize 30 --num_workers 16 --ngf 8 --dataroot /home/work/msha/datasets/fashion > spade_ngf8.out &
+
+
+
+## RED
+nohup python train.py --id spade_ngf16 --tf_log --gpu_ids 2 --netG spade --batchSize 28 --num_workers 12 --ngf 16 > spade_ngf16.out &
