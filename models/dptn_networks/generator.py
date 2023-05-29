@@ -7,7 +7,9 @@ from models.spade_networks.architecture import SPADEResnetBlock, SPAINResnetBloc
 import torch
 import torch.nn as nn
 from models.dptn_networks.base_network import BaseNetwork
+from models.dptn_networks.decoder import ImageDecoder
 import torch.nn.functional as F
+import math
 
 class BaseGenerator(BaseNetwork) :
     @staticmethod
@@ -23,6 +25,7 @@ class BaseGenerator(BaseNetwork) :
         return parser
     def __init__(self):
         super(BaseGenerator, self).__init__()
+        self.positional_encoding = PositionalEncoding(1024)
     def compute_latent_vector_size(self, opt):
         if opt.num_upsampling_layers == 'normal':
             num_up_layers = 5
@@ -43,6 +46,24 @@ class BaseGenerator(BaseNetwork) :
         eps = torch.randn_like(std)
         return eps.mul(std) + mu
 
+    def get_pose_encoder(self, step):
+        return self.positional_encoding(step)
+
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0).transpose(0, 1)
+        self.register_buffer('pe', pe)
+
+    def forward(self, step):
+        return self.pe[step]
+
 
 class SpadeGenerator(BaseGenerator) :
 
@@ -52,11 +73,11 @@ class SpadeGenerator(BaseGenerator) :
         nf = opt.ngf
         norm_nc = opt.pose_nc
 
-        self.sw = self.sh = 8
+        self.sw = self.sh = 32
 
-        self.fc = nn.Linear(opt.z_dim, 16 * nf * self.sw * self.sh)
+        self.fc = nn.Linear(opt.z_dim, self.sw * self.sh)
 
-        self.head_0 = SPADEResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
+        self.head_0 = SPADEResnetBlock(1, 16 * nf, opt, norm_nc)
 
         self.G_middle_0 = SPADEResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
         self.G_middle_1 = SPADEResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
@@ -68,37 +89,35 @@ class SpadeGenerator(BaseGenerator) :
 
 
         final_nc = 1 * nf
-        self.conv_img = nn.Conv2d(final_nc, 3, 3, padding=1)
+        self.conv_img = nn.Conv2d(final_nc, 1, 3, padding=1)
 
-        self.up = nn.Upsample(scale_factor=2)
+        self.decoder = ImageDecoder(opt)
 
 
-    def forward(self, texture_param, pose_information):
-        mu, var = texture_param
-        z = self.reparameterize(mu, var)
+    def forward(self, x, pose_information, texture_param, step):
+        pe = self.positional_encoding(step).view(-1, 1, self.sh, self.sw)
 
-        x = self.fc(z)
-        x = x.view(-1, 16 * self.opt.ngf, self.sh, self.sw) # 8x8
+        if isinstance(x, list) :
+            mu, var = x
+            z = self.reparameterize(mu, var)
+            x = self.fc(z)
+            x = x.view(-1, 1, self.sh, self.sw)  # 32, 32
 
+        x = x + pe
         x = self.head_0(x, pose_information)
-        x = self.up(x) # 16x16
 
         x = self.G_middle_0(x, pose_information)
         x = self.G_middle_1(x, pose_information)
 
-        x = self.up(x) # 32x32
         x = self.up_0(x, pose_information)
-        x = self.up(x) # 64x64
         x = self.up_1(x, pose_information)
-        x = self.up(x) # 128x128
         x = self.up_2(x, pose_information)
-        x = self.up(x) # 256x256
         x = self.up_3(x, pose_information)
 
         x = self.conv_img(F.leaky_relu(x, 2e-1))
-        x = F.tanh(x)
+        img = self.decoder(x)
 
-        return x
+        return x, img
 
 
 class SPAINGenerator(BaseGenerator) :
@@ -108,9 +127,11 @@ class SPAINGenerator(BaseGenerator) :
         nf = opt.ngf
         norm_nc = opt.pose_nc
 
-        self.sw = self.sh = 8
+        self.sw = self.sh = 32
 
-        self.head_0 = SPAINResnetBlock(3, 16 * nf, opt, norm_nc)
+        self.fc = nn.Linear(opt.z_dim, self.sw * self.sh)
+
+        self.head_0 = SPAINResnetBlock(1, 16 * nf, opt, norm_nc)
 
         self.G_middle_0 = SPAINResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
         self.G_middle_1 = SPAINResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
@@ -121,33 +142,33 @@ class SPAINGenerator(BaseGenerator) :
         self.up_3 = SPAINResnetBlock(2 * nf, 1 * nf, opt, norm_nc)
 
         final_nc = 1 * nf
-        self.conv_img = nn.Conv2d(final_nc, 3, 3, padding=1)
+        self.conv_img = nn.Conv2d(final_nc, 1, 3, padding=1)
 
-        self.up = nn.Upsample(scale_factor=2)
+        self.decoder = ImageDecoder(opt)
 
 
-    def forward(self, texture_param, pose_information):
+    def forward(self, x, pose_information, texture_param, step):
+        pe = self.positional_encoding(step).view(-1, 1, self.sh, self.sw)
         mu, var = texture_param
 
-        noise = torch.randn((pose_information.size(0), 3, self.sw, self.sh), device = pose_information.device)
+        if isinstance(x, list) :
+            z = self.reparameterize(mu, var)
+            x = self.fc(z)
+            x = x.view(-1, 1, self.sh, self.sw)  # 32, 32
 
-        x = self.head_0(noise, pose_information, self.reparameterize(mu, var))
-        x = self.up(x)
+        x = x + pe
+        x = self.head_0(x, pose_information, self.reparameterize(mu, var))
 
         x = self.G_middle_0(x, pose_information, self.reparameterize(mu, var))
         x = self.G_middle_1(x, pose_information, self.reparameterize(mu, var))
 
-        x = self.up(x)
         x = self.up_0(x, pose_information, self.reparameterize(mu, var))
-        x = self.up(x)
         x = self.up_1(x, pose_information, self.reparameterize(mu, var))
-        x = self.up(x)
         x = self.up_2(x, pose_information, self.reparameterize(mu, var))
-        x = self.up(x)
         x = self.up_3(x, pose_information, self.reparameterize(mu, var))
 
         x = self.conv_img(F.leaky_relu(x, 2e-1))
-        x = F.tanh(x)
+        img = self.decoder(x)
 
-        return x
+        return x, img
 

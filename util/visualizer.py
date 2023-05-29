@@ -120,7 +120,7 @@ class Visualizer():
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)
 
-    def convert_visuals_to_numpy(self, visuals, display_num = 10):
+    def convert_visuals_to_numpy(self, visuals, display_num = 2):
         # image shape : (B, C, H, W)
         for key, t in visuals.items():
             t = t[:display_num]

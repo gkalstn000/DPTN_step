@@ -42,7 +42,6 @@ class ImageDecoder(nn.Module) :
 
     def forward(self, x):
         x = self.layer1(x)
-        x = self.up(x) # 16x16 -> 32x32
         x = self.layer2(x)
         x = self.up(x) # 32x32 -> 64x64
         x = self.layer3(x)

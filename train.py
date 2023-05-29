@@ -61,7 +61,7 @@ for epoch in iter_counter.training_epochs():
             visuals = OrderedDict([('train_1texture', data_i['P1']),
                                    ('train_2grount_truth', data_i['P2']),
                                    ('train_3fake_image', fake_image),
-                                   ('train_4bone', data_i['B2']),
+                                   # ('train_4bone', data_i['B2']),
                                    ])
             visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)
 
@@ -80,12 +80,12 @@ for epoch in iter_counter.training_epochs():
                                         valid_losses, iter_counter.time_per_iter)
         visualizer.plot_current_errors(valid_losses, iter_counter.total_steps_so_far)
 
-        bone_test = get_valid_bone_tensors(dataloader_val, trainer.model.module, data_i['P1'][0].cuda(), data_i['B2'][0].cuda())
+        # bone_test = get_valid_bone_tensors(dataloader_val, trainer.model.module, data_i['P1'][0].cuda(), data_i['B2'][0].cuda())
         visuals = OrderedDict([('valid_1texture', data_i['P1']),
                                ('valid_2ground_truth', data_i['P2']),
                                ('valid_3fake_image', fake_image),
-                               ('valid_4bone', data_i['B2']),
-                               ('valid_b_test', bone_test)
+                               # ('valid_4bone', data_i['B2']),
+                               # ('valid_b_test', bone_test)
                                ])
 
         visualizer.display_current_results(visuals, epoch, iter_counter.total_steps_so_far)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="work@localhost:22222 key" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" confirmBeforeDeletion="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="minsu@166.104.232.121:7003 password (2)" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" confirmBeforeDeletion="false">
     <option name="confirmBeforeDeletion" value="false" />
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
@@ -19,11 +19,15 @@
           </excludedPaths>
         </serverdata>
       </paths>
-      <paths name="work@localhost:22222 key">
+      <paths name="work@127.0.0.1:22222 agent">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/work/msha/lpg" local="$PROJECT_DIR$" />
+            <mapping deploy="/lpg" local="$PROJECT_DIR$" web="/" />
           </mappings>
+          <excludedPaths>
+            <excludedPath path="/lpg/checkpoints" />
+            <excludedPath path="/lpg/results" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>

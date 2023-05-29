@@ -101,7 +101,7 @@ class NLayerDiscriminator(BaseNetwork):
             self.add_module('model' + str(n), nn.Sequential(*sequence[n]))
 
     def compute_D_input_nc(self, opt):
-        input_nc = opt.pose_nc + opt.output_nc
+        input_nc = opt.output_nc
         return input_nc
 
     def forward(self, input):

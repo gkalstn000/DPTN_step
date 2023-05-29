@@ -31,8 +31,8 @@ class NoiseEncoder(BaseNetwork):
         self.actvn = nn.LeakyReLU(0.2, False)
 
         self.so = s0 = 4
-        self.fc_mu = FC_layer(opt, nf * 4)
-        self.fc_var = FC_layer(opt, nf * 4)
+        self.fc_mu = nn.Linear(nf * 4 * s0 * s0, opt.z_dim)
+        self.fc_var = nn.Linear(nf * 4 * s0 * s0, opt.z_dim)
     def forward(self, x):
 
         x = self.layer1(x)              # 256x256 -> 128x128

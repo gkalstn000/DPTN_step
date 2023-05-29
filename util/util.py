@@ -93,14 +93,15 @@ def point_to_map(point, size=[256, 256], sigma=6) :
 
 def is_valid_point(point, old_size) :
     return (0 <= point[0] < old_size[0]) and (0 <= point[1] < old_size[1])
-def cords_to_map(cords, opt, sigma=6):
+def cords_to_map(cords, opt, sigma=2):
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
     :param img_size: load image size/ type: tuple/ (H, W)
     :param sigma: scale of heatmap, large sigma makes bigger heatmap
     :return: keypoint(joint) heatmaps/ type: np.array/ shape: (B, H, W, 18)
     '''
-    img_size = opt.load_size
+    factor = 8
+    img_size = (opt.load_size[0] // factor, opt.load_size[1] // factor)
     old_size = opt.old_size
     xx, yy = np.meshgrid(np.arange(img_size[1]*2), np.arange(img_size[0]*2))
     heatmap = np.exp(-((yy - (img_size[0] - 1)) ** 2 + (xx - (img_size[1] - 1)) ** 2) / (2 * sigma ** 2))
@@ -117,7 +118,7 @@ def cords_to_map(cords, opt, sigma=6):
 
     return np.stack(result)
 
-def limbs_to_map(cords, opt, sigma=3) :
+def limbs_to_map(cords, opt, sigma=2) :
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
     :param img_size: load image size/ type: tuple/ (H, W)
@@ -127,8 +128,8 @@ def limbs_to_map(cords, opt, sigma=3) :
     LIMB_SEQ = [[0, 16], [0,14], [0, 15], [0, 17], [16, 17], [0, 1], # Face lines
                 [2, 3], [3, 4], [5, 6], [6, 7], [8, 9], [9, 10], [11, 12], [12, 13], # Limb lines
                 [1, 2], [2, 8], [8, 11], [11, 5], [5, 1], [2, 11], [1, 8], [1, 11], [5, 8]]
-
-    img_size = opt.load_size
+    factor = 8
+    img_size = (opt.load_size[0] // factor, opt.load_size[1] // factor)
     old_size = opt.old_size
     heatmap_column = np.exp(-(img_size[0]-1 - np.arange(img_size[0]*2 - 1))**2 / (2 * sigma ** 2))
     heatmap_column = heatmap_column.reshape((heatmap_column.shape[0], 1))
