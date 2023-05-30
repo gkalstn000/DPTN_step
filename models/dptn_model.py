@@ -44,8 +44,8 @@ class DPTNModel(nn.Module) :
             with torch.no_grad():
                 mu, logvar, _ = self.encoding(P1, loss=False)
                 texture_param = [mu, logvar]
-                fake_image_t, _, _, vis = self.generate_fake(texture_param, B2, P2)
-            return fake_image_t
+                true_images, fake_images, vis = self.generate_fake(texture_param, B2, P2)
+            return fake_images[-1]
     def create_optimizers(self, opt):
         G_params = list(self.netG.parameters()) + list(self.netE.parameters())
         D_params = list(self.netD.parameters())
@@ -112,19 +112,19 @@ class DPTNModel(nn.Module) :
         G_losses['KLD_loss'] = kld_loss
 
         texture_param = [mu, logvar]
+        true_images, fake_images, vis = self.generate_fake(texture_param, bone2, image2)
 
-        fake_image, l1_loss, vgg_loss, vis = self.generate_fake(texture_param, bone2, image2, cal_loss = True)
-
-        G_losses['L1_loss'] += l1_loss
-        G_losses['VGG_loss'] += vgg_loss
+        for true_image, fake_image in zip(true_images, fake_images) :
+            G_losses['l1_loss'] += self.L1loss(fake_image, true_image) * self.opt.lambda_rec
+            G_losses['VGG_loss'] += self.Vggloss(fake_image, true_image) * self.opt.lambda_vgg
 
         pred_fake, pred_real = self.discriminate(fake_image, image2)
 
-        G_losses['GAN'] = self.GANloss(pred_fake, True, for_discriminator=False)
+        G_losses['GAN'] += self.GANloss(pred_fake, True, for_discriminator=False)
 
         if not self.opt.no_ganFeat_loss:
             f_matching = self.feature_matching(pred_fake, pred_real)
-            G_losses['GAN_Feat'] = f_matching
+            G_losses['GAN_Feat'] += f_matching
 
         return G_losses, vis
 
@@ -144,7 +144,8 @@ class DPTNModel(nn.Module) :
             mu, logvar, _ = self.encoding(image1, loss=False)
             texture_param = [mu, logvar]
 
-            fake_image, _, _, _ = self.generate_fake(texture_param, bone2, image2)
+            true_images, fake_images, vis = self.generate_fake(texture_param, bone2, image2)
+            fake_image = fake_images[-1]
             fake_image = fake_image.detach()
             fake_image.requires_grad_()
 
@@ -161,30 +162,25 @@ class DPTNModel(nn.Module) :
             kld_loss = self.KLDLoss(mu, logvar) * self.opt.lambda_kld
 
         return mu, logvar, kld_loss
-    def generate_fake(self, texture_param, pose_information, image, cal_loss = False):
+    def generate_fake(self, texture_param, pose_information, image):
+        b, c, h, w = pose_information.size()
 
-        l1_loss = 0
-        vgg_loss = 0
+        true_images = []
+        fake_images = []
 
-        gt_vis = []
-        fake_vis = []
-        vis = None
-        x = texture_param
+        x = torch.randn(b, 3, h, w).to(pose_information.device)
         for step in range(1, self.opt.step_size+1) :
-            x, fake_image = self.netG(x, pose_information, texture_param, step)
-            if cal_loss :
-                ground_truth = self.get_groundtruth(image, step)
-                gt_vis.append(ground_truth)
-                l1_loss += self.L1loss(fake_image, ground_truth) * self.opt.lambda_rec
-                vgg_loss += self.Vggloss(fake_image, ground_truth) * self.opt.lambda_vgg
+            x, fake_image = self.netG(x.detach(), pose_information, texture_param, step)
+            ground_truth = self.get_groundtruth(image, step)
 
-            fake_vis.append(fake_image.detach())
+            true_images.append(ground_truth)
+            fake_images.append(fake_image)
 
-        if cal_loss :
-            gt_vis = torch.cat(gt_vis, -1)
-            fake_vis = torch.cat(fake_vis, -1)
-            vis = torch.cat([gt_vis, fake_vis], -2)
-        return fake_image, l1_loss, vgg_loss, vis
+        gt_vis = torch.cat(true_images, -1)
+        fake_vis = torch.cat(fake_images, -1).detach()
+        vis = torch.cat([gt_vis, fake_vis], -2)
+
+        return true_images, fake_images, vis
     def use_gpu(self):
         return len(self.opt.gpu_ids) > 0
 

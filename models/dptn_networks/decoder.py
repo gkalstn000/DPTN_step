@@ -28,7 +28,7 @@ class ImageDecoder(nn.Module) :
         self.opt = opt
         nf = opt.ngf
 
-        self.layer1 = Resblock(opt, 1, 16 * nf)
+        self.layer1 = Resblock(opt, 3, 16 * nf)
         self.layer2 = Resblock(opt, 16 * nf, 8 * nf)
         self.layer3 = Resblock(opt, 8 * nf, 4 * nf)
         self.layer4 = Resblock(opt, 4 * nf, 2 * nf)

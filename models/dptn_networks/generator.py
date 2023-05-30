@@ -129,9 +129,7 @@ class SPAINGenerator(BaseGenerator) :
 
         self.sw = self.sh = 32
 
-        self.fc = nn.Linear(opt.z_dim, self.sw * self.sh)
-
-        self.head_0 = SPAINResnetBlock(1, 16 * nf, opt, norm_nc)
+        self.head_0 = SPAINResnetBlock(3, 16 * nf, opt, norm_nc)
 
         self.G_middle_0 = SPAINResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
         self.G_middle_1 = SPAINResnetBlock(16 * nf, 16 * nf, opt, norm_nc)
@@ -142,7 +140,7 @@ class SPAINGenerator(BaseGenerator) :
         self.up_3 = SPAINResnetBlock(2 * nf, 1 * nf, opt, norm_nc)
 
         final_nc = 1 * nf
-        self.conv_img = nn.Conv2d(final_nc, 1, 3, padding=1)
+        self.conv_img = nn.Conv2d(final_nc, 3, 3, padding=1)
 
         self.decoder = ImageDecoder(opt)
 
@@ -150,10 +148,6 @@ class SPAINGenerator(BaseGenerator) :
     def forward(self, x, pose_information, texture_param, step):
         pe = self.positional_encoding(step).view(-1, 1, self.sh, self.sw)
         mu, var = texture_param
-        if isinstance(x, list) :
-            z = self.reparameterize(mu, var)
-            x = self.fc(z)
-            x = x.view(-1, 1, self.sh, self.sw)  # 32, 32
 
         x = x + pe
         x_prev = x

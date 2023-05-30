@@ -10,7 +10,7 @@ class TrainOptions(BaseOptions):
     def initialize(self, parser):
         BaseOptions.initialize(self, parser)
         # for displays
-        parser.add_argument('--display_freq', type=int, default=1000, help='frequency of showing training results on screen')
+        parser.add_argument('--display_freq', type=int, default=3000, help='frequency of showing training results on screen')
         parser.add_argument('--print_freq', type=int, default=500, help='frequency of showing training results on console')
         parser.add_argument('--save_latest_freq', type=int, default=500, help='frequency of saving the latest results')
         parser.add_argument('--save_epoch_freq', type=int, default=5, help='frequency of saving checkpoints at the end of epochs')
@@ -35,7 +35,7 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--gan_mode', type=str, default='hinge', help='(ls|original|hinge)')
 
         # for discriminators
-        parser.add_argument('--ndf', type=int, default=64, help='# of discrim filters in first conv layer')
+        parser.add_argument('--ndf', type=int, default=32, help='# of discrim filters in first conv layer')
         parser.add_argument('--netD', type=str, default='multiscale', help='(n_layers|multiscale|image)')
         parser.add_argument('--dis_layers', type=int, default=4, help='number of layers in D')
         parser.add_argument('--use_spect_d', action='store_false', help='use spectual normalization in generator')
@@ -44,8 +44,8 @@ class TrainOptions(BaseOptions):
         # for loss weights
         parser.add_argument('--lambda_feat', type=float, default=10.0, help='weight for feature matching loss')
         parser.add_argument('--lambda_vgg', type=float, default=10.0, help='weight for vgg loss')
-        parser.add_argument('--lambda_rec', type=float, default=5, help='weight for image reconstruction loss')
-        parser.add_argument('--lambda_kld', type=float, default=0.1)
+        parser.add_argument('--lambda_rec', type=float, default=10.0, help='weight for image reconstruction loss')
+        parser.add_argument('--lambda_kld', type=float, default=0.05)
 
         self.isTrain = True
         return parser
