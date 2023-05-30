@@ -293,7 +293,7 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True, tile=False):
         images_np = np.concatenate(images_np, axis=0)
         if tile:
             images_tensor = torch.tensor(images_np.transpose((0, 3, 1, 2)))
-            images_grid = make_grid(images_tensor, nrow= 6)
+            images_grid = make_grid(images_tensor, nrow= 1)
             return torch.permute(images_grid, (1, 2, 0)).numpy()
         else:
             return images_np[0].transpose((2, 0, 1))

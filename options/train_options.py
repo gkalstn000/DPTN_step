@@ -10,10 +10,10 @@ class TrainOptions(BaseOptions):
     def initialize(self, parser):
         BaseOptions.initialize(self, parser)
         # for displays
-        parser.add_argument('--display_freq', type=int, default=500, help='frequency of showing training results on screen')
-        parser.add_argument('--print_freq', type=int, default=100, help='frequency of showing training results on console')
-        parser.add_argument('--save_latest_freq', type=int, default=100, help='frequency of saving the latest results')
-        parser.add_argument('--save_epoch_freq', type=int, default=1, help='frequency of saving checkpoints at the end of epochs')
+        parser.add_argument('--display_freq', type=int, default=1000, help='frequency of showing training results on screen')
+        parser.add_argument('--print_freq', type=int, default=500, help='frequency of showing training results on console')
+        parser.add_argument('--save_latest_freq', type=int, default=500, help='frequency of saving the latest results')
+        parser.add_argument('--save_epoch_freq', type=int, default=5, help='frequency of saving checkpoints at the end of epochs')
         parser.add_argument('--no_html', action='store_true', help='do not save intermediate training results to [opt.checkpoints_dir]/[opt.name]/web/')
         parser.add_argument('--debug', action='store_true', help='only do one epoch and displays at each iteration')
         parser.add_argument('--tf_log', action='store_true', help='if specified, use tensorboard logging. Requires tensorflow installed')
@@ -44,8 +44,8 @@ class TrainOptions(BaseOptions):
         # for loss weights
         parser.add_argument('--lambda_feat', type=float, default=10.0, help='weight for feature matching loss')
         parser.add_argument('--lambda_vgg', type=float, default=10.0, help='weight for vgg loss')
-        parser.add_argument('--lambda_rec', type=float, default=2.5, help='weight for image reconstruction loss')
-        parser.add_argument('--lambda_kld', type=float, default=0.05)
+        parser.add_argument('--lambda_rec', type=float, default=5, help='weight for image reconstruction loss')
+        parser.add_argument('--lambda_kld', type=float, default=0.1)
 
         self.isTrain = True
         return parser

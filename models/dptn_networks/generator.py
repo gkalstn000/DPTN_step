@@ -150,13 +150,14 @@ class SPAINGenerator(BaseGenerator) :
     def forward(self, x, pose_information, texture_param, step):
         pe = self.positional_encoding(step).view(-1, 1, self.sh, self.sw)
         mu, var = texture_param
-
         if isinstance(x, list) :
             z = self.reparameterize(mu, var)
             x = self.fc(z)
             x = x.view(-1, 1, self.sh, self.sw)  # 32, 32
 
         x = x + pe
+        x_prev = x
+
         x = self.head_0(x, pose_information, self.reparameterize(mu, var))
 
         x = self.G_middle_0(x, pose_information, self.reparameterize(mu, var))
@@ -168,6 +169,7 @@ class SPAINGenerator(BaseGenerator) :
         x = self.up_3(x, pose_information, self.reparameterize(mu, var))
 
         x = self.conv_img(F.leaky_relu(x, 2e-1))
+        x = x_prev + x
         img = self.decoder(x)
 
         return x, img

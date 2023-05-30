@@ -50,7 +50,7 @@ class BaseOptions():
 
         # for generator
         parser.add_argument('--netG', type=str, default='spain', help='selects model to use for netG (spade | spain)')
-        parser.add_argument('--step_size', type=int, default=10, help='generation steps')
+        parser.add_argument('--step_size', type=int, default=5, help='generation steps')
         parser.add_argument('--ngf', type=int, default=32, help='# of gen filters in first conv layer')
         parser.add_argument('--nef', type=int, default=32, help='# of encoder filters in first conv layer')
         parser.add_argument('--init_type', type=str, default='xavier', help='network initialization [normal|xavier|kaiming|orthogonal]')

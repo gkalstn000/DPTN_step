@@ -19,22 +19,20 @@ class Trainer() :
 
 
     def run_generator_one_step(self, data):
-        for i in range(2) :
-            self.optimizer_G.zero_grad()
-            g_losses, fake_t = self.model(data, mode='generator', flag=i)
-            g_loss = sum(g_losses.values()).mean()
-            g_loss.backward()
-            self.optimizer_G.step()
+        self.optimizer_G.zero_grad()
+        g_losses, fake_t = self.model(data, mode='generator', flag=1)
+        g_loss = sum(g_losses.values()).mean()
+        g_loss.backward()
+        self.optimizer_G.step()
         self.g_losses = g_losses
         self.generated = fake_t
 
     def run_discriminator_one_step(self, data):
-        for i in range(2) :
-            self.optimizer_D.zero_grad()
-            d_losses = self.model(data, mode='discriminator', flag=i)
-            d_loss = sum(d_losses.values()).mean()
-            d_loss.backward()
-            self.optimizer_D.step()
+        self.optimizer_D.zero_grad()
+        d_losses = self.model(data, mode='discriminator', flag=1)
+        d_loss = sum(d_losses.values()).mean()
+        d_loss.backward()
+        self.optimizer_D.step()
         self.d_losses = d_losses
 
     def get_latest_losses(self):
