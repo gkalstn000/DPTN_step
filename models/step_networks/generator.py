@@ -6,8 +6,8 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 from models.spade_networks.architecture import SPADEResnetBlock, SPAINResnetBlock
 import torch
 import torch.nn as nn
-from models.dptn_networks.base_network import BaseNetwork
-from models.dptn_networks.decoder import ImageDecoder
+from models.step_networks.base_network import BaseNetwork
+from models.step_networks.decoder import ImageDecoder
 import torch.nn.functional as F
 import math
 

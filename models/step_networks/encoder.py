@@ -1,12 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.dptn_networks import modules
-from models.dptn_networks.base_network import BaseNetwork
+from models.step_networks import modules
+from models.step_networks.base_network import BaseNetwork
 from models.spade_networks.architecture import SPADEResnetBlock
 from models.spade_networks.normalization import get_nonspade_norm_layer
 import math
-from models.dptn_networks import encoder
+from models.step_networks import encoder
 import numpy as np
 
 

@@ -1,18 +1,18 @@
 import torch
 import torch.nn as nn
 
-import models.dptn_networks as networks
+import models.step_networks as networks
 import util.util as util
-from models.dptn_networks import loss
+from models.step_networks import loss
 from collections import defaultdict
 
-class DPTNModel(nn.Module) :
+class STEPModel(nn.Module) :
     @staticmethod
     def modify_commandline_options(parser, is_train):
         networks.modify_commandline_options(parser, is_train)
         return parser
     def __init__(self, opt):
-        super(DPTNModel, self).__init__()
+        super(STEPModel, self).__init__()
         self.opt = opt
         self.FloatTensor = torch.cuda.FloatTensor if self.use_gpu() \
             else torch.FloatTensor

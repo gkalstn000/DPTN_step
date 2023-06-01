@@ -1,16 +1,10 @@
 import torch.nn as nn
-from torch.nn.utils.spectral_norm import spectral_norm as SpectralNorm
-
-from models.dptn_networks.base_network import BaseNetwork
-from models.dptn_networks import modules
-
-import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
-from models.dptn_networks.base_network import BaseNetwork
+from models.step_networks.base_network import BaseNetwork
 from models.spade_networks.normalization import get_nonspade_norm_layer
 import util.util as util
-import models.dptn_networks as models
+import models.step_networks as models
 
 class MultiscaleDiscriminator(BaseNetwork):
     @staticmethod
@@ -23,7 +17,7 @@ class MultiscaleDiscriminator(BaseNetwork):
 
         # define properties of each discriminator of the multiscale discriminator
         subnetD = models.find_class_in_module(opt.netD_subarch + 'discriminator',
-                                            'models.dptn_networks.discriminator')
+                                            'models.step_networks.discriminator')
         subnetD.modify_commandline_options(parser, is_train)
 
         return parser

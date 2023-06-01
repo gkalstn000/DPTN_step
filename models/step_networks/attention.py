@@ -1,7 +1,7 @@
 import copy
 import torch
 from torch import nn
-from models.dptn_networks import modules
+from models.step_networks import modules
 
 class PoseTransformerModule(nn.Module):
     """
@@ -148,7 +148,21 @@ class CAB(nn.Module):
         return src
 
 
-class TTB(nn.Module):
+class DecomposeNetwork(nn.Module):
+    def __init__(self, opt, d_model):
+        super(DecomposeNetwork, self).__init__()
+        self.opt = opt
+
+        attn_layer = AttentionNetwork(d_model, opt.nhead)
+        self.attn_layers = _get_clones(attn_layer, opt.num_attns)
+    def forward(self, query, key, value):
+        output = query
+        for layer in self.attn_layers:
+            output = layer(output, key, value)
+
+        return output
+
+class AttentionNetwork(nn.Module):
     """
     Texture Transfer Block (TTB)
     :param d_model: number of channels in input
@@ -158,42 +172,38 @@ class TTB(nn.Module):
     :param affine: affine in normalization
     :param norm: normalization function 'instance, batch'
     """
-    def __init__(self, d_model, nhead, dim_feedforward=2048,
-                 activation="LeakyReLU", affine=True, norm='instance'):
-        super(TTB, self).__init__()
-        self.self_attn = nn.MultiheadAttention(d_model, nhead)
-        self.multihead_attn = nn.MultiheadAttention(d_model, nhead)
+    def __init__(self, d_model, nhead, dim_feedforward=2048, affine=True):
+        super(AttentionNetwork, self).__init__()
+        self.multihead_attn = nn.MultiheadAttention(d_model, nhead, batch_first = True)
         self.linear1 = nn.Linear(d_model, dim_feedforward)
         self.linear2 = nn.Linear(dim_feedforward, d_model)
 
-        if norm == 'batch':
-            self.norm1 = nn.BatchNorm1d(d_model, affine=affine)
-            self.norm2 = nn.BatchNorm1d(d_model, affine=affine)
-            self.norm3 = nn.BatchNorm1d(d_model, affine=affine)
-        else:
-            self.norm1 = nn.InstanceNorm1d(d_model, affine=affine)
-            self.norm2 = nn.InstanceNorm1d(d_model, affine=affine)
-            self.norm3 = nn.InstanceNorm1d(d_model, affine=affine)
+        self.norm1 = nn.InstanceNorm1d(d_model, affine=affine)
+        self.norm2 = nn.InstanceNorm1d(d_model, affine=affine)
 
-        self.activation = modules.get_nonlinearity_layer(activation)
+        self.activation = nn.LeakyReLU(0.2, False)
 
-    def with_pos_embed(self, tensor, pos):
-        return tensor if pos is None else tensor + pos
+    def forward(self, query, key, value ):
+        '''
+        B: batch size (N)
+        C: channel depth (d_model)
+        HxW: pixel length (L)
+        :param query: size is (B, C, HxW)
+        :param key: size is (B, C, HxW)
+        :param value: size is (B, C, HxW)
+        :return:
+        '''
 
-    def forward(self, tgt, memory, val, pos = None):
-        q = k = self.with_pos_embed(tgt, pos)
-        tgt2 = self.self_attn(q, k, value=tgt)[0]
-        tgt = tgt + tgt2
-        tgt = self.norm1(tgt.permute(1, 2, 0)).permute(2, 0, 1)
-        tgt2, attn_output_weights = self.multihead_attn(query=self.with_pos_embed(tgt, pos),
-                                   key=self.with_pos_embed(memory, pos),
-                                   value=val)
-        tgt = tgt + tgt2
-        tgt = self.norm2(tgt.permute(1, 2, 0)).permute(2, 0, 1)
-        tgt2 = self.linear2(self.activation(self.linear1(tgt)))
-        tgt = tgt + tgt2
-        tgt = self.norm3(tgt.permute(1, 2, 0)).permute(2, 0, 1)
-        return tgt, attn_output_weights
+        # Input shape (B, HxW, C)
+        attn_output, _ = self.multihead_attn(query=query.permute(0, 2, 1),
+                                                               key=key.permute(0, 2, 1),
+                                                               value=value.permute(0, 2, 1))
+        attn_output = attn_output + query.permute(0, 2, 1) # shape (B, HxW, C)
+        attn_output = self.norm1(attn_output.permute(0, 2, 1)).permute(0, 2, 1) # shape (B, HxW, C)
+        output = self.linear2(self.activation(self.linear1(attn_output))) # shape (B, HxW, C)
+        output = output + attn_output # shape (B, HxW, C)
+        output = self.norm2(output.permute(0, 2, 1)) # shape (B, C, HxW)
+        return output
 
 
 

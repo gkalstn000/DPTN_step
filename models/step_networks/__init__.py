@@ -1,5 +1,5 @@
 import torch
-from models.dptn_networks.base_network import BaseNetwork
+from models.step_networks.base_network import BaseNetwork
 
 import importlib
 
@@ -32,7 +32,7 @@ def find_class_in_module(target_cls_name, module):
 
 def find_network_using_name(target_network_name, filename):
     target_class_name = target_network_name + filename
-    module_name = 'models.dptn_networks.' + filename
+    module_name = 'models.step_networks.' + filename
     network = find_class_in_module(target_class_name, module_name)
 
     assert issubclass(network, BaseNetwork), \

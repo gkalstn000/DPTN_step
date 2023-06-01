@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from models.dptn_networks import modules
-from models.dptn_networks.base_network import BaseNetwork
+from models.step_networks import modules
+from models.step_networks.base_network import BaseNetwork
 from models.spade_networks.architecture import SPADEResnetBlock, SPAINResnetBlock
 from models.spade_networks.normalization import get_nonspade_norm_layer
 
@@ -26,10 +26,10 @@ class ImageDecoder(nn.Module) :
     def __init__(self, opt):
         super(ImageDecoder, self).__init__()
         self.opt = opt
-        nf = opt.ngf
+        nf = 64
 
-        self.layer1 = Resblock(opt, 3, 16 * nf)
-        self.layer2 = Resblock(opt, 16 * nf, 8 * nf)
+        self.layer1 = Resblock(opt, 3, 8 * nf)
+        self.layer2 = Resblock(opt, 8 * nf, 8 * nf)
         self.layer3 = Resblock(opt, 8 * nf, 4 * nf)
         self.layer4 = Resblock(opt, 4 * nf, 2 * nf)
 
