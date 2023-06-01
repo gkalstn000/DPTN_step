@@ -87,10 +87,10 @@ class FashionDataset(BaseDataset) :
         B2 = self.obtain_bone(P2_name)
 
 
-        input_dict = {'P1' : P1,
-                      'B1': B1,
-                      'P2': P2,
-                      'B2': B2,
+        input_dict = {'src_image' : P1,
+                      'src_map': B1,
+                      'tgt_image': P2,
+                      'tgt_map': B2,
                       'path': PC_name}
 
 

@@ -20,7 +20,7 @@ class BaseOptions():
     def initialize(self, parser):
         # experiment specifics
         parser.add_argument('--id', type=str, default='spain', help='name of the experiment. It decides where to store samples and models')
-        parser.add_argument('--model', type=str, default='step',help='name of the model.')
+        parser.add_argument('--model', type=str, default='dptn',help='name of the model.')
         parser.add_argument('--norm_E', type=str, default='spectralinstance', help='[spectralinstance|spectralbatch|spectralsyncbatch]')
         parser.add_argument('--norm_G', type=str, default='spectralinstance', help='[spectralinstance|spectralbatch|spectralsyncbatch]')
         parser.add_argument('--norm_D', type=str, default='spectralinstance', help='[spectralinstance|spectralbatch|spectralsyncbatch]')
@@ -49,7 +49,7 @@ class BaseOptions():
         parser.add_argument('--display_winsize', type=int, default=400, help='display window size')
 
         # for generator
-        parser.add_argument('--netG', type=str, default='spain', help='selects model to use for netG (spade | spain)')
+        parser.add_argument('--netG', type=str, default='dptn', help='selects model to use for netG (spade | spain)')
         parser.add_argument('--step_size', type=int, default=5, help='generation steps')
         parser.add_argument('--ngf', type=int, default=32, help='# of gen filters in first conv layer')
         parser.add_argument('--nef', type=int, default=32, help='# of encoder filters in first conv layer')

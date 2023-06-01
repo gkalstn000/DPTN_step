@@ -100,7 +100,7 @@ def cords_to_map(cords, opt, sigma=2):
     :param sigma: scale of heatmap, large sigma makes bigger heatmap
     :return: keypoint(joint) heatmaps/ type: np.array/ shape: (B, H, W, 18)
     '''
-    factor = 8
+    factor = 1
     img_size = (opt.load_size[0] // factor, opt.load_size[1] // factor)
     old_size = opt.old_size
     xx, yy = np.meshgrid(np.arange(img_size[1]*2), np.arange(img_size[0]*2))
@@ -128,7 +128,7 @@ def limbs_to_map(cords, opt, sigma=2) :
     LIMB_SEQ = [[0, 16], [0,14], [0, 15], [0, 17], [16, 17], [0, 1], # Face lines
                 [2, 3], [3, 4], [5, 6], [6, 7], [8, 9], [9, 10], [11, 12], [12, 13], # Limb lines
                 [1, 2], [2, 8], [8, 11], [11, 5], [5, 1], [2, 11], [1, 8], [1, 11], [5, 8]]
-    factor = 8
+    factor = 1
     img_size = (opt.load_size[0] // factor, opt.load_size[1] // factor)
     old_size = opt.old_size
     heatmap_column = np.exp(-(img_size[0]-1 - np.arange(img_size[0]*2 - 1))**2 / (2 * sigma ** 2))
@@ -293,7 +293,7 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True, tile=False):
         images_np = np.concatenate(images_np, axis=0)
         if tile:
             images_tensor = torch.tensor(images_np.transpose((0, 3, 1, 2)))
-            images_grid = make_grid(images_tensor, nrow= 1)
+            images_grid = make_grid(images_tensor, nrow= 5)
             return torch.permute(images_grid, (1, 2, 0)).numpy()
         else:
             return images_np[0].transpose((2, 0, 1))
