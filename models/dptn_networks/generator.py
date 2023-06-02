@@ -65,17 +65,21 @@ class DPTNGenerator(BaseNetwork):
                 source_img,
                 source_bone,
                 target_bone,
-                xs,
+                source_img_step,
+                xt,
                 step):
         b, c, h, w = source_img.size()
         pt = self.positional_encoding(step).view(1, 1, h, w)
-        xs = xs + pt
+        xt = xt + pt
+
+        ps = self.positional_encoding(step+1).view(1, 1, h, w)
+        source_img_step = source_img_step + ps
 
         texture_information = [source_bone, source_img]  # [canonical_bone, source_bone, source_image]
         # Encode source-to-source
-        F_s_s = self.En_c(source_bone, source_bone, xs, texture_information)
+        F_s_s = self.En_c(source_bone, source_img_step, texture_information)
         # Encode source-to-target
-        F_s_t = self.En_c(target_bone, source_bone, xs, texture_information)
+        F_s_t = self.En_c(target_bone, xt, texture_information)
 
         # Source Image Encoding
         F_s = self.En_s(source_img)

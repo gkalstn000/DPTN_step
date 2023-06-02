@@ -153,7 +153,7 @@ class DefaultEncoder(BaseNetwork):
         self.layers = opt.layers_g
         norm_layer = modules.get_norm_layer(norm_type=opt.norm)
         nonlinearity = modules.get_nonlinearity_layer(activation_type=opt.activation)
-        input_nc = 2 * opt.pose_nc + opt.image_nc
+        input_nc = 1 * opt.pose_nc + opt.image_nc
 
         self.block0 = modules.EncoderBlockOptimized(input_nc, opt.ngf, norm_layer,
                                                     nonlinearity, opt.use_spect_g, opt.use_coord)
@@ -171,8 +171,8 @@ class DefaultEncoder(BaseNetwork):
                                      nonlinearity=nonlinearity, use_spect=opt.use_spect_g, use_coord=opt.use_coord)
             setattr(self, 'mblock' + str(i), block)
 
-    def forward(self, bone1, bone2, img2, texture_information = None):
-        x = torch.cat([img2, bone2, bone1], 1)
+    def forward(self, bone2, img2, texture_information = None):
+        x = torch.cat([img2, bone2], 1)
         # Source-to-source Encoder
         x = self.block0(x) # (B, C, H, W) -> (B, ngf, H/2, W/2)
         for i in range(self.layers - 1):

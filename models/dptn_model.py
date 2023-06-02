@@ -179,7 +179,7 @@ class DPTNModel(nn.Module) :
         fake_tgts = []
         fake_srcs = []
 
-        xs = torch.randn(b, 3, h, w).to(src_image.device)
+        xt = torch.randn(b, 3, h, w).to(src_image.device)
         for step in range(1, self.opt.step_size + 1) :
             gt_src = self.get_groundtruth(src_image, step)
             gt_tgt = self.get_groundtruth(tgt_image, step)
@@ -187,7 +187,8 @@ class DPTNModel(nn.Module) :
             xt, xs = self.netG(src_image,
                                src_map,
                                tgt_map,
-                               xs.detach(),
+                               gt_src,
+                               xt.detach(),
                                step)
 
 
