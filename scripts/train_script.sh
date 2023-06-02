@@ -48,3 +48,8 @@ nohup python train.py --id spade_ngf16 --tf_log --gpu_ids 2 --netG spade --batch
 
 
 nohup python train.py --id spain_step_32 --tf_log --gpu_ids 2 --netG spain --batchSize 11 --num_workers 5 > spain_step_32.out &
+
+
+
+
+nohup python train.py --id step_dptn --tf_log --gpu_ids 2 --netG dptn --batchSize 5 --num_workers 5 > step_dptn.out &

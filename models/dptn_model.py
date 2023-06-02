@@ -4,7 +4,7 @@ import torch.nn as nn
 import models.dptn_networks as networks
 import util.util as util
 from models.dptn_networks import loss
-
+from collections import defaultdict
 class DPTNModel(nn.Module) :
     @staticmethod
     def modify_commandline_options(parser, is_train):
@@ -33,7 +33,7 @@ class DPTNModel(nn.Module) :
 
             g_loss, fake_t, fake_s = self.compute_generator_loss(src_image, src_map,
                                                             tgt_image, tgt_map)
-            return g_loss, fake_t, fake_s
+            return g_loss, (fake_t, fake_s)
         elif mode == 'discriminator':
             d_loss = self.compute_discriminator_loss(src_image, src_map,
                                                      tgt_image, tgt_map)
@@ -41,10 +41,10 @@ class DPTNModel(nn.Module) :
         elif mode == 'inference' :
             self.netG.eval()
             with torch.no_grad():
-                fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
-                                                                  tgt_map,
+                (gt_tgts, gt_srcs), (fake_tgts, fake_srcs), (vis_tgt, vis_src) = self.generate_fake(src_image, src_map,
+                                                                tgt_image,  tgt_map,
                                                                 False)
-            return fake_image_t, fake_image_s
+            return vis_tgt, vis_src
     def create_optimizers(self, opt):
         G_params = list(self.netG.parameters())
         D_params = list(self.netD.parameters())
@@ -90,35 +90,41 @@ class DPTNModel(nn.Module) :
         return data['src_image'], data['src_map'], data['tgt_image'], data['tgt_map']
         # return data['canonical_image'], data['canonical_map'], data['tgt_image'], data['tgt_map'], data['canonical_image'], data['canonical_map']
 
-    def backward_G_basic(self, fake_image, target_image, use_d):
+    def backward_G_basic(self, fake_images, target_images, use_d):
         # Calculate reconstruction loss
-        loss_app_gen = self.L1loss(fake_image, target_image)
-        loss_app_gen = loss_app_gen * self.opt.lambda_rec
+        loss_app_gen = 0
+        loss_content_gen = 0
+        loss_style_gen = 0
+        for fake_image, target_image in zip(fake_images, target_images) :
+            loss_app_gen += self.L1loss(fake_image, target_image) * self.opt.lambda_rec
+            cont, style = self.Vggloss(fake_image, target_image)
+            loss_content_gen += cont * self.opt.lambda_content
+            loss_style_gen += style * self.opt.lambda_style
+
 
         # Calculate GAN loss
         loss_ad_gen = None
         if use_d:
-            with torch.no_grad():
-                D_fake = self.netD(fake_image)
+            D_fake = self.netD(fake_image)
             loss_ad_gen = self.GANloss(D_fake, True, False) * self.opt.lambda_g
-
-        # Calculate perceptual loss
-        loss_content_gen, loss_style_gen = self.Vggloss(fake_image, target_image)
-        loss_style_gen = loss_style_gen * self.opt.lambda_style
-        loss_content_gen = loss_content_gen * self.opt.lambda_content
 
         return loss_app_gen, loss_ad_gen, loss_style_gen, loss_content_gen
     def compute_generator_loss(self,
                                src_image, src_map,
                                tgt_image, tgt_map):
-        self.netD.eval()
-        self.netG.train()
-        G_losses = {}
-        fake_image_t, fake_image_s = self.generate_fake(src_image, src_map,
-                                                                  tgt_map,
+
+        G_losses = defaultdict(int)
+
+        (gt_tgts, gt_srcs), (fake_tgts, fake_srcs), (vis_tgt, vis_src) = self.generate_fake(src_image, src_map,
+                                                        tgt_image, tgt_map,
                                                         self.opt.isTrain)
-        loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_image_t, tgt_image, use_d=True)
-        loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_image_s, src_image, use_d=False)
+
+
+
+
+
+        loss_app_gen_t, loss_ad_gen_t, loss_style_gen_t, loss_content_gen_t = self.backward_G_basic(fake_tgts, gt_tgts, use_d=True)
+        loss_app_gen_s, _, loss_style_gen_s, loss_content_gen_s = self.backward_G_basic(fake_srcs, gt_srcs, use_d=False)
         self.netD.train()
         G_losses['L1_target'] = self.opt.t_s_ratio * loss_app_gen_t
         G_losses['GAN_target'] = loss_ad_gen_t
@@ -126,7 +132,7 @@ class DPTNModel(nn.Module) :
         G_losses['L1_source'] = (1-self.opt.t_s_ratio) * loss_app_gen_s
         G_losses['VGG_source'] = (1-self.opt.t_s_ratio) * (loss_style_gen_s + loss_content_gen_s)
 
-        return G_losses, fake_image_t, fake_image_s
+        return G_losses, vis_tgt, vis_src
     def backward_D_basic(self, real, fake):
         # Real
         D_real = self.netD(real)
@@ -143,15 +149,14 @@ class DPTNModel(nn.Module) :
     def compute_discriminator_loss(self,
                                    src_image, src_map,
                                    tgt_image, tgt_map):
-        self.netD.train()
-        self.netG.eval()
+
         D_losses = {}
         with torch.no_grad():
-            fake_image_t, fake_image_s, _, _ = self.netG(src_image, src_map,
-                                                   tgt_map)
-            fake_image_t = fake_image_t.detach()
+            _, (fake_tgts, fake_srcs), _ = self.generate_fake(src_image, src_map, tgt_image, tgt_map)
+
+            fake_image_t = fake_tgts[-1].detach()
             fake_image_t.requires_grad_()
-            fake_image_s = fake_image_s.detach()
+            fake_image_s = fake_srcs[-1].detach()
             fake_image_s.requires_grad_()
         self.netG.train()
         D_real_loss, D_fake_loss, gradient_penalty = self.backward_D_basic(tgt_image, fake_image_t)
@@ -164,15 +169,61 @@ class DPTNModel(nn.Module) :
 
     def generate_fake(self,
                       src_image, src_map,
-                      tgt_map,
+                      tgt_image, tgt_map,
                       is_train=True):
 
-        fake_image_t, fake_image_s, first_attn_weights, last_attn_weights = self.netG(src_image, src_map,
-                                                                                      tgt_map,
-                                                                                      is_train)
+        b, c, h, w = src_image.size()
 
-        self.first_attn_weights = first_attn_weights
-        self.last_attn_weights = last_attn_weights
-        return fake_image_t, fake_image_s
+        gt_tgts = []
+        gt_srcs = []
+        fake_tgts = []
+        fake_srcs = []
+
+        xs = torch.randn(b, 3, h, w).to(src_image.device)
+        for step in range(1, self.opt.step_size + 1) :
+            gt_src = self.get_groundtruth(src_image, step)
+            gt_tgt = self.get_groundtruth(tgt_image, step)
+
+            xt, xs = self.netG(src_image,
+                               src_map,
+                               tgt_map,
+                               xs.detach(),
+                               step)
+
+
+            gt_tgts.append(gt_tgt)
+            gt_srcs.append(gt_src)
+
+            fake_tgts.append(xt)
+            fake_srcs.append(xs)
+
+        vis_tgt = self.get_vis(gt_tgts, fake_tgts)
+        vis_src = self.get_vis(gt_srcs, fake_srcs)
+
+
+
+        return (gt_tgts, gt_srcs), (fake_tgts, fake_srcs), (vis_tgt, vis_src)
+
+    def get_vis(self, true_list, fake_list):
+        gt_vis = torch.cat(true_list, -1)
+        fake_vis = torch.cat(fake_list, -1).detach()
+        vis = torch.cat([gt_vis, fake_vis], -2)
+
+        return vis
+
     def use_gpu(self):
         return len(self.opt.gpu_ids) > 0
+
+    def get_groundtruth(self, img_tensor, step):
+        total_step = self.opt.step_size
+        if step == total_step : return img_tensor
+        dstep = 255 // total_step
+        destory_term = 255 - dstep * step
+
+        img_tensor_denorm = (img_tensor + 1) / 2 * 255
+
+        ground_truth = img_tensor_denorm // destory_term * destory_term
+
+        ground_truth = (ground_truth / 255 * 2) - 1
+
+        return ground_truth

@@ -10,6 +10,7 @@ from models.dptn_networks.base_network import BaseNetwork
 from models.dptn_networks import encoder
 from models.dptn_networks import decoder
 from models.dptn_networks import PTM
+import math
 
 class DPTNGenerator(BaseNetwork):
     """
@@ -55,22 +56,51 @@ class DPTNGenerator(BaseNetwork):
         # OutputDecoder De
         self.De = define_De(opt)
 
-    def forward(self, source_image, source_bone, target_bone, is_train=True):
-        texture_information = [source_bone, source_image]  # [canonical_bone, source_bone, source_image]
+        self.positional_encoding = PositionalEncoding(opt.load_size[0] * opt.load_size[1])
+
+    def get_pose_encoder(self, step):
+        return self.positional_encoding(step)
+
+    def forward(self,
+                source_img,
+                source_bone,
+                target_bone,
+                xs,
+                step):
+        b, c, h, w = source_img.size()
+        pt = self.positional_encoding(step).view(1, 1, h, w)
+        xs = xs + pt
+
+        texture_information = [source_bone, source_img]  # [canonical_bone, source_bone, source_image]
         # Encode source-to-source
-        F_s_s = self.En_c(source_bone, source_bone, source_image, texture_information)
+        F_s_s = self.En_c(source_bone, source_bone, xs, texture_information)
         # Encode source-to-target
-        F_s_t = self.En_c(target_bone, source_bone, source_image, texture_information)
+        F_s_t = self.En_c(target_bone, source_bone, xs, texture_information)
 
         # Source Image Encoding
-        F_s = self.En_s(source_image)
+        F_s = self.En_s(source_img)
         # Pose Transformer Module for Dual-task Correlation
-        F_s_t, first_attn_weights, last_attn_weights = self.PTM(F_s_s, F_s_t, F_s)
+        F_s_t, _, _ = self.PTM(F_s_s, F_s_t, F_s)
         # Source-to-source Decoder (only for training)
-        out_image_s = None
-        if is_train:
-            out_image_s = self.De(F_s_s, texture_information)
+        out_image_s = self.De(F_s_s, texture_information)
         # Source-to-target Decoder
-        texture_information = [source_bone, source_image] # [target_bone, source_bone, source_image]
+        texture_information = [source_bone, source_img] # [target_bone, source_bone, source_image]
         out_image_t = self.De(F_s_t, texture_information)
-        return out_image_t, out_image_s, first_attn_weights, last_attn_weights
+
+        return out_image_t, out_image_s
+
+
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0).transpose(0, 1)
+        self.register_buffer('pe', pe)
+
+    def forward(self, step):
+        return self.pe[step]
