@@ -61,7 +61,7 @@ def compare_mae(img_true, img_test):
     return np.sum(np.abs(img_true - img_test)) / np.sum(img_true + img_test)
 
 def get_keypoint_dict() :
-    keypoint_path = 'datasets/fashion/fasion-annotation-test.csv'
+    keypoint_path = '/datasets/msha/fashion/fashion-annotation-test.csv'
     df_keypoint = pd.read_csv(keypoint_path, sep=':')
     keypoint_dict = defaultdict(list)
     for idx, (name, keypoints_y, keypoints_x) in df_keypoint.iterrows() :

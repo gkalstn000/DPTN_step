@@ -44,7 +44,7 @@ class DPTNModel(nn.Module) :
                 (gt_tgts, gt_srcs), (fake_tgts, fake_srcs), (vis_tgt, vis_src) = self.generate_fake(src_image, src_map,
                                                                 tgt_image,  tgt_map,
                                                                 False)
-            return vis_tgt, vis_src
+            return (fake_tgts, fake_srcs), (vis_tgt, vis_src)
     def create_optimizers(self, opt):
         G_params = list(self.netG.parameters())
         D_params = list(self.netD.parameters())

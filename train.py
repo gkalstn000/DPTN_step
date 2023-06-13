@@ -72,7 +72,7 @@ for epoch in iter_counter.training_epochs():
         # break
 
     for i, data_i in tqdm(enumerate(dataloader_val), desc='Validation images generating') :
-        fake_image_t, fake_image_s = trainer.model(data_i, mode='inference')
+        _, (fake_image_t, fake_image_s) = trainer.model(data_i, mode='inference')
 
         # bone_test = get_valid_bone_tensors(dataloader_val, trainer.model.module, data_i['P1'][0].cuda(), data_i['B2'][0].cuda())
         visuals = OrderedDict([('valid_source', fake_image_s),

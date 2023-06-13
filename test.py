@@ -31,7 +31,8 @@ result_path = os.path.join(opt.results_dir, opt.id)
 util.mkdirs(result_path)
 # test
 for i, data_i in enumerate(tqdm(dataloader)):
-    fake_target, fake_source = model(data_i, mode='inference')
+    (fake_target, fake_source), _ = model(data_i, mode='inference')
+    fake_target = fake_target[-1]
 
     img_path = data_i['path']
     if opt.simple_test:

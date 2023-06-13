@@ -122,5 +122,9 @@ python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --
 python eval.py --gt_path /home/red/external/msha/datasets/fashion/test_higher --fid_real_path /home/red/external/msha/datasets/fashion/train_higher --distorated_path ./results/DPTN_higher_spade_ex3 --gpu_id 3 --name DPTN_higher_spade_ex3 --interpolation bilinear
 
 
+python eval.py --gt_path /datasets/msha/fashion/test_higher --fid_real_path /datasets/msha/fashion/train_higher --distorated_path ./results/step_dptn --gpu_id 0 --name step_dptn --interpolation bilinear
+
+
+
 
 
