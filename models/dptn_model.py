@@ -191,7 +191,6 @@ class DPTNModel(nn.Module) :
                                xt.detach(),
                                step)
 
-
             gt_tgts.append(gt_tgt)
             gt_srcs.append(gt_src)
 
