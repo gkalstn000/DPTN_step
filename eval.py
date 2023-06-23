@@ -58,7 +58,7 @@ if __name__ == "__main__":
     dataloader = MetricDataset(args, fid_real_list, fid_real_list)
     dataloader1 = make_dataloader(dataloader, args.batchsize)
     fid_real_buffer = []
-    for _, real_imgs in tqdm(dataloader1, desc= 'Calculating FID real statics...') :
+    for _, real_imgs, _ in tqdm(dataloader1, desc= 'Calculating FID real statics...') :
         real_imgs = real_imgs.cuda()
         with torch.no_grad():
             fid_score = fid.calculate_activation_statistics_of_images(real_imgs)
@@ -70,7 +70,8 @@ if __name__ == "__main__":
     s1 = np.cov(act, rowvar=False)
 
     # m1, s1 = fid.compute_statistics_of_path(args.fid_real_path, False)
-
+    dict_scores = {'filename': [],
+                   'lpips' : [],}
     for (num_keypoint, gt_list), (num_keypoint, distorated_list) in zip(gt_dict.items(), distorated_dict.items()) :
         if num_keypoint < 19: continue
         dataloader = MetricDataset(args, gt_list, distorated_list)
@@ -85,13 +86,16 @@ if __name__ == "__main__":
         l1_buffers = []
         mae_buffers = []
 
-        for gt_imgs, distorated_imgs in tqdm(dataloader1, desc = f'Calculating {num_keypoint} key point scores') :
+        for gt_imgs, distorated_imgs, gt_path in tqdm(dataloader1, desc = f'Calculating {num_keypoint} key point scores') :
             gt_imgs = gt_imgs.cuda()
             distorated_imgs = distorated_imgs.cuda()
             with torch.no_grad() :
                 lpips_score = lpips(distorated_imgs, gt_imgs)
                 rec_dict = rec(distorated_imgs, gt_imgs)
                 fid_score = fid.calculate_activation_statistics_of_images(distorated_imgs)
+            dict_scores['lpips'].extend(lpips_score.squeeze().cpu().tolist())
+            dict_scores['filename'].extend(gt_path)
+
             lpips_buffers.append(lpips_score.mean().item())
             fid_buffers.append(fid_score)
             ssim_buffers.append(rec_dict['ssim'])
@@ -116,6 +120,8 @@ if __name__ == "__main__":
     df_score = df_score[[19]+[x for x in range(7, 19)]]
     df_score.rename(columns = {19 : 'Total'}, inplace=True)
     df_score.to_csv(f'./eval_results/{args.name}.csv')
+
+    pd.DataFrame.from_dict(dict_scores).to_csv(f'./eval_results/{args.name}_rank.csv', index=False)
     #
     # fid_score = fid.calculate_from_disk(args.distorated_path, args.fid_real_path)
     # print(f'My FID score {df_score["Total"]["fid"]}')
