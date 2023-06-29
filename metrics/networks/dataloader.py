@@ -38,7 +38,7 @@ class MetricDataset(data.Dataset) :
             gt_image = F.resize(gt_image, self.opt.load_size, self.interpolation)
             distorated_image = F.resize(distorated_image, self.opt.load_size, self.interpolation)
 
-            return self.trans(gt_image).float(), self.trans(distorated_image).float(), gt_path.split('/')[-1]
+            return self.trans(gt_image).float(), self.trans(distorated_image).float(), distorated_path.split('/')[-1].replace('.jpg', '')
     def cv2_loading(self, image_path):
         interpolation_dict_ = {'bilinear' : cv2.INTER_LINEAR,
                               'nearest' : cv2.INTER_NEAREST,
