@@ -66,11 +66,11 @@ class Reconstruction_Metrics():
             if hasattr(self, 'mae'):
                 mae_value = compare_mae(gt, input)
                 mae.append(mae_value)
-        result['ssim'] = round(np.mean(ssim), 4)
-        result['ssim_256'] = round(np.mean(ssim_256), 4)
-        result['psnr'] = round(np.mean(psnr), 4)
-        result['l1'] = round(np.mean(l1), 4)
-        result['mae'] = round(np.mean(mae), 4)
+        result['ssim'] = ssim
+        result['ssim_256'] = ssim_256
+        result['psnr'] = psnr
+        result['l1'] = l1
+        result['mae'] = mae
         return result
 
     def calculate_from_disk(self, inputs, gts, save_path=None, sort=True, debug=0):

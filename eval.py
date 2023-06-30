@@ -71,7 +71,9 @@ if __name__ == "__main__":
 
     # m1, s1 = fid.compute_statistics_of_path(args.fid_real_path, False)
     dict_scores = {'filename': [],
-                   'lpips' : [],}
+                   'lpips' : [],
+                   'psnr' : [],
+                   'ssim' : []}
     for (num_keypoint, gt_list), (num_keypoint, distorated_list) in zip(gt_dict.items(), distorated_dict.items()) :
         if num_keypoint < 19: continue
         dataloader = MetricDataset(args, gt_list, distorated_list)
@@ -95,16 +97,21 @@ if __name__ == "__main__":
                 fid_score = fid.calculate_activation_statistics_of_images(distorated_imgs)
             dict_scores['lpips'].extend(lpips_score.squeeze().cpu().tolist())
             dict_scores['filename'].extend(gt_path)
+            dict_scores['psnr'].extend(rec_dict['psnr'])
+            dict_scores['ssim'].extend(rec_dict['ssim'])
 
             lpips_buffers.append(lpips_score.mean().item())
             fid_buffers.append(fid_score)
-            ssim_buffers.append(rec_dict['ssim'])
-            ssim_256_buffers.append(rec_dict['ssim_256'])
-            psnr_buffers.append(rec_dict['psnr'])
-            l1_buffers.append(rec_dict['l1'])
-            mae_buffers.append(rec_dict['mae'])
+
+            ssim_buffers.extend(rec_dict['ssim'])
+            ssim_256_buffers.extend(rec_dict['ssim_256'])
+            psnr_buffers.extend(rec_dict['psnr'])
+            l1_buffers.extend(rec_dict['l1'])
+            mae_buffers.extend(rec_dict['mae'])
+
             gc.collect()
             torch.cuda.empty_cache()
+
         act = np.concatenate(fid_buffers, axis = 0)
         m2 = np.mean(act, axis=0)
         s2 = np.cov(act, rowvar=False)
