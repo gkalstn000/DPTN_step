@@ -58,7 +58,7 @@ if __name__ == "__main__":
     dataloader = MetricDataset(args, fid_real_list, fid_real_list)
     dataloader1 = make_dataloader(dataloader, args.batchsize)
     fid_real_buffer = []
-    for _, real_imgs, _ in tqdm(dataloader1, desc= 'Calculating FID real statics...') :
+    for real_imgs, _, _ in tqdm(dataloader1, desc= 'Calculating FID real statics...') :
         real_imgs = real_imgs.cuda()
         with torch.no_grad():
             fid_score = fid.calculate_activation_statistics_of_images(real_imgs)
