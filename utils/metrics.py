@@ -5,8 +5,8 @@ import numpy as np
 from imageio import imread
 from scipy import linalg
 from torch.nn.functional import adaptive_avg_pool2d
-from skimage.measure import compare_ssim
-from skimage.measure import compare_psnr
+from skimage.metrics import structural_similarity as compare_ssim
+from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 
 import glob
 import argparse
@@ -17,7 +17,7 @@ import lpips
 import pandas as pd
 import json
 import imageio
-from skimage.draw import circle, line_aa, polygon
+from skimage.draw import disk, line_aa, polygon
 import cv2
 
 
@@ -619,7 +619,7 @@ def produce_ma_mask(kp_array, img_size=(128, 64), point_radius=4):
     for i, joint in enumerate(kp_array):
         if kp_array[i][0] == MISSING_VALUE or kp_array[i][1] == MISSING_VALUE:
             continue
-        yy, xx = circle(joint[0], joint[1], radius=point_radius, shape=img_size)
+        yy, xx = disk(joint[0], joint[1], radius=point_radius, shape=img_size)
         mask[yy, xx] = True
 
     mask = dilation(mask, square(5))
@@ -644,7 +644,7 @@ if __name__ == "__main__":
 
     real_path = '/datasets/msha/fashion/train_higher'
     gt_path = '/datasets/msha/fashion/test_higher'
-    distorated_path = '/home/minsu/lpg/results/NTED'
+    distorated_path = './lpg/results/NTED'
 
     gt_list, distorated_list = preprocess_path_for_deform_task(gt_path, distorated_path)
 

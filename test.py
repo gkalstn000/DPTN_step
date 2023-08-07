@@ -38,8 +38,9 @@ for i, data_i in enumerate(tqdm(dataloader)):
     if opt.simple_test:
         fake_target = (fake_target + 1) / 2
         for k in range(fake_target.shape[0]) :
+            filename = img_path[k].replace('jpg', 'png')
             generated_image = trans(fake_target[k].cpu())
-            generated_image.save(os.path.join(result_path, img_path[k]))
+            generated_image.save(os.path.join(result_path, filename))
         continue
     for b in range(fake_target.shape[0]):
         # print('process image... %s' % img_path[b])
