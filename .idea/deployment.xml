@@ -19,13 +19,6 @@
           </excludedPaths>
         </serverdata>
       </paths>
-      <paths name="work@localhost:22222 agent (3)">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/work/msha/lpg" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
     </serverData>
     <option name="myAutoUpload" value="ALWAYS" />
   </component>
