@@ -338,6 +338,9 @@ class Reconstruction_Metrics():
                     plt.title('Output')
                     plt.show()
 
+                img_gt = cv2.resize(img_gt, (176, 256))
+                img_pred = cv2.resize(img_pred, (176, 256))
+
                 psnr.append(compare_psnr(img_gt, img_pred, data_range=self.data_range))
                 ssim.append(compare_ssim(img_gt, img_pred, data_range=self.data_range, 
                             win_size=self.win_size,multichannel=self.multichannel))
@@ -434,10 +437,9 @@ def preprocess_path_for_deform_task(gt_path, distorted_path):
 
     for distorted_image in distorted_image_list:
         image = os.path.basename(distorted_image)
-        extension = 'jpg'
         image = image.split('_2_')[-1]
-        image = image.split('_vis')[0] +f'.{extension}'
-        gt_image = os.path.join(gt_path, image)
+        image = image.split('_vis')[0] +'.png'
+        gt_image = os.path.join(gt_path,  image)
         if not os.path.isfile(gt_image):
             print(gt_image)
             continue
@@ -642,14 +644,15 @@ if __name__ == "__main__":
     lpips_obj = LPIPS()
     rec = Reconstruction_Metrics()
 
-    real_path = '/datasets/msha/fashion/train_higher'
-    gt_path = '/datasets/msha/fashion/test_higher'
-    distorated_path = './lpg/results/NTED'
+    real_path = '/datasets/msha/fashion/train_256'
+    gt_path = '/datasets/msha/fashion/test_256'
+    distorated_path = './results/step_dptn'
 
     gt_list, distorated_list = preprocess_path_for_deform_task(gt_path, distorated_path)
 
     FID = fid.calculate_from_disk(distorated_path, real_path)
     LPIPS = lpips_obj.calculate_from_disk(distorated_list, gt_list, sort=False)
+    print('LPIPS: ', LPIPS)
     REC = rec.calculate_from_disk(distorated_list, gt_list, distorated_path, sort=False, debug=False)
 
     print ("FID: "+str(FID)+"\nLPIPS: "+str(LPIPS)+"\nSSIM: "+str(REC))
