@@ -187,8 +187,8 @@ class FID():
             # batch = Variable(batch, volatile=True)
             if self.cuda:
                 batch = batch.cuda()
-
-            pred = self.model(batch)[0]
+            with torch.no_grad() :
+                pred = self.model(batch)[0]
 
             # If model output is not scalar, apply global spatial average pooling.
             # This happens if you choose a dimensionality not equal 2048.
@@ -326,8 +326,8 @@ class Reconstruction_Metrics():
                 name = os.path.basename(input_image_list[index])
                 names.append(name)
 
-                img_gt   = (imread(str(gt_image_list[index]))).astype(np.float32) / 255.0
-                img_pred = (imread(str(input_image_list[index]))).astype(np.float32) / 255.0
+                img_gt   = imread(str(gt_image_list[index]))
+                img_pred = imread(str(input_image_list[index]))
 
                 if debug != 0:
                     plt.subplot('121')
@@ -338,8 +338,8 @@ class Reconstruction_Metrics():
                     plt.title('Output')
                     plt.show()
 
-                img_gt = cv2.resize(img_gt, (176, 256))
-                img_pred = cv2.resize(img_pred, (176, 256))
+                img_gt = cv2.resize(img_gt, (176, 256)).astype(np.float32) / 255.0
+                img_pred = cv2.resize(img_pred, (176, 256)).astype(np.float32) / 255.0
 
                 psnr.append(compare_psnr(img_gt, img_pred, data_range=self.data_range))
                 ssim.append(compare_ssim(img_gt, img_pred, data_range=self.data_range, 
@@ -519,8 +519,9 @@ class LPIPS():
                 # img_1_batch = torch.nn.functional.interpolate(img_1_batch, size=(256, 176), mode='bilinear', align_corners=False)
                 # img_2_batch = torch.nn.functional.interpolate(img_2_batch, size=(256, 176), mode='bilinear', align_corners=False)
 
-
-            result.append(self.model.forward(img_1_batch, img_2_batch))
+            self.model.eval()
+            with torch.no_grad() :
+                result.append(self.model.forward(img_1_batch, img_2_batch))
 
 
         distance = torch.cat(result,0)[:,0,0,0].mean()
@@ -580,8 +581,9 @@ class LPIPS():
                 img_1_batch = img_1_batch.cuda()
                 img_2_batch = img_2_batch.cuda()
 
-
-            result.append(self.model.forward(img_1_batch, img_2_batch))
+            self.model.eval()
+            with torch.no_grad() :
+                result.append(self.model.forward(img_1_batch, img_2_batch))
 
 
         distance = np.average(result)
@@ -646,7 +648,7 @@ if __name__ == "__main__":
 
     real_path = '/datasets/msha/fashion/train_256'
     gt_path = '/datasets/msha/fashion/test_256'
-    distorated_path = './results/step_dptn'
+    distorated_path = './results/PIDM'
 
     gt_list, distorated_list = preprocess_path_for_deform_task(gt_path, distorated_path)
 

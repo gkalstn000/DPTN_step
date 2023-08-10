@@ -27,7 +27,7 @@ if not opt.simple_test:
                         (opt.id, opt.phase, opt.which_epoch))
 
 trans = T.ToPILImage()
-result_path = os.path.join(opt.results_dir, opt.id)
+result_path = os.path.join(opt.results_dir, opt.save_id)
 util.mkdirs(result_path)
 # test
 for i, data_i in enumerate(tqdm(dataloader)):
