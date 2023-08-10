@@ -20,6 +20,13 @@ import imageio
 from skimage.draw import disk, line_aa, polygon
 import cv2
 
+import warnings
+
+# 모든 경고를 무시하도록 설정
+warnings.filterwarnings("ignore")
+
+# 특정 경고 종류를 무시하도록 설정
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 class FID():
     """docstring for FID
@@ -352,18 +359,18 @@ class Reconstruction_Metrics():
                 ssim_256.append(compare_ssim(img_gt_256, img_pred_256, gaussian_weights=True, sigma=1.2,
                                 use_sample_covariance=False, multichannel=True,
                                 data_range=img_pred_256.max() - img_pred_256.min()))
-                if np.mod(index, 200) == 0:
-                    print(
-                        str(index) + ' images processed',
-                        "PSNR: %.4f" % round(np.mean(psnr), 4),
-                        "SSIM: %.4f" % round(np.mean(ssim), 4),
-                        "SSIM_256: %.4f" % round(np.mean(ssim_256), 4),
-                        "MAE: %.4f" % round(np.mean(mae), 4),
-                        "l1: %.4f" % round(np.mean(l1), 4),
-                    )
+                # if np.mod(index, 200) == 0:
+                #     print(
+                #         str(index) + ' images processed',
+                #         "PSNR: %.4f" % round(np.mean(psnr), 4),
+                #         "SSIM: %.4f" % round(np.mean(ssim), 4),
+                #         "SSIM_256: %.4f" % round(np.mean(ssim_256), 4),
+                #         "MAE: %.4f" % round(np.mean(mae), 4),
+                #         "l1: %.4f" % round(np.mean(l1), 4),
+                #     )
             
             if save_path:
-                np.savez(save_path + '/metrics.npz', psnr=psnr, ssim=ssim, ssim_256=ssim_256, mae=mae, l1=l1, names=names) 
+                np.savez(npz_file, psnr=psnr, ssim=ssim, ssim_256=ssim_256, mae=mae, l1=l1, names=names)
 
         print(
             "PSNR: %.4f" % round(np.mean(psnr), 4),
@@ -646,19 +653,24 @@ if __name__ == "__main__":
     lpips_obj = LPIPS()
     rec = Reconstruction_Metrics()
 
+    exps = ['0712', '0801', '0802', '0803', '0804']
+
     real_path = '/datasets/msha/fashion/train_256'
     gt_path = '/datasets/msha/fashion/test_256'
-    distorated_path = './results/PIDM'
+    for date in exps :
+        distorated_path = f'./results/step_dptn_{date}'
 
-    gt_list, distorated_list = preprocess_path_for_deform_task(gt_path, distorated_path)
+        gt_list, distorated_list = preprocess_path_for_deform_task(gt_path, distorated_path)
 
-    FID = fid.calculate_from_disk(distorated_path, real_path)
-    LPIPS = lpips_obj.calculate_from_disk(distorated_list, gt_list, sort=False)
-    print('LPIPS: ', LPIPS)
-    REC = rec.calculate_from_disk(distorated_list, gt_list, distorated_path, sort=False, debug=False)
+        FID = fid.calculate_from_disk(distorated_path, real_path)
+        LPIPS = lpips_obj.calculate_from_disk(distorated_list, gt_list, sort=False)
+        # print('LPIPS: ', LPIPS)
+        REC = rec.calculate_from_disk(distorated_list, gt_list, distorated_path, sort=False, debug=False)
 
-    print ("FID: "+str(FID)+"\nLPIPS: "+str(LPIPS)+"\nSSIM: "+str(REC))
-
+        # print ("FID: "+str(FID)+"\nLPIPS: "+str(LPIPS)+"\nSSIM: "+str(REC))
+        output = {'FID': round(FID, 4), 'SSIM': round(REC['ssim_256'][0], 4), 'LPIPS': round(LPIPS.item(), 4),
+                  'PSNR': round(REC['psnr'][0], 4)}
+        print(date, output)
 
 
 
