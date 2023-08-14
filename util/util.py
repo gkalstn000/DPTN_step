@@ -13,8 +13,42 @@ import os
 import json
 import cv2
 import math
+import torch.distributed as dist
 
+def init_distributed():
 
+    # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
+    dist_url = "env://" # default
+
+    # only works with torch.distributed.launch // torch.run
+    rank = int(os.environ["RANK"])
+    world_size = int(os.environ['WORLD_SIZE'])
+    local_rank = int(os.environ['LOCAL_RANK'])
+
+    dist.init_process_group(
+            backend="nccl",
+            init_method=dist_url,
+            world_size=world_size,
+            rank=rank)
+
+    # this will make all .cuda() calls work properly
+    torch.cuda.set_device(local_rank)
+    # synchronizes all the threads to reach this point before moving on
+    dist.barrier()
+    setup_for_distributed(rank == 0)
+def setup_for_distributed(is_master):
+    """
+    This function disables printing when not in master process
+    """
+    import builtins as __builtin__
+    builtin_print = __builtin__.print
+
+    def print(*args, **kwargs):
+        force = kwargs.pop('force', False)
+        if is_master or force:
+            builtin_print(*args, **kwargs)
+
+    __builtin__.print = print
 def get_concat_h(imgs):
     width, height = imgs[0].size
     dst = Image.new('RGB', (width * len(imgs), height))
@@ -180,19 +214,27 @@ def save_image_from_array(array, filename) :
     img.save(f'tmp/{filename}.jpg')
 
 # model parameter I/O
-def load_network(net, label, epoch, opt):
-    save_filename = '%s_net_%s.pth' % (epoch, label)
+def load_network(epoch, opt):
+    save_filename = '%s_net.pth' % (epoch)
     save_dir = os.path.join(opt.checkpoints_dir, opt.id)
     save_path = os.path.join(save_dir, save_filename)
-    weights = torch.load(save_path)
-    net.load_state_dict(weights)
-    return net
-def save_network(net, label, epoch, opt):
-    save_filename = '%s_net_%s.pth' % (epoch, label)
+    ckpt = torch.load(save_path, map_location=lambda storage, loc: storage)
+
+    return ckpt
+def save_network(G, D, optG, optD, epoch, opt):
+    save_filename = '%s_net.pth' % (epoch)
     save_path = os.path.join(opt.checkpoints_dir, opt.id, save_filename)
-    torch.save(net.cpu().state_dict(), save_path)
-    if len(opt.gpu_ids) and torch.cuda.is_available():
-        net.cuda()
+
+    torch.save(
+        {
+            "netG": G.state_dict(),
+            "netD": D.state_dict(),
+            "optG": optG.state_dict(),
+            "optD": optD.state_dict()
+        },
+        save_path
+    )
+
 # model parameter I/O
 
 import seaborn as sns
@@ -358,3 +400,58 @@ def positional_matrix(pos, d_model) :
     matrix_expand[:, pos:, :pos] = torch.flip(matrix, dims=[2])
     matrix_expand[:, :pos, :pos] = torch.flip(matrix, dims=[1, 2])
     return matrix_expand
+
+
+def crop_face_from_output(image, face_center, crop_smaller=0):
+    r"""Crop out the face region of the image (and resize if necessary to feed
+    into generator/discriminator).
+
+    Args:
+        image (NxC1xHxW tensor or list of tensors): Image to crop.
+        input_label (list) list of the face center.
+        crop_smaller (int): Number of pixels to crop slightly smaller region.
+    Returns:
+        output (NxC1xHxW tensor or list of tensors): Cropped image.
+    """
+    if type(image) == list:
+        return [crop_face_from_output(im, face_center, crop_smaller)
+                for im in image]
+    output = None
+    face_size = image.shape[-2] // 32 * 8
+    for i in range(face_center.shape[0]):
+        face_position = get_face_bbox_for_output(
+            image,
+            face_center[i],
+            crop_smaller=crop_smaller)
+        if face_position is not None:
+            ys, ye, xs, xe = face_position
+            output_i = torch.nn.functional.interpolate(
+                image[i:i + 1, -3:, ys:ye, xs:xe],
+                size=(face_size, face_size), mode='bilinear',
+                align_corners=True)
+        else:
+            output_i = torch.zeros(1, 3, face_size, face_size, device=image.device)
+        output = torch.cat([output, output_i]) if i != 0 else output_i
+    return output
+
+def get_face_bbox_for_output(image, face_center, crop_smaller=0):
+    _,_,h,w = image.shape
+    if torch.sum(face_center) != -4:
+        xs, ys, xe, ye = face_center
+        xc, yc = (xs + xe) // 2, (ys + ye) // 2
+        ylen = int((xe - xs) * 2.5)
+
+        ylen = xlen = min(w, max(32, ylen))
+        yc = max(ylen // 2, min(h - 1 - ylen // 2, yc))
+        xc = max(xlen // 2, min(w - 1 - xlen // 2, xc))
+
+        ys, ye = int(yc) - ylen // 2, int(yc) + ylen // 2
+        xs, xe = int(xc) - xlen // 2, int(xc) + xlen // 2
+        if crop_smaller != 0:  # Crop slightly smaller region inside face.
+            ys += crop_smaller
+            xs += crop_smaller
+            ye -= crop_smaller
+            xe -= crop_smaller
+        return [ys, ye, xs, xe]
+    else:
+        return None

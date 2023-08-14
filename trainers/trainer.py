@@ -1,15 +1,19 @@
 import models
 import torch
 from models.spade_networks.sync_batchnorm import DataParallelWithCallback
-
+import os
 
 
 class Trainer() :
     def __init__(self, opt):
         super(Trainer, self).__init__()
         self.opt = opt
-        self.model = models.create_model(opt)
-        self.model = DataParallelWithCallback(self.model, device_ids = opt.gpu_ids)
+        self.model = models.create_model(opt).cuda()
+        # self.model = DataParallelWithCallback(self.model, device_ids = opt.gpu_ids)
+        self.model = torch.nn.parallel.DistributedDataParallel(self.model,
+                                                               device_ids=[int(os.environ['LOCAL_RANK'])],
+                                                               find_unused_parameters=True
+        )
 
         self.generated = None
         if opt.isTrain :
@@ -45,7 +49,7 @@ class Trainer() :
         self.update_learning_rate(epoch)
 
     def save(self, epoch):
-        self.model.module.save(epoch)
+        self.model.module.save(epoch, self.optimizer_G, self.optimizer_D)
 
     ##################################################################
     # Helper functions

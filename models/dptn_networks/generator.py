@@ -62,33 +62,32 @@ class DPTNGenerator(BaseNetwork):
         return self.positional_encoding(step)
 
     def forward(self,
-                source_img,
                 source_bone,
                 target_bone,
                 source_img_step,
                 xt,
                 step):
-        b, c, h, w = source_img.size()
+        b, c, h, w = source_img_step.size()
         pt = self.positional_encoding(step).view(1, 1, h, w)
         xt = xt + pt
 
         ps = self.positional_encoding(step+1).view(1, 1, h, w)
         source_img_step = source_img_step + ps
 
-        texture_information = [source_bone, source_img]  # [canonical_bone, source_bone, source_image]
+        texture_information = None  # [canonical_bone, source_bone, source_image]
         # Encode source-to-source
         F_s_s = self.En_c(source_bone, source_img_step, texture_information)
         # Encode source-to-target
         F_s_t = self.En_c(target_bone, xt, texture_information)
 
         # Source Image Encoding
-        F_s = self.En_s(source_img)
+        F_s = self.En_s(source_img_step)
         # Pose Transformer Module for Dual-task Correlation
         F_s_t, _, _ = self.PTM(F_s_s, F_s_t, F_s)
         # Source-to-source Decoder (only for training)
         out_image_s = self.De(F_s_s, texture_information)
         # Source-to-target Decoder
-        texture_information = [source_bone, source_img] # [target_bone, source_bone, source_image]
+        texture_information = None # [target_bone, source_bone, source_image]
         out_image_t = self.De(F_s_t, texture_information)
 
         return out_image_t, out_image_s

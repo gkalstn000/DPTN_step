@@ -340,3 +340,4 @@ class VGG19(torch.nn.Module):
             'relu5_4': relu5_4,
         }
         return out
+

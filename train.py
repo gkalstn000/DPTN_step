@@ -7,16 +7,27 @@ from options.train_options import TrainOptions
 from trainers.trainer import Trainer, get_valid_bone_tensors
 from util.iter_counter import IterationCounter
 from util.visualizer import Visualizer
+
+from util.util import init_distributed
+
 import torch
 import data
 import time
-
+import wandb
 
 # parse options
 opt = TrainOptions().parse()
-
+if opt.debug :
+    opt.display_freq = 1
+    opt.print_freq = 1
+    opt.save_latest_freq = 1
+    opt.save_epoch_freq = 1
 # print options to help debugging
 print(' '.join(sys.argv))
+
+opt.deterministic = False
+opt.benchmark = True
+init_distributed()
 
 # load the dataset
 dataloader = data.create_dataloader(opt)
@@ -31,10 +42,6 @@ trainer = Trainer(opt)
 
 iter_counter = IterationCounter(opt, len(dataloader))
 visualizer = Visualizer(opt)
-
-
-
-
 
 for epoch in iter_counter.training_epochs():
     iter_counter.record_epoch_start(epoch)

@@ -86,11 +86,15 @@ class FashionDataset(BaseDataset) :
         B1 = self.obtain_bone(P1_name)
         B2 = self.obtain_bone(P2_name)
 
+        F1 = self.obtain_face_center(P1_name)
+        F2 = self.obtain_face_center(P2_name)
 
         input_dict = {'src_image' : P1,
                       'src_map': B1,
+                      'src_face': F1,
                       'tgt_image': P2,
                       'tgt_map': B2,
+                      'tgt_face': F2,
                       'path': PC_name}
 
 

@@ -47,8 +47,15 @@ def create_dataloader(opt, valid = False):
     dataloader = torch.utils.data.DataLoader(
         instance,
         batch_size=opt.batchSize,
+        sampler=data_sampler(instance, shuffle=opt.isTrain, distributed=True),
         drop_last=opt.isTrain,
         num_workers= opt.num_workers ,
-        shuffle = opt.isTrain
     )
     return dataloader
+def data_sampler(dataset, shuffle, distributed):
+    if distributed:
+        return torch.utils.data.distributed.DistributedSampler(dataset, shuffle=shuffle)
+    if shuffle:
+        return torch.utils.data.RandomSampler(dataset)
+    else:
+        return torch.utils.data.SequentialSampler(dataset)

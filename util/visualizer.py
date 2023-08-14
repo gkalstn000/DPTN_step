@@ -15,6 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 from PIL import Image
 import torch
+import wandb
 
 try:
     from StringIO import StringIO  # Python 2.7
@@ -23,6 +24,9 @@ except ImportError:
 
 class Visualizer():
     def __init__(self, opt):
+        wandb.login()
+        wandb.init(project="DPTN", name=opt.id, settings=wandb.Settings(code_dir="."), resume=False)
+        self.wandb = wandb
         self.opt = opt
         self.tf_log = opt.isTrain and opt.tf_log
         self.use_html = opt.isTrain and not opt.no_html
@@ -54,8 +58,11 @@ class Visualizer():
             img_summaries = []
             for label, image_numpy in visuals.items():
                 # Create an Image object
-                self.writer.add_image(label, torch.tensor(image_numpy.transpose((2, 0, 1))), step)
-                self.writer.flush()
+                image = Image.fromarray(image_numpy.astype(np.uint8))
+                self.wandb.log({label: self.wandb.Image(image)})
+
+                # self.writer.add_image(label, torch.tensor(image_numpy.transpose((2, 0, 1))), step)
+                # self.writer.flush()
 
 
         if self.use_html:  # save images to a html file
@@ -101,10 +108,13 @@ class Visualizer():
     # errors: dictionary of error labels and values
     def plot_current_errors(self, errors, step):
         if self.tf_log:
-            for tag, value in errors.items():
-                value = value.mean().float()
-                self.writer.add_scalar(tag, value.detach().cpu(), step)
-                self.writer.flush()
+            self.wandb.log(errors)
+            # for tag, value in errors.items():
+            #     value = value.mean().float()
+            #
+            #
+            #     self.writer.add_scalar(tag, value.detach().cpu(), step)
+            #     self.writer.flush()
 
 
     # errors: same format as |errors| of plotCurrentErrors

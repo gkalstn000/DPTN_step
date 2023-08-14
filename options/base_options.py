@@ -61,6 +61,7 @@ class BaseOptions():
         parser.add_argument('--num_TTBs', type=int, default=2, help="number of CABs in PTM")
         parser.add_argument('--pos_encoding', action='store_true', help="pos_encoding")
         parser.add_argument('--step_size', type=int, default=5, help="gen step size")
+        parser.add_argument('--local_rank', type=int, default=0)
 
         self.initialized = True
         return parser
@@ -157,8 +158,8 @@ class BaseOptions():
             id = int(str_id)
             if id >= 0:
                 opt.gpu_ids.append(id)
-        if len(opt.gpu_ids) > 0:
-            torch.cuda.set_device(opt.gpu_ids[0])
+        # if len(opt.gpu_ids) > 0:
+        #     torch.cuda.set_device(opt.gpu_ids[0])
 
         assert len(opt.gpu_ids) == 0 or opt.batchSize % len(opt.gpu_ids) == 0, \
             "Batch size %d is wrong. It must be a multiple of # GPUs %d." \
