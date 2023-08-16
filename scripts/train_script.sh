@@ -55,4 +55,4 @@
 #nohup python train.py --id step_dptn --tf_log --gpu_ids 2 --netG dptn --batchSize 5 --num_workers 5 > step_dptn.out &
 
 
-CUDA_VISIBLE_DEVICES=0,1 nohup python -m torch.distributed.launch --nproc_per_node=2 --master_port 15142 train.py --id step_dptn_steploss --tf_log --netG dptn --batchSize 6 --num_workers 3 --dataroot /home/work/msha/datasets/fashion > step_dptn_steploss.out &
+CUDA_VISIBLE_DEVICES=0,1 nohup python -m torch.distributed.launch --nproc_per_node=2 --master_port 15142 train.py --id step_dptn_steploss --tf_log --netG dptn --batchSize 6 --num_workers 3 --dataroot /home/work/msha/datasets/fashion  > step_dptn_steploss.out &

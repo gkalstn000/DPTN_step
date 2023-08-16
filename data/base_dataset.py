@@ -41,11 +41,14 @@ class BaseDataset(data.Dataset):
         return torch.cat([keypoint, limb])
 
     def obtain_face_center(self, name):
+        load_size = self.opt.load_size
+        old_size = self.opt.old_size
+
         y, x = self.annotation_file.loc[name]
         keypoint = util.make_coord_array(y, x)
         if int(keypoint[14, 0]) != -1 and int(keypoint[15, 0]) != -1:
-            y0, x0 = keypoint[14, 0:2]
-            y1, x1 = keypoint[15, 0:2]
+            y0, x0 = keypoint[14, 0:2] / old_size * load_size
+            y1, x1 = keypoint[15, 0:2] / old_size * load_size
             face_center = torch.tensor([y0, x0, y1, x1]).float()
         else:
             face_center = torch.tensor([-1, -1, -1, -1]).float()

@@ -25,7 +25,7 @@ class DPTNModel(nn.Module) :
             self.GANloss = loss.GANLoss(opt.gan_mode).cuda()
             self.L1loss = torch.nn.L1Loss()
             self.Vggloss = loss.VGGLoss().cuda()
-            self.CE = torch.nn.CrossEntropyLoss()
+            self.CE = torch.nn.NLLLoss()
             self.Faceloss = PerceptualLoss(network= 'vgg19',
                                            layers= ['relu_1_1', 'relu_2_1', 'relu_3_1', 'relu_4_1', 'relu_5_1'],
                                            num_scales=1,
@@ -75,6 +75,11 @@ class DPTNModel(nn.Module) :
     def initialize_networks(self, opt):
         netG = networks.define_G(opt)
         netD = networks.define_D(opt) if opt.isTrain else None
+        print('load pre-trained step_dptn model')
+        ckpt = torch.load('./checkpoints/pretrained_step_dptn.pth', map_location=lambda storage, loc: storage)
+        netG.load_state_dict(ckpt['netG'])
+        netD.load_state_dict(ckpt['netD'])
+        print('load pre-trained step_dptn Done')
 
         if not opt.isTrain or opt.continue_train:
             ckpt = util.load_network(opt.which_epoch, opt)
@@ -110,8 +115,7 @@ class DPTNModel(nn.Module) :
         fake_image = torch.cat(fake_image, 0)
         target_image = torch.cat(target_image, 0)
         face = torch.cat([face for _ in range(self.opt.step_size)], 0)
-        step_true = torch.tensor([i for i in range(self.opt.step_size) for _ in range(self.opt.batchSize)])
-        step_true = torch.eye(self.opt.step_size)[step_true].float().to(face.device)
+        step_true = torch.tensor([i for i in range(self.opt.step_size) for _ in range(self.opt.batchSize)]).long().to(face.device)
 
         loss_app_gen = self.L1loss(fake_image, target_image) * self.opt.lambda_rec
         cont, style = self.Vggloss(fake_image, target_image)
@@ -153,8 +157,8 @@ class DPTNModel(nn.Module) :
         return G_losses, vis_tgt, vis_src
     def backward_D_basic(self, real, fake):
         b, c, h, w = real.size()
-        step_true = torch.tensor([i for i in range(self.opt.step_size) for _ in range(self.opt.batchSize)])
-        step_true = torch.eye(self.opt.step_size)[step_true].float().to(real.device)
+        step_true = torch.tensor([i for i in range(self.opt.step_size) for _ in range(self.opt.batchSize)]).long().to(real.device)
+
         # Real
         D_real, step_pred_true = self.netD(real)
         D_real_loss = self.GANloss(D_real, True, True)

@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.utils.spectral_norm import spectral_norm as SpectralNorm
 
 from models.dptn_networks.base_network import BaseNetwork
@@ -44,7 +45,6 @@ class ResDiscriminator(BaseNetwork):
                                      nn.ReLU(),
                                      nn.Linear(256, opt.step_size),
                                      )
-        self.softmax = nn.Softmax(-1)
     def forward(self, x):
         out = self.block0(x)
         for i in range(self.layers - 1):
@@ -53,4 +53,4 @@ class ResDiscriminator(BaseNetwork):
         b, c, h, w = out.size()
         step = self.fc_step(out.view(b, -1))
         pred = self.conv(self.nonlinearity(out))
-        return pred, self.softmax(step)
+        return pred, F.log_softmax(step, 1)
