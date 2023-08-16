@@ -653,12 +653,12 @@ if __name__ == "__main__":
     lpips_obj = LPIPS()
     rec = Reconstruction_Metrics()
 
-    exps = ['0712', '0801', '0802', '0803', '0804']
+    exps = ['step_dptn']
 
     real_path = '/datasets/msha/fashion/train_256'
     gt_path = '/datasets/msha/fashion/test_256'
     for date in exps :
-        distorated_path = f'./results/step_dptn_{date}'
+        distorated_path = f'./results/{date}'
 
         gt_list, distorated_list = preprocess_path_for_deform_task(gt_path, distorated_path)
 
