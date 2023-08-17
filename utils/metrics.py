@@ -98,7 +98,7 @@ class FID():
         m2, s2 = self.compute_statistics_of_path(generated_path, self.verbose)
         print('calculate frechet distance...')
         fid_value = self.calculate_frechet_distance(m1, s1, m2, s2)
-        print('fid_distance %f' % (fid_value))
+        # print('fid_distance %f' % (fid_value))
         return fid_value        
 
 
@@ -372,18 +372,18 @@ class Reconstruction_Metrics():
             if save_path:
                 np.savez(npz_file, psnr=psnr, ssim=ssim, ssim_256=ssim_256, mae=mae, l1=l1, names=names)
 
-        print(
-            "PSNR: %.4f" % round(np.mean(psnr), 4),
-            "PSNR Variance: %.4f" % round(np.var(psnr), 4),
-            "SSIM: %.4f" % round(np.mean(ssim), 4),
-            "SSIM Variance: %.4f" % round(np.var(ssim), 4),
-            "SSIM_256: %.4f" % round(np.mean(ssim_256), 4),
-            "SSIM_256 Variance: %.4f" % round(np.var(ssim_256), 4),            
-            "MAE: %.4f" % round(np.mean(mae), 4),
-            "MAE Variance: %.4f" % round(np.var(mae), 4),
-            "l1: %.4f" % round(np.mean(l1), 4),
-            "l1 Variance: %.4f" % round(np.var(l1), 4)    
-        ) 
+        # print(
+        #     "PSNR: %.4f" % round(np.mean(psnr), 4),
+        #     "PSNR Variance: %.4f" % round(np.var(psnr), 4),
+        #     "SSIM: %.4f" % round(np.mean(ssim), 4),
+        #     "SSIM Variance: %.4f" % round(np.var(ssim), 4),
+        #     "SSIM_256: %.4f" % round(np.mean(ssim_256), 4),
+        #     "SSIM_256 Variance: %.4f" % round(np.var(ssim_256), 4),
+        #     "MAE: %.4f" % round(np.mean(mae), 4),
+        #     "MAE Variance: %.4f" % round(np.var(mae), 4),
+        #     "l1: %.4f" % round(np.mean(l1), 4),
+        #     "l1 Variance: %.4f" % round(np.var(l1), 4)
+        # )
 
         dic = {"psnr":[round(np.mean(psnr), 6)],
                "psnr_variance": [round(np.var(psnr), 6)],
@@ -533,7 +533,7 @@ class LPIPS():
 
         distance = torch.cat(result,0)[:,0,0,0].mean()
 
-        print('lpips: %.3f'%distance)
+        # print('lpips: %.3f'%distance)
         return distance
 
     def calculate_mask_lpips(self, path_1, path_2, batch_size=64, verbose=False, sort=True):
@@ -653,7 +653,7 @@ if __name__ == "__main__":
     lpips_obj = LPIPS()
     rec = Reconstruction_Metrics()
 
-    exps = ['step_dptn']
+    exps = ['NTED', 'DPTN_higher_spade_dec', 'DPTN_higher']
 
     real_path = '/datasets/msha/fashion/train_256'
     gt_path = '/datasets/msha/fashion/test_256'
