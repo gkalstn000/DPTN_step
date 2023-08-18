@@ -13,7 +13,7 @@ class TestOptions(BaseOptions):
         parser.add_argument('--which_epoch', type=str, default='latest', help='which epoch to load? set to latest to use latest cached model')
         parser.add_argument('--how_many', type=int, default=float("inf"), help='how many test images to run')
         parser.add_argument('--simple_test', action='store_true', help='use spectual normalization in generator')
-        parser.add_argument('--save_id', type=str, default='step_dptn')
+        parser.add_argument('--save_id', type=str)
 
         parser.set_defaults(phase='test')
         self.isTrain = False

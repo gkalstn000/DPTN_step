@@ -5,6 +5,8 @@ import models.dptn_networks as networks
 import util.util as util
 from models.dptn_networks import loss
 from collections import defaultdict
+import torch.nn.functional as F
+
 class DPTNModel(nn.Module) :
     @staticmethod
     def modify_commandline_options(parser, is_train):
@@ -75,11 +77,12 @@ class DPTNModel(nn.Module) :
     def initialize_networks(self, opt):
         netG = networks.define_G(opt)
         netD = networks.define_D(opt) if opt.isTrain else None
-        print('load pre-trained step_dptn model')
-        ckpt = torch.load('./checkpoints/pretrained_step_dptn.pth', map_location=lambda storage, loc: storage)
-        netG.load_state_dict(ckpt['netG'])
-        netD.load_state_dict(ckpt['netD'])
-        print('load pre-trained step_dptn Done')
+        # if opt.isTrain :
+        #     print('load pre-trained step_dptn model')
+        #     ckpt = torch.load('./checkpoints/pretrained_step_dptn.pth', map_location=lambda storage, loc: storage)
+        #     netG.load_state_dict(ckpt['netG'])
+        #     netD.load_state_dict(ckpt['netD'])
+        #     print('load pre-trained step_dptn Done')
 
         if not opt.isTrain or opt.continue_train:
             ckpt = util.load_network(opt.which_epoch, opt)
@@ -244,6 +247,7 @@ class DPTNModel(nn.Module) :
         return len(self.opt.gpu_ids) > 0
 
     def get_groundtruth(self, img_tensor, step):
+
         total_step = self.opt.step_size
         if step == total_step : return img_tensor
         dstep = 255 // total_step

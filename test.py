@@ -9,9 +9,15 @@ from util.visualizer import Visualizer
 from util import html, util
 from collections import OrderedDict
 import os
+from util.util import init_distributed
 
 
 opt = TestOptions().parse()
+
+opt.deterministic = False
+opt.benchmark = True
+init_distributed()
+
 dataloader = data.create_dataloader(opt)
 
 model = models.create_model(opt)
@@ -28,26 +34,22 @@ if not opt.simple_test:
 
 trans = T.ToPILImage()
 result_path = os.path.join(opt.results_dir, opt.save_id)
-util.mkdirs(result_path)
+for step in range(opt.step_size) :
+    util.mkdirs(result_path+f'_{step+1}')
 # test
 for i, data_i in enumerate(tqdm(dataloader)):
-    (fake_target, fake_source), _ = model(data_i, mode='inference')
-    fake_target = fake_target[-1]
+    (fake_targets, fake_sources), _ = model(data_i, mode='inference')
+    # fake_target = fake_target[-1]
 
     img_path = data_i['path']
-    if opt.simple_test:
+    for step in range(opt.step_size) :
+        fake_target = fake_targets[step]
         fake_target = (fake_target + 1) / 2
         for k in range(fake_target.shape[0]) :
             filename = img_path[k].replace('jpg', 'png')
             generated_image = trans(fake_target[k].cpu())
-            generated_image.save(os.path.join(result_path, filename))
-        continue
-    for b in range(fake_target.shape[0]):
-        # print('process image... %s' % img_path[b])
-        visuals = OrderedDict([('src_image', data_i['src_image'].cpu()),
-                                   ('real_image', data_i['tgt_image'].cpu()),
-                                   ('synthesized_target_image', fake_target.cpu()),
-                                   ])
-        visualizer.save_images(webpage, visuals, img_path[b:b + 1])
+            generated_image.save(os.path.join(result_path+f'_{step+1}', filename))
+
+
 if not opt.simple_test:
     webpage.save()

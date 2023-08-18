@@ -127,7 +127,7 @@ def point_to_map(point, size=[256, 256], sigma=6) :
 
 def is_valid_point(point, old_size) :
     return (0 <= point[0] < old_size[0]) and (0 <= point[1] < old_size[1])
-def cords_to_map(cords, opt, sigma=2):
+def cords_to_map(cords, opt, sigma=6):
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
     :param img_size: load image size/ type: tuple/ (H, W)
@@ -152,7 +152,7 @@ def cords_to_map(cords, opt, sigma=2):
 
     return np.stack(result)
 
-def limbs_to_map(cords, opt, sigma=2) :
+def limbs_to_map(cords, opt, sigma=3) :
     '''
     :param cords: keypoint coordinates / type: np.array/ shape: (B, 18, 2)
     :param img_size: load image size/ type: tuple/ (H, W)
