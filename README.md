@@ -33,7 +33,7 @@ Building upon the framework of **[Auxiliary Classifier GAN (ACGAN)](https://proc
 
 This modification to the ACGAN framework not only stabilizes the training process but also improves the overall quality of the generated images.
 
-![img](https://user-images.githubusercontent.com/26128046/282387633-0e9c8b01-d0b7-4a80-bd1a-35ee52dd9a8d.png)](https://user-images.githubusercontent.com/26128046/282387633-0e9c8b01-d0b7-4a80-bd1a-35ee52dd9a8d.png)
+![img](https://user-images.githubusercontent.com/26128046/282387633-0e9c8b01-d0b7-4a80-bd1a-35ee52dd9a8d.png)
 
 ## Installation
 
@@ -130,7 +130,7 @@ eval_step.py
 
 ## Results
 
-![img](https://user-images.githubusercontent.com/26128046/282387633-0e9c8b01-d0b7-4a80-bd1a-35ee52dd9a8d.png)![image](https://user-images.githubusercontent.com/26128046/282402331-8da24e55-66b6-4d8a-9115-98a65c8f48f0.png)
+![image](https://user-images.githubusercontent.com/26128046/282402331-8da24e55-66b6-4d8a-9115-98a65c8f48f0.png)
 
 
 
@@ -139,6 +139,10 @@ Proposed training scheme can generate more detailed texture results than DPTN (b
 * Achieved much lower FID score than DPTN
 
 ![table](https://user-images.githubusercontent.com/26128046/282402483-ced97f85-c1ea-41e7-aa02-3b7d4e75fe80.png)
+
+---
+
+
 
 ## Style Mixing
 
@@ -153,3 +157,4 @@ Proposed training scheme can generate more detailed texture results than DPTN (b
 We can mix styles without any additional processes, simply by inputting different style images at different steps.
 
 This experiment reveals that in the initial steps, the synthesis primarily involves detailed styles (such as hair, gender, facial features, etc.), and as we progress to the later steps, more universal styles (like clothing color, etc.) are integrated into the synthesis.
+
